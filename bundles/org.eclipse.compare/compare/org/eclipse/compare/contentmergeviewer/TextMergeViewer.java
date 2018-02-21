@@ -16,6 +16,7 @@
  *     Stephan Herrmann (stephan@cs.tu-berlin.de) - Bug 291695: Element compare fails to use source range
  *     Robin Stocker (robin@nibor.org) - Bug 398594: [Edit] Enable center arrow buttons when editable and for both sides
  *     Robin Stocker (robin@nibor.org) - Bug 399960: [Edit] Make merge arrow buttons easier to hit
+ *     Stefan Dirix (sdirix@eclipsesource.com) - Bug 473847: Minimum E4 Compatibility of Compare
  *******************************************************************************/
 package org.eclipse.compare.contentmergeviewer;
 
@@ -1982,7 +1983,9 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 	 */
 	@Override
 	protected void createControls(Composite composite) {
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, ICompareContextIds.TEXT_MERGE_VIEW);
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, ICompareContextIds.TEXT_MERGE_VIEW);
+		}
 
 		// 1st row
 		if (fMarginWidth > 0) {

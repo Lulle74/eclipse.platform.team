@@ -33,6 +33,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.*;
@@ -53,7 +54,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -649,9 +649,12 @@ public class PreviewPatchPage2 extends WizardPage {
 	private int guessFuzzFactor(final WorkspacePatcher patcher) {
 		final int[] result= new int[] { -1 };
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(true, true,
-					monitor -> result[0]= patcher.guessFuzzFactor(monitor)
-			);
+			org.eclipse.compare.internal.Utilities.executeRunnable(new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) {
+					result[0] = patcher.guessFuzzFactor(monitor);
+				}
+			});
 		} catch (InvocationTargetException ex) {
 			// NeedWork
 		} catch (InterruptedException ex) {

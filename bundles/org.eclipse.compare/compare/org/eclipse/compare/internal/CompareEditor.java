@@ -447,7 +447,11 @@ public class CompareEditor extends EditorPart
 					}
 				}
 				fPageBook.showPage(fControl);
-				PlatformUI.getWorkbench().getHelpSystem().setHelp(fControl, ICompareContextIds.COMPARE_EDITOR);
+
+				if (PlatformUI.isWorkbenchRunning()) {
+					PlatformUI.getWorkbench().getHelpSystem().setHelp(fControl, ICompareContextIds.COMPARE_EDITOR);
+				}
+
 				if (isActive()) {
 					setFocus();
 				}

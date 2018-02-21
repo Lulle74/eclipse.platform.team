@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stefan Dirix (sdirix@eclipsesource.com) - Bug 473847: Minimum E4 Compatibility of Compare
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
@@ -40,7 +41,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.PlatformUI;
 
 public class CompareStructureViewerSwitchingPane extends
 		CompareViewerSwitchingPane {
@@ -109,8 +109,7 @@ public class CompareStructureViewerSwitchingPane extends
 		toolBar = new ToolBar(composite, SWT.FLAT);
 		toolBar.setVisible(false); // hide by default
 		final ToolItem toolItem = new ToolItem(toolBar, SWT.PUSH, 0);
-		toolItem.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(
-				/* IWorkbenchGraphicConstants */"IMG_LCL_VIEW_MENU")); //$NON-NLS-1$
+		Utilities.setMenuImage(toolItem);
 		toolItem
 				.setToolTipText(CompareMessages.CompareStructureViewerSwitchingPane_switchButtonTooltip);
 		toolItem.addSelectionListener(new SelectionAdapter() {

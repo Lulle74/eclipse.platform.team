@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stefan Dirix (sdirix@eclipsesource.com) - Bug 473847: Minimum E4 Compatibility of Compare     
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
@@ -208,7 +209,7 @@ public class CompareDialog extends TrayDialog implements IPropertyChangeListener
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		if (getHelpContextId() != null)
+		if (PlatformUI.isWorkbenchRunning() && getHelpContextId() != null)
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell, getHelpContextId());
 	}
 

@@ -211,6 +211,9 @@ public class EditionAction extends BaseCompareAction {
 	}
 
 	private IDocument getDocument(IFile file) {
+		if (!PlatformUI.isWorkbenchRunning()) {
+			return null;
+		}
 		IWorkbench wb= PlatformUI.getWorkbench();
 		if (wb == null)
 			return null;

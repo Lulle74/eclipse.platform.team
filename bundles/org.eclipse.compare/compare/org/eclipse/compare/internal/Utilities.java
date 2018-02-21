@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Stefan Dirix (sdirix@eclipsesource.com) - Bug 473847: Minimum E4 Compatibility of Compare
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
@@ -57,6 +58,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SafeRunner;
@@ -66,6 +68,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -74,9 +77,13 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IActionBars;
@@ -85,6 +92,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
@@ -906,5 +914,65 @@ public class Utilities {
 			}
 		}
 		return buffer.toString();
+	}
+
+	/**
+	 * Executes the given runnable. Uses the {@link org.eclipse.ui.progress.IProgressService IProgressService}
+	 * if available.
+	 *
+	 * @param runnable
+	 *            The {@link IRunnableWithProgress} to execute.
+	 * @throws InvocationTargetException
+	 * @throws InterruptedException
+	 */
+	public static void executeRunnable(IRunnableWithProgress runnable) throws InvocationTargetException,
+			InterruptedException {
+		executeRunnable(runnable, true, true);
+	}
+
+	/**
+	 * Executes the given runnable. Uses the {@link org.eclipse.ui.progress.IProgressService IProgressService}
+	 * if available.
+	 *
+	 * @param runnable
+	 *            The {@link IRunnableWithProgress} to execute.
+	 * @param fork indicates whether to run within a separate thread.
+	 * @param cancelable indicates whether the operation shall be cancelable
+	 * @throws InvocationTargetException
+	 * @throws InterruptedException
+	 */
+	public static void executeRunnable(IRunnableWithProgress runnable, boolean fork, boolean cancelable) throws InvocationTargetException,
+			InterruptedException {
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getProgressService().run(fork, cancelable, runnable);
+		} else {
+			runnable.run(new NullProgressMonitor());
+		}
+	}
+
+	/**
+	 * Sets the menu image for the given {@link Item}. Uses the workbench shared image if available, otherwise
+	 * creates a new image and adds a dispose listener.
+	 *
+	 * @param item
+	 *            The {@link Item} for which the menu image is to be set.
+	 */
+	public static void setMenuImage(final Item item) {
+		final Image image;
+		if (PlatformUI.isWorkbenchRunning()) {
+			image = PlatformUI.getWorkbench().getSharedImages().getImage(
+			/* IWorkbenchGraphicConstants */"IMG_LCL_VIEW_MENU"); //$NON-NLS-1$
+		} else {
+			image = CompareUIPlugin.getImageDescriptor("elcl16/view_menu.png").createImage(); //$NON-NLS-1$
+			item.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					Image img = item.getImage();
+					if ((img != null) && (!img.isDisposed())) {
+						img.dispose();
+					}
+				}
+			});
+		}
+		item.setImage(image);
 	}
 }

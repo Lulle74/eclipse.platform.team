@@ -26,8 +26,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
 
 /**
  * A document merger manages the differences between two documents
@@ -555,17 +553,17 @@ public class DocumentMerger {
 			}
 			monitor.done();
 		};
-		IProgressService progressService= PlatformUI.getWorkbench().getProgressService();
 
 		RangeDifference[] e= null;
 		try {
-			progressService.run(true, true, runnable);
+			Utilities.executeRunnable(runnable);
 			e= (RangeDifference[]) result[0];
 		} catch (InvocationTargetException ex) {
 			throw new CoreException(new Status(IStatus.ERROR, CompareUIPlugin.PLUGIN_ID, 0, CompareMessages.DocumentMerger_3, ex.getTargetException()));
 		} catch (InterruptedException ex) {
 			//
 		}
+
 
 		if (e != null) {
 			for (int i= 0; i < e.length; i++) {
