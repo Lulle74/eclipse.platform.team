@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
-Bundle-SymbolicName: org.eclipse.compare; singleton:=true
+Bundle-SymbolicName: org.eclipse.compare;singleton:=true
 Bundle-Version: 3.7.200.qualifier
 Bundle-Activator: org.eclipse.compare.internal.CompareUIPlugin
 Bundle-Vendor: %providerName
@@ -13,19 +13,36 @@ Export-Package: org.eclipse.compare,
  org.eclipse.compare.internal.patch;x-internal:=true,
  org.eclipse.compare.patch,
  org.eclipse.compare.structuremergeviewer
-Require-Bundle: org.eclipse.ui;bundle-version="[3.5.0,4.0.0)",
- org.eclipse.core.resources;bundle-version="[3.4.0,4.0.0)",
+Require-Bundle: org.eclipse.core.resources;bundle-version="[3.4.0,4.0.0)",
  org.eclipse.jface.text;bundle-version="[3.8.0,4.0.0)",
- org.eclipse.ui.ide;bundle-version="[3.3.0,4.0.0)",
- org.eclipse.ui.views;bundle-version="[3.2.0,4.0.0)",
- org.eclipse.ui.workbench.texteditor;bundle-version="[3.5.0,4.0.0)",
  org.eclipse.core.runtime;bundle-version="[3.2.0,4.0.0)",
  org.eclipse.core.expressions;bundle-version="[3.2.0,4.0.0)",
- org.eclipse.ui.editors;bundle-version="[3.5.0,4.0.0)",
  org.eclipse.ui.forms;bundle-version="[3.2.0,4.0.0)",
- org.eclipse.compare.core;bundle-version="[3.5.0,4.0.0)";visibility:=reexport
+ org.eclipse.compare.core;bundle-version="[3.5.0,4.0.0)";visibility:=reexport,
+ org.eclipse.jface;bundle-version="3.13.0",
+ org.eclipse.core.filebuffers
 Bundle-ActivationPolicy: lazy
-Import-Package: com.ibm.icu.util,
- com.ibm.icu.text
+Import-Package: com.ibm.icu.text,
+ com.ibm.icu.util,
+ org.eclipse.ui,
+ org.eclipse.ui.actions,
+ org.eclipse.ui.commands,
+ org.eclipse.ui.contexts,
+ org.eclipse.ui.dialogs,
+ org.eclipse.ui.editors.text,
+ org.eclipse.ui.handlers,
+ org.eclipse.ui.help,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.menus,
+ org.eclipse.ui.model,
+ org.eclipse.ui.operations,
+ org.eclipse.ui.part,
+ org.eclipse.ui.plugin,
+ org.eclipse.ui.preferences,
+ org.eclipse.ui.progress,
+ org.eclipse.ui.services,
+ org.eclipse.ui.texteditor,
+ org.eclipse.ui.views.contentoutline,
+ org.eclipse.ui.views.navigator
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: org.eclipse.compare
