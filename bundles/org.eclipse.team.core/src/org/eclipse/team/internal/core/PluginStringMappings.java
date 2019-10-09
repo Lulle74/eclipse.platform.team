@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +14,14 @@
 
 package org.eclipse.team.internal.core;
 
-import java.util.*;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.team.core.Team;
 
 /**
@@ -21,63 +29,60 @@ import org.eclipse.team.core.Team;
  */
 public class PluginStringMappings {
 
-    private final String fExtensionID;
-    private final String fAttributeName;
+	private final String fExtensionID;
+	private final String fAttributeName;
 
-    private SortedMap<String, Integer> fMappings;
+	private SortedMap<String, Integer> fMappings;
 
-    public PluginStringMappings(String extensionID, String stringAttributeName) {
-        fExtensionID= extensionID;
-        fAttributeName= stringAttributeName;
-    }
+	public PluginStringMappings(String extensionID, String stringAttributeName) {
+		fExtensionID= extensionID;
+		fAttributeName= stringAttributeName;
+	}
 
-    /**
-     * Load all the extension patterns contributed by plugins.
-     * @return a map with the patterns
-     */
-    private SortedMap<String, Integer> loadPluginPatterns() {
+	/**
+	 * Load all the extension patterns contributed by plugins.
+	 * @return a map with the patterns
+	 */
+	private SortedMap<String, Integer> loadPluginPatterns() {
 
-        final SortedMap<String, Integer> result= new TreeMap<>();
+		final SortedMap<String, Integer> result= new TreeMap<>();
 
-        final TeamPlugin plugin = TeamPlugin.getPlugin();
-        if (plugin == null)
-            return result;
+		final TeamPlugin plugin = TeamPlugin.getPlugin();
+		if (plugin == null)
+			return result;
 
-        final IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(TeamPlugin.ID, fExtensionID);//TeamPlugin.FILE_TYPES_EXTENSION);
-        if (extension == null)
-            return result;
+		final IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(TeamPlugin.ID, fExtensionID);//TeamPlugin.FILE_TYPES_EXTENSION);
+		if (extension == null)
+			return result;
 
-        final IExtension[] extensions =  extension.getExtensions();
+		final IExtension[] extensions =  extension.getExtensions();
 
-        for (int i = 0; i < extensions.length; i++) {
-            IConfigurationElement[] configElements = extensions[i].getConfigurationElements();
+		for (IExtension e : extensions) {
+			IConfigurationElement[] configElements = e.getConfigurationElements();
+			for (IConfigurationElement configElement : configElements) {
+				final String ext = configElement.getAttribute(fAttributeName); //"extension");
+				final String type = configElement.getAttribute("type"); //$NON-NLS-1$
+				if (ext == null || type == null)
+					continue;
+				if (type.equals("text")) { //$NON-NLS-1$
+					result.put(ext, Integer.valueOf(Team.TEXT));
+				} else if (type.equals("binary")) { //$NON-NLS-1$
+					result.put(ext, Integer.valueOf(Team.BINARY));
+				}
+			}
+		}
+		return result;
+	}
 
-            for (int j = 0; j < configElements.length; j++) {
+	public Map<String, Integer> referenceMap() {
+		if (fMappings == null) {
+			fMappings= loadPluginPatterns();
+		}
+		return fMappings;
+	}
 
-                final String ext = configElements[j].getAttribute(fAttributeName);//"extension");
-                final String type = configElements[j].getAttribute("type"); //$NON-NLS-1$
-                if (ext == null || type == null)
-                    continue;
-
-                if (type.equals("text")) { //$NON-NLS-1$
-                    result.put(ext, Integer.valueOf(Team.TEXT));
-                } else if (type.equals("binary")) { //$NON-NLS-1$
-                    result.put(ext, Integer.valueOf(Team.BINARY));
-                }
-            }
-        }
-        return result;
-    }
-
-    public Map<String, Integer> referenceMap() {
-        if (fMappings == null) {
-            fMappings= loadPluginPatterns();
-        }
-        return fMappings;
-    }
-
-    public int getType(String filename) {
-        final Map<String, Integer> mappings= referenceMap();
-        return mappings.containsKey(filename) ? mappings.get(filename).intValue() : Team.UNKNOWN;
-    }
+	public int getType(String filename) {
+		final Map<String, Integer> mappings= referenceMap();
+		return mappings.containsKey(filename) ? mappings.get(filename).intValue() : Team.UNKNOWN;
+	}
 }

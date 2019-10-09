@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,10 @@ package org.eclipse.compare.internal.patch;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.CompareViewerPane;
 import org.eclipse.compare.internal.CompareUIPlugin;
 import org.eclipse.compare.internal.ICompareUIConstants;
 import org.eclipse.compare.internal.core.patch.DiffProject;
@@ -36,7 +42,13 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IDecoration;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -231,18 +243,17 @@ public abstract class PatchCompareEditorInput extends CompareEditorInput {
 	}
 
 	private void processDiffs(FilePatch2[] diffs) {
-		for (int i = 0; i < diffs.length; i++) {
-			processDiff(diffs[i], getRoot());
+		for (FilePatch2 diff : diffs) {
+			processDiff(diff, getRoot());
 		}
 	}
 
 	private void processProjects(DiffProject[] diffProjects) {
 		//create diffProject nodes
-		for (int i = 0; i < diffProjects.length; i++) {
-			PatchProjectDiffNode projectNode = new PatchProjectDiffNode(getRoot(), diffProjects[i], getPatcher().getConfiguration());
-			FilePatch2[] diffs = diffProjects[i].getFileDiffs();
-			for (int j = 0; j < diffs.length; j++) {
-				FilePatch2 fileDiff = diffs[j];
+		for (DiffProject diffProject : diffProjects) {
+			PatchProjectDiffNode projectNode = new PatchProjectDiffNode(getRoot(), diffProject, getPatcher().getConfiguration());
+			FilePatch2[] diffs = diffProject.getFileDiffs();
+			for (FilePatch2 fileDiff : diffs) {
 				processDiff(fileDiff, projectNode);
 			}
 		}
@@ -252,8 +263,7 @@ public abstract class PatchCompareEditorInput extends CompareEditorInput {
 		FileDiffResult diffResult = getPatcher().getDiffResult(diff);
 		PatchFileDiffNode node = PatchFileDiffNode.createDiffNode(parent, diffResult);
 		HunkResult[] hunkResults = diffResult.getHunkResults();
-		for (int i = 0; i < hunkResults.length; i++) {
-			HunkResult hunkResult = hunkResults[i];
+		for (HunkResult hunkResult : hunkResults) {
 			if (!hunkResult.isOK()) {
 				HunkDiffNode hunkNode = HunkDiffNode.createDiffNode(node, hunkResult, true);
 				Object left = hunkNode.getLeft();
@@ -338,9 +348,8 @@ public abstract class PatchCompareEditorInput extends CompareEditorInput {
 			tbm.removeAll();
 
 			tbm.add(new Separator("contributed")); //$NON-NLS-1$
-
-			for (int i = 0; i < actions.length; i++) {
-				tbm.appendToGroup("contributed", actions[i]); //$NON-NLS-1$
+			for (Action action : actions) {
+				tbm.appendToGroup("contributed", action); //$NON-NLS-1$
 			}
 
 			tbm.update(true);
@@ -357,8 +366,7 @@ public abstract class PatchCompareEditorInput extends CompareEditorInput {
 
 	public void resetRoot() {
 		IDiffElement[] children = root.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			IDiffElement child = children[i];
+		for (IDiffElement child : children) {
 			root.remove(child);
 		}
 	}
@@ -391,8 +399,7 @@ public abstract class PatchCompareEditorInput extends CompareEditorInput {
 		boolean atLeastOneIsEnabled = false;
 		if (getViewer() != null) {
 			IDiffElement[] elements = getRoot().getChildren();
-			for (int i = 0; i < elements.length; i++) {
-				IDiffElement element = elements[i];
+			for (IDiffElement element : elements) {
 				if (isEnabled(element)) {
 					atLeastOneIsEnabled = true;
 					break;

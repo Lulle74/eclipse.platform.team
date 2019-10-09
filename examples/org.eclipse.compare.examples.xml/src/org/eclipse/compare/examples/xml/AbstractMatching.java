@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,13 +38,14 @@ public abstract class AbstractMatching {
 	/* methods used for match */
 
 	/* finds all the leaves of a tree and puts them in a vector */
-	protected void findLeaves(XMLNode root, ArrayList leaves) {
+	protected void findLeaves(XMLNode root, ArrayList<XMLNode> leaves) {
 		if (isLeaf(root)) {
 			leaves.add(root);			
 		} else {
 			Object[] children = root.getChildren();
-			for (int i=0; i<children.length; i++)
-				findLeaves((XMLNode) children[i], leaves);
+			for (Object child : children) {
+				findLeaves((XMLNode) child, leaves);
+			}
 		}
 	}
 
@@ -52,13 +56,14 @@ public abstract class AbstractMatching {
 	}
 
 	/* Numbers all nodes of tree. The number of x is its index in the vector numbering */
-	protected void numberNodes(XMLNode root, Vector numbering) {
+	protected void numberNodes(XMLNode root, Vector<XMLNode> numbering) {
 		if (root != null) {
 			numbering.add(root);
 			Object[] children = root.getChildren();
 			if (children != null) {
-				for (int i=0; i<children.length; i++)
-					numberNodes((XMLNode) children[i], numbering);
+				for (Object child : children) {
+					numberNodes((XMLNode) child, numbering);
+				}
 			}
 		}
 	}
@@ -69,8 +74,9 @@ public abstract class AbstractMatching {
 		int count = 1;
 		if (isLeaf(root)) return count;
 		Object[] children = root.getChildren();
-		for (int i=0; i<children.length; i++)
-			count+=countNodes((XMLNode) children[i]);
+		for (Object child : children) {
+			count += countNodes((XMLNode) child);
+		}
 		return count;
 	}
 
@@ -91,9 +97,9 @@ public abstract class AbstractMatching {
 	}
 
 /* for testing */
- 	public Vector getMatches() {
-  		return fMatches;
-   	}
+	public Vector getMatches() {
+		return fMatches;
+	}
 
 	protected class XMLComparator implements IRangeComparator {
 	
@@ -103,17 +109,11 @@ public abstract class AbstractMatching {
 			fXML_elements= xml_elements;
 		}
 	
-		/*
-		 * @see IRangeComparator#getRangeCount()
-		 */
 		@Override
 		public int getRangeCount() {
 			return fXML_elements.length;
 		}
 	
-		/*
-		 * @see IRangeComparator#rangesEqual(int, IRangeComparator, int)
-		 */
 		@Override
 		public boolean rangesEqual(
 			int thisIndex,
@@ -145,9 +145,6 @@ public abstract class AbstractMatching {
 			return false;
 		}
 	
-		/*
-		 * @see IRangeComparator#skipRangeComparison(int, int, IRangeComparator)
-		 */
 		@Override
 		public boolean skipRangeComparison(
 			int length,
@@ -183,13 +180,12 @@ public abstract class AbstractMatching {
 		}
 	}
 	
-	protected int handleRangeDifferencer(Object[] xc_elements, Object[] yc_elements, ArrayList DTMatching, int distance) {
+	protected int handleRangeDifferencer(Object[] xc_elements, Object[] yc_elements, ArrayList<Match> DTMatching, int distance) {
 		RangeDifference[] differences= RangeDifferencer.findDifferences(new XMLComparator(xc_elements), new XMLComparator(yc_elements));
 		
 		int cur_pos_left= 0;
 		int cur_pos_right= 0;
-		for (int i= 0; i < differences.length; i++) {
-			RangeDifference rd= differences[i];
+		for (RangeDifference rd : differences) {
 			int equal_length= rd.leftStart();
 			//handle elements before current range which are unchanged
 			while (cur_pos_left < equal_length) {
@@ -203,7 +199,7 @@ public abstract class AbstractMatching {
 				cur_pos_left++;
 				cur_pos_right++;
 			}
-			//now handle RangeDifference rd[i]
+			//now handle RangeDifference rd
 			int smaller_length, greater_length;
 			boolean leftGreater= rd.leftLength() > rd.rightLength();
 			if (leftGreater) {
@@ -213,7 +209,6 @@ public abstract class AbstractMatching {
 				smaller_length= rd.leftLength();
 				greater_length= rd.rightLength();
 			}
-			
 			//handle elements elements in range
 			for (int j=0; j < smaller_length; j++) {
 				distance += dist((XMLNode) xc_elements[cur_pos_left], (XMLNode) yc_elements[cur_pos_right]);
@@ -231,7 +226,7 @@ public abstract class AbstractMatching {
 			} else {
 				for (int j=smaller_length; j < greater_length; j++) {
 					distance += countNodes((XMLNode) yc_elements[cur_pos_right]);
-				DTMatching.add(new Match( null, (XMLNode)yc_elements[cur_pos_right]));
+					DTMatching.add(new Match( null, (XMLNode)yc_elements[cur_pos_right]));
 					cur_pos_right++;
 				}
 			}

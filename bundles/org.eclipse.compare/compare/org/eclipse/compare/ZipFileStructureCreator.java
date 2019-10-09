@@ -1,16 +1,21 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
@@ -18,7 +23,10 @@ import java.util.zip.ZipInputStream;
 
 import org.eclipse.compare.internal.CompareUIPlugin;
 import org.eclipse.compare.internal.Utilities;
-import org.eclipse.compare.structuremergeviewer.*;
+import org.eclipse.compare.structuremergeviewer.Differencer;
+import org.eclipse.compare.structuremergeviewer.IDiffContainer;
+import org.eclipse.compare.structuremergeviewer.IStructureComparator;
+import org.eclipse.compare.structuremergeviewer.IStructureCreator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.graphics.Image;
@@ -167,16 +175,16 @@ public class ZipFileStructureCreator implements IStructureCreator {
 		}
 
 		void appendBytes(byte[] buffer, int length) {
-	    	if (length > 0) {
+			if (length > 0) {
 				int oldLen= 0;
 				if (fContents != null)
 					oldLen= fContents.length;
 				byte[] newBuf= new byte[oldLen + length];
 				if (oldLen > 0)
-		    		System.arraycopy(fContents, 0, newBuf, 0, oldLen);
-	    		System.arraycopy(buffer, 0, newBuf, oldLen, length);
-	    		fContents= newBuf;
-	    	}
+					System.arraycopy(fContents, 0, newBuf, 0, oldLen);
+				System.arraycopy(buffer, 0, newBuf, oldLen, length);
+				fContents= newBuf;
+			}
 		}
 	}
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -407,56 +410,56 @@ public class WordComparison {
 			|| (!inplace && getDocumentDirty(document));
 	}
 	
-    /**
-     *	Initialize the workbench menus for proper menu merging
-     *  Copied from org.eclipse.ui.internal.editorsupport.win32OleEditor
-     */
-    protected void initializeWorkbenchMenus(IWorkbenchWindow window) {
-        //If there was an OLE Error or nothing has been created yet
-        if (frame == null || frame.isDisposed())
-            return;
-        // Get the browser menu bar.  If one does not exist then
-        // create it.
-        Shell shell = frame.getShell();
-        Menu menuBar = shell.getMenuBar();
-        if (menuBar == null) {
-            menuBar = new Menu(shell, SWT.BAR);
-            shell.setMenuBar(menuBar);
-        }
+	/**
+	 *	Initialize the workbench menus for proper menu merging
+	 *  Copied from org.eclipse.ui.internal.editorsupport.win32OleEditor
+	 */
+	protected void initializeWorkbenchMenus(IWorkbenchWindow window) {
+		//If there was an OLE Error or nothing has been created yet
+		if (frame == null || frame.isDisposed())
+			return;
+		// Get the browser menu bar.  If one does not exist then
+		// create it.
+		Shell shell = frame.getShell();
+		Menu menuBar = shell.getMenuBar();
+		if (menuBar == null) {
+			menuBar = new Menu(shell, SWT.BAR);
+			shell.setMenuBar(menuBar);
+		}
 
-        // Swap the file and window menus.
-        MenuItem[] windowMenu = new MenuItem[1];
-        MenuItem[] fileMenu = new MenuItem[1];
-        Vector containerItems = new Vector();
+		// Swap the file and window menus.
+		MenuItem[] windowMenu = new MenuItem[1];
+		MenuItem[] fileMenu = new MenuItem[1];
+		Vector containerItems = new Vector();
 
-        for (int i = 0; i < menuBar.getItemCount(); i++) {
-            MenuItem item = menuBar.getItem(i);
-            String id = ""; //$NON-NLS-1$
-            if (item.getData() instanceof IMenuManager)
-                id = ((IMenuManager) item.getData()).getId();
-            if (id.equals(IWorkbenchActionConstants.M_FILE))
-                fileMenu[0] = item;
-            else if (id.equals(IWorkbenchActionConstants.M_WINDOW))
-                windowMenu[0] = item;
-            else {
-                if (window.isApplicationMenu(id)) {
-                    containerItems.addElement(item);
-                }
-            }
-        }
-        MenuItem[] containerMenu = new MenuItem[containerItems.size()];
-        containerItems.copyInto(containerMenu);
-        frame.setFileMenus(fileMenu);
-        frame.setContainerMenus(containerMenu);
-        frame.setWindowMenus(windowMenu);
-    }
+		for (int i = 0; i < menuBar.getItemCount(); i++) {
+			MenuItem item = menuBar.getItem(i);
+			String id = ""; //$NON-NLS-1$
+			if (item.getData() instanceof IMenuManager)
+				id = ((IMenuManager) item.getData()).getId();
+			if (id.equals(IWorkbenchActionConstants.M_FILE))
+				fileMenu[0] = item;
+			else if (id.equals(IWorkbenchActionConstants.M_WINDOW))
+				windowMenu[0] = item;
+			else {
+				if (window.isApplicationMenu(id)) {
+					containerItems.addElement(item);
+				}
+			}
+		}
+		MenuItem[] containerMenu = new MenuItem[containerItems.size()];
+		containerItems.copyInto(containerMenu);
+		frame.setFileMenus(fileMenu);
+		frame.setContainerMenus(containerMenu);
+		frame.setWindowMenus(windowMenu);
+	}
 
-    /**
-     * Return whether the comparison document is being shown in-place or in
-     * a separate window.
-     * @return whether the comparison document is being shown in-place or in
-     * a separate window
-     */
+	/**
+	 * Return whether the comparison document is being shown in-place or in
+	 * a separate window.
+	 * @return whether the comparison document is being shown in-place or in
+	 * a separate window
+	 */
 	public boolean isInplace() {
 		return inplace;
 	}

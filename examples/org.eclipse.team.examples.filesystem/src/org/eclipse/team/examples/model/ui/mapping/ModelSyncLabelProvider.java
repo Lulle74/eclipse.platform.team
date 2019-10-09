@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -35,34 +38,26 @@ public class ModelSyncLabelProvider extends SynchronizationLabelProvider {
 		super();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.SynchronizationLabelProvider#init(org.eclipse.ui.navigator.ICommonContentExtensionSite)
-	 */
+	@Override
 	public void init(ICommonContentExtensionSite site) {
 		super.init(site);
 		delegate = new ModelNavigatorLabelProvider();
 		delegate.init(site);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#dispose()
-	 */
+	@Override
 	public void dispose() {
 		super.dispose();
 		if (delegate != null)
 			delegate.dispose();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#getDelegateLabelProvider()
-	 */
+	@Override
 	protected ILabelProvider getDelegateLabelProvider() {
 		return delegate;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#getDiff(java.lang.Object)
-	 */
+	@Override
 	protected IDiff getDiff(Object element) {
 		if (element instanceof ModelResource) {
 			ModelResource mr = (ModelResource) element;
@@ -71,16 +66,12 @@ public class ModelSyncLabelProvider extends SynchronizationLabelProvider {
 		return super.getDiff(element);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#isIncludeOverlays()
-	 */
+	@Override
 	protected boolean isIncludeOverlays() {
 		return true;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#isBusy(java.lang.Object)
-	 */
+	@Override
 	protected boolean isBusy(Object element) {
 		if (element instanceof ModelResource) {
 			ModelResource mr = (ModelResource) element;
@@ -89,8 +80,7 @@ public class ModelSyncLabelProvider extends SynchronizationLabelProvider {
 				ModelObjectDefinitionFile modFile = (ModelObjectDefinitionFile) mr;
 				try {
 					ModelObjectElementFile[] children = modFile.getModelObjectElementFiles();
-					for (int i = 0; i < children.length; i++) {
-						ModelObjectElementFile file = children[i];
+					for (ModelObjectElementFile file : children) {
 						busy = getContext().getDiffTree().getProperty(file.getResource().getFullPath(), IDiffTree.P_BUSY_HINT);
 						if (busy)
 							break;
@@ -104,6 +94,7 @@ public class ModelSyncLabelProvider extends SynchronizationLabelProvider {
 		return super.isBusy(element);
 	}
 	
+	@Override
 	protected boolean hasDecendantConflicts(Object element) {
 		if (element instanceof ModelResource) {
 			ModelResource mr = (ModelResource) element;
@@ -112,8 +103,7 @@ public class ModelSyncLabelProvider extends SynchronizationLabelProvider {
 				ModelObjectDefinitionFile modFile = (ModelObjectDefinitionFile) mr;
 				try {
 					ModelObjectElementFile[] children = modFile.getModelObjectElementFiles();
-					for (int i = 0; i < children.length; i++) {
-						ModelObjectElementFile file = children[i];
+					for (ModelObjectElementFile file : children) {
 						conflict = getContext().getDiffTree().getProperty(file.getResource().getFullPath(), IDiffTree.P_HAS_DESCENDANT_CONFLICTS);
 						if (conflict)
 							break;

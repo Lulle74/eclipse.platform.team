@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,18 +20,44 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.preference.*;
-import org.eclipse.jface.resource.*;
-import org.eclipse.jface.util.*;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IPageChangeProvider;
+import org.eclipse.jface.dialogs.IPageChangedListener;
+import org.eclipse.jface.dialogs.PageChangedEvent;
+import org.eclipse.jface.dialogs.TrayDialog;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
+import org.eclipse.jface.preference.IPreferencePageContainer;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.resource.JFaceColors;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 
 public class PreferencePageContainerDialog extends TrayDialog
 	implements IPreferencePageContainer, IPageChangeProvider {
@@ -59,8 +88,8 @@ public class PreferencePageContainerDialog extends TrayDialog
 	 * @see #setMinimumPageSize(Point)
 	 */
 	private Point fMinimumPageSize = new Point(200,200);
-    private TabFolder tabFolder;
-    private Map<TabItem, PreferencePage> pageMap = new HashMap<>();
+	private TabFolder tabFolder;
+	private Map<TabItem, PreferencePage> pageMap = new HashMap<>();
 
 	/**
 	 * Must declare our own images as the JFaceResource images will not be created unless
@@ -79,15 +108,11 @@ public class PreferencePageContainerDialog extends TrayDialog
 		this.pages = pages;
 	}
 
-	/**
-	 * @see Dialog#okPressed()
-	 */
 	@Override
 	protected void okPressed() {
-		for (int i = 0; i < pages.length; i++) {
-            PreferencePage page = pages[i];
+		for (PreferencePage page : pages) {
 			page.performOk();
-        }
+		}
 
 		handleSave();
 
@@ -105,9 +130,6 @@ public class PreferencePageContainerDialog extends TrayDialog
 		}
 	}
 
-	/**
-	 * @see Dialog#createDialogArea(Composite)
-	 */
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite)super.createDialogArea(parent);
@@ -116,9 +138,9 @@ public class PreferencePageContainerDialog extends TrayDialog
 		createDescriptionArea(composite);
 
 		if (isSinglePage()) {
-		    createSinglePageArea(composite, pages[0]);
+			createSinglePageArea(composite, pages[0]);
 		} else {
-		    createMultiplePageArea(composite);
+			createMultiplePageArea(composite);
 		}
 
 		// Build the separator line
@@ -135,63 +157,62 @@ public class PreferencePageContainerDialog extends TrayDialog
 		return composite;
 	}
 
-    private void createMultiplePageArea(Composite composite) {
+	private void createMultiplePageArea(Composite composite) {
 		// create a tab folder for the page
 		tabFolder = new TabFolder(composite, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		for (int i = 0; i < pages.length; i++) {
-            PreferencePage page = pages[i];
+		for (PreferencePage page : pages) {
 			// text decoration options
 			TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
 			tabItem.setText(page.getTitle());//
 			tabItem.setControl(createPageArea(tabFolder, page));
 			pageMap.put(tabItem, page);
-        }
+		}
 
 		tabFolder.addSelectionListener(new SelectionAdapter() {
-            @Override
+			@Override
 			public void widgetSelected(SelectionEvent e) {
-                updatePageSelection();
-            }
-        });
+				updatePageSelection();
+			}
+		});
 		updatePageSelection();
-    }
+	}
 
-    protected void updatePageSelection() {
-        TabItem[] items = tabFolder.getSelection();
-        if (items.length == 1) {
-            currentPage = pageMap.get(items[0]);
-            updateMessage();
-        }
-        firePageChanged(new PageChangedEvent(this, currentPage));
-    }
+	protected void updatePageSelection() {
+		TabItem[] items = tabFolder.getSelection();
+		if (items.length == 1) {
+			currentPage = pageMap.get(items[0]);
+			updateMessage();
+		}
+		firePageChanged(new PageChangedEvent(this, currentPage));
+	}
 
-    private boolean isSinglePage() {
-        return pages.length == 1;
-    }
+	private boolean isSinglePage() {
+		return pages.length == 1;
+	}
 
-    /*
-     * Create the page contents for a single preferences page
-     */
-    private void createSinglePageArea(Composite composite, PreferencePage page) {
+	/*
+	 * Create the page contents for a single preferences page
+	 */
+	private void createSinglePageArea(Composite composite, PreferencePage page) {
 		createPageArea(composite, page);
 		currentPage = page;
 		updateMessage();
-    }
+	}
 
-    private Control createPageArea(Composite composite, PreferencePage page) {
-        // Build the Page container
+	private Control createPageArea(Composite composite, PreferencePage page) {
+		// Build the Page container
 		fPageContainer = createPageContainer(composite);
 		fPageContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		page.setContainer(this);
 		page.createControl(fPageContainer);
 		return fPageContainer;
-    }
+	}
 
-    private void createDescriptionArea(Composite composite) {
-        // Build the title area and separator line
+	private void createDescriptionArea(Composite composite) {
+		// Build the title area and separator line
 		Composite titleComposite = new Composite(composite, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 0;
@@ -206,9 +227,9 @@ public class PreferencePageContainerDialog extends TrayDialog
 		Label titleBarSeparator = new Label(titleComposite, SWT.HORIZONTAL | SWT.SEPARATOR);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		titleBarSeparator.setLayoutData(gd);
-    }
+	}
 
-    /**
+	/**
 	 * Creates the dialog's title area.
 	 *
 	 * @param parent the SWT parent for the title area composite
@@ -346,12 +367,9 @@ public class PreferencePageContainerDialog extends TrayDialog
 		}
 	}
 
-	/**
-	 * @see IPreferencePageContainer#updateMessage()
-	 */
 	@Override
 	public void updateMessage() {
-	    if (currentPage != null) {
+		if (currentPage != null) {
 			String pageMessage = currentPage.getMessage();
 			String pageErrorMessage = currentPage.getErrorMessage();
 
@@ -363,58 +381,45 @@ public class PreferencePageContainerDialog extends TrayDialog
 
 			// Set the message and error message
 			if (pageMessage == null) {
-			    if (isSinglePage()) {
-			        setMessage(TeamUIMessages.PreferencePageContainerDialog_6);
-			    } else {
-			    	//remove mnemonic see bug 75886
-			    	String title = currentPage.getTitle();
-			    	title = title.replaceAll("&", "");//$NON-NLS-1$ //$NON-NLS-2$
-			    	setMessage(title);
-			    }
+				if (isSinglePage()) {
+					setMessage(TeamUIMessages.PreferencePageContainerDialog_6);
+				} else {
+					//remove mnemonic see bug 75886
+					String title = currentPage.getTitle();
+					title = title.replaceAll("&", "");//$NON-NLS-1$ //$NON-NLS-2$
+					setMessage(title);
+				}
 			} else {
 				setMessage(pageMessage);
 			}
 			setErrorMessage(pageErrorMessage);
-	    }
+		}
 	}
 
-	/**
-	 * @see IPreferencePageContainer#getPreferenceStore()
-	 */
 	@Override
 	public IPreferenceStore getPreferenceStore() {
 		return null;
 	}
 
-	/**
-	 * @see IPreferencePageContainer#updateButtons()
-	 */
 	@Override
 	public void updateButtons() {
 		if (fOkButton != null) {
-		    boolean isValid = true;
-		    for (int i = 0; i < pages.length; i++) {
-	            PreferencePage page = pages[i];
-	            if (!page.isValid()) {
-	                isValid = false;
-	                break;
-	            }
-		    }
+			boolean isValid = true;
+			for (PreferencePage page : pages) {
+				if (!page.isValid()) {
+					isValid = false;
+					break;
+				}
+			}
 			fOkButton.setEnabled(isValid);
 		}
 	}
 
-	/**
-	 * @see IPreferencePageContainer#updateTitle()
-	 */
 	@Override
 	public void updateTitle() {
 		updateMessage();
 	}
 
-	/**
-	 * @see Dialog#createButtonsForButtonBar(Composite)
-	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		fOkButton= createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
@@ -434,25 +439,24 @@ public class PreferencePageContainerDialog extends TrayDialog
 	 */
 	protected void handleSave() {
 		// Save now in case tbe workbench does not shutdown cleanly
-	    for (int i = 0; i < pages.length; i++) {
-            PreferencePage page = pages[i];
+		for (PreferencePage page : pages) {
 			IPreferenceStore store = page.getPreferenceStore();
 			if (store != null
-				&& store.needsSaving()
-				&& store instanceof IPersistentPreferenceStore) {
+					&& store.needsSaving()
+					&& store instanceof IPersistentPreferenceStore) {
 				try {
 					((IPersistentPreferenceStore) store).save();
 				} catch (IOException e) {
 					Utils.handle(e);
 				}
 			}
-        }
+		}
 	}
 
 
-    @Override
+	@Override
 	public void addPageChangedListener(final IPageChangedListener listener) {
-    	pageChangedListeners.add(listener);
+		pageChangedListeners.add(listener);
 	}
 
 	@Override
@@ -466,17 +470,17 @@ public class PreferencePageContainerDialog extends TrayDialog
 	}
 
 	private void firePageChanged(final PageChangedEvent event) {
-        Object[] listeners = pageChangedListeners.getListeners();
-        for (int i = 0; i < listeners.length; i++) {
-            final IPageChangedListener l = (IPageChangedListener) listeners[i];
-            SafeRunnable.run(new SafeRunnable() {
-                @Override
+		Object[] listeners = pageChangedListeners.getListeners();
+		for (Object listener : listeners) {
+			final IPageChangedListener l = (IPageChangedListener) listener;
+			SafeRunnable.run(new SafeRunnable() {
+				@Override
 				public void run() {
-                    l.pageChanged(event);
-                }
-            });
-        }
-    }
+					l.pageChanged(event);
+				}
+			});
+		}
+	}
 
 
 }

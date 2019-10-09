@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2015 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -67,12 +70,12 @@ public class SyncFileWriter {
 	 * If the folder does not have a CVS subdirectory then <code>null</code> is returned.
 	 */
 	public static byte[][] readAllResourceSync(IContainer parent) throws CVSException {
-        IFolder cvsSubDir = getCVSSubdirectory(parent);
-        
-        if (!folderExists(cvsSubDir)){
-        	return null;
-        }
-        
+		IFolder cvsSubDir = getCVSSubdirectory(parent);
+		
+		if (!folderExists(cvsSubDir)){
+			return null;
+		}
+		
 		if (Policy.DEBUG_METAFILE_CHANGES) {
 			System.out.println("Reading Entries file for " + parent.getFullPath()); //$NON-NLS-1$
 		}
@@ -81,8 +84,7 @@ public class SyncFileWriter {
 		String[] entries = readLines(cvsSubDir.getFile(ENTRIES));
 		if (entries == null) return null;
 		Map infos = new TreeMap();
-		for (int i = 0; i < entries.length; i++) {
-			String line = entries[i];
+		for (String line : entries) {
 			if(!FOLDER_TAG.equals(line) && !"".equals(line)) { //$NON-NLS-1$
 				try {
 					ResourceSyncInfo info = new ResourceSyncInfo(line, null);
@@ -90,7 +92,7 @@ public class SyncFileWriter {
 				} catch (CVSException e) {
 					// There was a problem parsing the entry line.
 					// Log the problem and skip the entry
-					CVSProviderPlugin.log(new CVSStatus(IStatus.ERROR, NLS.bind(CVSMessages.SyncFileWriter_0, new String[] { parent.getFullPath().toString() }), e)); 
+					CVSProviderPlugin.log(new CVSStatus(IStatus.ERROR, NLS.bind(CVSMessages.SyncFileWriter_0, new String[] { parent.getFullPath().toString() }), e));
 				}			
 			}
 		}
@@ -98,8 +100,7 @@ public class SyncFileWriter {
 		// process Entries.log file contents
 		String[] entriesLog = readLines(cvsSubDir.getFile(ENTRIES_LOG));
 		if (entriesLog != null) {
-			for (int i = 0; i < entriesLog.length; i++) {
-				String line = entriesLog[i];
+			for (String line : entriesLog) {
 				if (line.startsWith(ADD_TAG)) {
 					line = line.substring(ADD_TAG.length());
 					ResourceSyncInfo info = new ResourceSyncInfo(line, null);
@@ -123,14 +124,14 @@ public class SyncFileWriter {
 	}
 	
 	private static boolean folderExists(IFolder cvsSubDir) throws CVSException {
-	    try {
-	    	URI uri = cvsSubDir.getLocationURI();
-	    	if (uri != null){
+		try {
+			URI uri = cvsSubDir.getLocationURI();
+			if (uri != null){
 				IFileStore store = EFS.getStore(uri);
 				if (store != null){
 					return store.fetchInfo().exists();
 				}
-	    	}
+			}
 		} catch (CoreException e) {
 			throw CVSException.wrapException(e);
 		} 
@@ -168,11 +169,11 @@ public class SyncFileWriter {
 	public static FolderSyncInfo readFolderSync(IContainer folder) throws CVSException {
 		IFolder cvsSubDir = getCVSSubdirectory(folder);
 		
-        if (!folderExists(cvsSubDir)){
-        	return null;
-        }
+		if (!folderExists(cvsSubDir)){
+			return null;
+		}
 
-        if (Policy.DEBUG_METAFILE_CHANGES) {
+		if (Policy.DEBUG_METAFILE_CHANGES) {
 			System.out.println("Reading Root/Repository files for " + folder.getFullPath()); //$NON-NLS-1$
 		}
 		
@@ -276,8 +277,7 @@ public class SyncFileWriter {
 				return null;
 			// Split each line on spaces and tabs.
 			ArrayList/*<String>*/ entries = new ArrayList/*<String>*/();
-			for (int ln = 0; ln < lines.length; ln++) {
-				String line = lines[ln];
+			for (String line : lines) {
 				int pos = 0;
 				while (pos < line.length()) {
 					if (line.charAt(pos) == ' ' || line.charAt(pos) == '\t')
@@ -325,25 +325,24 @@ public class SyncFileWriter {
 	public static NotifyInfo[] readAllNotifyInfo(IContainer parent) throws CVSException {
 		IFolder cvsSubDir = getCVSSubdirectory(parent);
 
-        if (!folderExists(cvsSubDir)){
-        	return null;
-        }
-        
+		if (!folderExists(cvsSubDir)){
+			return null;
+		}
+		
 		// process Notify file contents
 		String[] entries = readLines(cvsSubDir.getFile(NOTIFY));
 		if (entries == null) return null;
 		Map infos = new TreeMap();
-		for (int i = 0; i < entries.length; i++) {
-			String line = entries[i];
+		for (String line : entries) {
 			if(!"".equals(line)) { //$NON-NLS-1$
 				try {
-                    NotifyInfo info = new NotifyInfo(parent, line);
-                    infos.put(info.getName(), info);
-                } catch (CVSException e) {
-                    // We couldn't parse the notify info
-                    // Log it and ignore
-                    CVSProviderPlugin.log(e);
-                }			
+					NotifyInfo info = new NotifyInfo(parent, line);
+					infos.put(info.getName(), info);
+				} catch (CVSException e) {
+					// We couldn't parse the notify info
+					// Log it and ignore
+					CVSProviderPlugin.log(e);
+				}			
 			}
 		}
 		
@@ -390,17 +389,16 @@ public class SyncFileWriter {
 	 */
 	public static BaserevInfo[] readAllBaserevInfo(IContainer parent) throws CVSException {
 		IFolder cvsSubDir = getCVSSubdirectory(parent);
-        
-        if (!folderExists(cvsSubDir)){
-        	return null;
-        }
-        
+		
+		if (!folderExists(cvsSubDir)){
+			return null;
+		}
+		
 		// process Notify file contents
 		String[] entries = readLines(cvsSubDir.getFile(BASEREV));
 		if (entries == null) return null;
 		Map infos = new TreeMap();
-		for (int i = 0; i < entries.length; i++) {
-			String line = entries[i];
+		for (String line : entries) {
 			if(!"".equals(line)) { //$NON-NLS-1$
 				BaserevInfo info = new BaserevInfo(line);
 				infos.put(info.getName(), info);
@@ -448,22 +446,20 @@ public class SyncFileWriter {
 				// important to have both the folder creation and setting of team-private in the
 				// same runnable so that the team-private flag is set before other delta listeners 
 				// sees the CVS folder creation.
-				ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-					public void run(IProgressMonitor monitor) throws CoreException {
-						// Re-check existence in case this method was called without a resource rule
-						if (! cvsSubDir.exists()) {
-							if (existsInFileSystem(cvsSubDir)) {
-								cvsSubDir.refreshLocal(IResource.DEPTH_INFINITE, null);
-								cvsSubDir.setTeamPrivateMember(true);
-							} else {
-								cvsSubDir.create(IResource.TEAM_PRIVATE, true /*make local*/, null);
-							}
+				ResourcesPlugin.getWorkspace().run((IWorkspaceRunnable) monitor -> {
+					// Re-check existence in case this method was called without a resource rule
+					if (! cvsSubDir.exists()) {
+						if (existsInFileSystem(cvsSubDir)) {
+							cvsSubDir.refreshLocal(IResource.DEPTH_INFINITE, null);
+							cvsSubDir.setTeamPrivateMember(true);
 						} else {
-							if (!cvsSubDir.isTeamPrivateMember()) {
-								cvsSubDir.setTeamPrivateMember(true);
-							}
+							cvsSubDir.create(IResource.TEAM_PRIVATE, true /*make local*/, null);
 						}
-					} 
+					} else {
+						if (!cvsSubDir.isTeamPrivateMember()) {
+							cvsSubDir.setTeamPrivateMember(true);
+						}
+					}
 				}, folder, 0, null);
 			}
 			return cvsSubDir;
@@ -495,16 +491,13 @@ public class SyncFileWriter {
 		try {
 			InputStream in = getInputStream(file);
 			if (in != null) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in), 512);
-				try {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(in), 512)) {
 					String line = reader.readLine();
 					if (line == null) return ""; //$NON-NLS-1$
 					return line;
-				} finally {
-					reader.close();
 				}
-            }
-            return null;
+			}
+			return null;
 		} catch (IOException e) {
 			throw CVSException.wrapException(e);
 		} catch (CoreException e) {
@@ -523,7 +516,7 @@ public class SyncFileWriter {
 
 	private static InputStream getInputStream(IFile file) throws CoreException, FileNotFoundException {
 		if (file.exists()) {
-		    return file.getContents(true);
+			return file.getContents(true);
 		}
 		
 		URI uri = file.getLocationURI();
@@ -592,20 +585,18 @@ public class SyncFileWriter {
 			// to include the MODSTAMP value. If not in a runnable then create/setContents
 			// will trigger a delta and the SyncFileWriter change listener won't know that the delta
 			// was a result of our own creation.
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					try {
-						ByteArrayOutputStream os = new ByteArrayOutputStream();
-						writeLinesToStreamAndClose(os, contents);
-						if(!file.exists()) {
-							file.create(new ByteArrayInputStream(os.toByteArray()), IResource.FORCE /*don't keep history but do force*/, null);
-						} else {
-							file.setContents(new ByteArrayInputStream(os.toByteArray()), IResource.FORCE /*don't keep history but do force*/, null);
-						}			
-						file.setSessionProperty(MODSTAMP_KEY, Long.valueOf(file.getModificationStamp()));
-					} catch(CVSException e) {
-						throw new CoreException(e.getStatus());
-					}
+			ResourcesPlugin.getWorkspace().run((IWorkspaceRunnable) monitor -> {
+				try {
+					ByteArrayOutputStream os = new ByteArrayOutputStream();
+					writeLinesToStreamAndClose(os, contents);
+					if(!file.exists()) {
+						file.create(new ByteArrayInputStream(os.toByteArray()), IResource.FORCE /*don't keep history but do force*/, null);
+					} else {
+						file.setContents(new ByteArrayInputStream(os.toByteArray()), IResource.FORCE /*don't keep history but do force*/, null);
+					}			
+					file.setSessionProperty(MODSTAMP_KEY, Long.valueOf(file.getModificationStamp()));
+				} catch(CVSException e) {
+					throw new CoreException(e.getStatus());
 				}
 			}, ResourcesPlugin.getWorkspace().getRuleFactory().createRule(file), 0, null);
 		} catch (CoreException e) {
@@ -617,8 +608,8 @@ public class SyncFileWriter {
 		byte[] lineEnd = getLineDelimiter();
 		try {
 			try {
-				for (int i = 0; i < contents.length; i++) {
-					os.write(contents[i].getBytes());
+				for (String content : contents) {
+					os.write(content.getBytes());
 					os.write(lineEnd);
 				}
 			} finally {
@@ -693,11 +684,11 @@ public class SyncFileWriter {
 		if (attrs != null && attrs.isReadOnly() != readOnly) {
 			attrs.setReadOnly(readOnly);
 			try {
-		        source.setResourceAttributes(attrs);
-		    } catch (CoreException e) {
-		    	// Just log the failure since the move may succeed anyway
-		        CVSProviderPlugin.log(e);
-		    }
+				source.setResourceAttributes(attrs);
+			} catch (CoreException e) {
+				// Just log the failure since the move may succeed anyway
+				CVSProviderPlugin.log(e);
+			}
 		}
 	}
 	

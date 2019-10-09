@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,9 +28,7 @@ class AddStructureVisitor extends AbstractStructureVisitor {
 		super(session, localOptions, false, true);
 	}
 
-	/**
-	 * @see ICVSResourceVisitor#visitFile(IManagedFile)
-	 */
+	@Override
 	public void visitFile(ICVSFile mFile) throws CVSException {
 		
 		// Send the parent folder
@@ -40,9 +41,7 @@ class AddStructureVisitor extends AbstractStructureVisitor {
 		
 	}
 
-	/**
-	 * @see ICVSResourceVisitor#visitFolder(ICVSFolder)
-	 */
+	@Override
 	public void visitFolder(ICVSFolder mFolder) throws CVSException {
 		
 		Assert.isNotNull(mFolder);

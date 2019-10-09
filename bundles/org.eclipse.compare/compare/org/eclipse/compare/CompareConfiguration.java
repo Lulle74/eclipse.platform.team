@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2016 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,6 @@ package org.eclipse.compare;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -251,8 +253,7 @@ public class CompareConfiguration {
 
 		@Override
 		public void dispose() {
-			for (Iterator<ICompareInputLabelProvider> iterator = labelProviders.values().iterator(); iterator.hasNext();) {
-				ICompareInputLabelProvider lp = iterator.next();
+			for (ICompareInputLabelProvider lp : labelProviders.values()) {
 				lp.removeListener(this);
 			}
 			if (defaultLabelProvider != null)
@@ -410,8 +411,8 @@ public class CompareConfiguration {
 		PropertyChangeEvent event= null;
 		Object[] listeners= fListeners.getListeners();
 		if (listeners != null) {
-			for (int i= 0; i < listeners.length; i++) {
-				IPropertyChangeListener l= (IPropertyChangeListener) listeners[i];
+			for (Object listener : listeners) {
+				IPropertyChangeListener l = (IPropertyChangeListener) listener;
 				if (event == null)
 					event= new PropertyChangeEvent(this, propertyName, oldValue, newValue);
 				l.propertyChange(event);

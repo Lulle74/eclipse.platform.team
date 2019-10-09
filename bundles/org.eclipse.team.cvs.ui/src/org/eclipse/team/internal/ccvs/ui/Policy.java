@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,10 +21,10 @@ import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.team.internal.core.InfiniteSubProgressMonitor;
 
 public class Policy {
-    
-    private static String ACTION_BUNDLE = "org.eclipse.team.internal.ccvs.ui.actions.actions"; //$NON-NLS-1$
-    private static ResourceBundle actionBundle = null;
-    
+	
+	private static String ACTION_BUNDLE = "org.eclipse.team.internal.ccvs.ui.actions.actions"; //$NON-NLS-1$
+	private static ResourceBundle actionBundle = null;
+	
 	public static boolean DEBUG_CONSOLE_BUFFERING = false;
 	public static boolean DEBUG_HISTORY = false;
 
@@ -53,7 +56,7 @@ public class Policy {
 			return new NullProgressMonitor();
 		if (monitor instanceof NullProgressMonitor)
 			return monitor;
-		return new SubProgressMonitor(monitor, ticks);
+		return SubMonitor.convert(monitor, ticks);
 	}
 	
 	public static IProgressMonitor infiniteSubMonitorFor(IProgressMonitor monitor, int ticks) {
@@ -65,9 +68,9 @@ public class Policy {
 	}
 	
 	public static ResourceBundle getActionBundle() {
-        ResourceBundle tmpBundle = actionBundle;
-        if (tmpBundle != null)
-            return tmpBundle;
-        return actionBundle = ResourceBundle.getBundle(ACTION_BUNDLE);
+		ResourceBundle tmpBundle = actionBundle;
+		if (tmpBundle != null)
+			return tmpBundle;
+		return actionBundle = ResourceBundle.getBundle(ACTION_BUNDLE);
 	}
 }

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -82,8 +85,7 @@ public class Checkout extends Command {
 		
 		// Send the information about the local workspace resources to the server
 		List resourcesToSend = new ArrayList(resources.length);
-		for (int i = 0; i < resources.length; i++) {
-			ICVSResource resource = resources[i];
+		for (ICVSResource resource : resources) {
 			if (resource.exists() && resource.isFolder() && ((ICVSFolder)resource).isCVSFolder()) {
 				resourcesToSend.add(resource);
 			}
@@ -176,8 +178,8 @@ public class Checkout extends Command {
 		
 		return RemoteModule.createRemoteModules(moduleDefinitionListener.getModuleExpansions(), session.getCVSRepositoryLocation(), tag);
 	}
-    
-    protected String getDisplayText() {
-        return "checkout"; //$NON-NLS-1$
-    }
+	
+	protected String getDisplayText() {
+		return "checkout"; //$NON-NLS-1$
+	}
 }

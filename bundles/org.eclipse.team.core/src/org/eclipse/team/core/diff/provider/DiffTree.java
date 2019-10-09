@@ -1,22 +1,40 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.diff.provider;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffChangeListener;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IDiffVisitor;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.internal.core.Policy;
 import org.eclipse.team.internal.core.mapping.DiffChangeEvent;
 import org.eclipse.team.internal.core.mapping.PathTree;
@@ -75,8 +93,7 @@ public class DiffTree implements IDiffTree {
 			if (depth == IResource.DEPTH_ZERO)
 				return;
 			IPath[] children = getChildren(path);
-			for (int i = 0; i < children.length; i++) {
-				IPath child = children[i];
+			for (IPath child : children) {
 				accept(child, visitor, depth == IResource.DEPTH_ONE ? IResource.DEPTH_ZERO : IResource.DEPTH_INFINITE);
 			}
 		}
@@ -172,22 +189,26 @@ public class DiffTree implements IDiffTree {
 
 	/**
 	 * This method is used to obtain a lock on the set which ensures thread safety
-	 * and batches change notification. If the set is locked by another thread,
-	 * the calling thread will block until the lock
-	 * becomes available. This method uses an <code>org.eclipse.core.runtime.jobs.ILock</code>.
+	 * and batches change notification. If the set is locked by another thread, the
+	 * calling thread will block until the lock becomes available. This method uses
+	 * an <code>org.eclipse.core.runtime.jobs.ILock</code>.
 	 * <p>
-	 * It is important that the lock is released after it is obtained. Calls to <code>endInput</code>
-	 * should be done in a finally block as illustrated in the following code snippet.
+	 * It is important that the lock is released after it is obtained. Calls to
+	 * <code>endInput</code> should be done in a finally block as illustrated in the
+	 * following code snippet.
+	 * </p>
+	 * 
 	 * <pre>
-	 *   try {
-	 *       set.beginInput();
-	 *       // do stuff
-	 *   } finally {
-	 *      set.endInput(progress);
-	 *   }
+	 * try {
+	 * 	set.beginInput();
+	 * 	// do stuff
+	 * } finally {
+	 * 	set.endInput(progress);
+	 * }
 	 * </pre>
-	 * </p><p>
-	 * Calls to <code>beginInput</code> and <code>endInput</code> can be nested and must be matched.
+	 * <p>
+	 * Calls to <code>beginInput</code> and <code>endInput</code> can be nested and
+	 * must be matched.
 	 * </p>
 	 */
 	public void beginInput() {
@@ -222,8 +243,8 @@ public class DiffTree implements IDiffTree {
 
 		if(event.isEmpty() && ! event.isReset() && propertyChanges.isEmpty()) return;
 		Object[] listeners = this.listeners.getListeners();
-		for (int i = 0; i < listeners.length; i++) {
-			final IDiffChangeListener listener = (IDiffChangeListener)listeners[i];
+		for (Object l : listeners) {
+			final IDiffChangeListener listener = (IDiffChangeListener) l;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -235,8 +256,7 @@ public class DiffTree implements IDiffTree {
 						lockedForModification = true;
 						if (!event.isEmpty() || event.isReset())
 							listener.diffsChanged(event, Policy.subMonitorFor(monitor, 100));
-						for (Iterator<Integer> iter = propertyChanges.keySet().iterator(); iter.hasNext();) {
-							Integer key = iter.next();
+						for (Integer key : propertyChanges.keySet()) {
 							Set<IPath> paths = propertyChanges.get(key);
 							listener.propertyChanged(DiffTree.this, key.intValue(), paths.toArray(new IPath[paths
 									.size()]));
@@ -349,10 +369,7 @@ public class DiffTree implements IDiffTree {
 			changes = new HashSet<>();
 			propertyChanges.put(key, changes);
 		}
-		for (int i = 0; i < paths.length; i++) {
-			IPath path = paths[i];
-			changes.add(path);
-		}
+		Collections.addAll(changes, paths);
 	}
 
 	@Override
@@ -364,8 +381,7 @@ public class DiffTree implements IDiffTree {
 	public void setBusy(IDiff[] diffs, IProgressMonitor monitor) {
 		try {
 			beginInput();
-			for (int i = 0; i < diffs.length; i++) {
-				IDiff node = diffs[i];
+			for (IDiff node : diffs) {
 				setPropertyToRoot(node, P_BUSY_HINT, true);
 			}
 		} finally {
@@ -378,8 +394,7 @@ public class DiffTree implements IDiffTree {
 		try {
 			beginInput();
 			IPath[] paths = pathTree.getPaths();
-			for (int i = 0; i < paths.length; i++) {
-				IPath path = paths[i];
+			for (IPath path : paths) {
 				IPath[] changed = pathTree.setPropogatedProperty(path, P_BUSY_HINT, false);
 				accumulatePropertyChanges(P_BUSY_HINT, changed);
 			}
@@ -410,7 +425,6 @@ public class DiffTree implements IDiffTree {
 	 * Report to any listeners that an error has occurred while populating the
 	 * set. Listeners will be notified that an error occurred and can react
 	 * accordingly.
-	 * </p>
 	 *
 	 * @param status
 	 *            the status that describes the error that occurred.

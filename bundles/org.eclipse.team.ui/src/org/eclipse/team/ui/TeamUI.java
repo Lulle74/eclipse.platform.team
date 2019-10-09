@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -40,10 +43,10 @@ public class TeamUI {
 	 */
 	public static final String GLOBAL_IGNORES_CHANGED = TeamUIPlugin.ID + "global_ignores_changed"; //$NON-NLS-1$
 
-    /**
-     * Property constant indicating the global file types list has changed.
-     * @since 3.1
-     */
+	/**
+	 * Property constant indicating the global file types list has changed.
+	 * @since 3.1
+	 */
 	public static final String GLOBAL_FILE_TYPES_CHANGED = TeamUIPlugin.ID + "global_file_types_changed"; //$NON-NLS-1$
 
 	/**
@@ -172,12 +175,10 @@ public class TeamUI {
 						IScmUrlImportWizardPage.ATT_EXTENSION);
 		if (elements.length > 0) {
 			Set<IScmUrlImportWizardPage> pages = new HashSet<>();
-			for (int i = 0; i < elements.length; i++) {
-				String pageImporterId = elements[i]
-						.getAttribute(IScmUrlImportWizardPage.ATT_IMPORTER);
+			for (IConfigurationElement element : elements) {
+				String pageImporterId = element.getAttribute(IScmUrlImportWizardPage.ATT_IMPORTER);
 				if (importerId.equals(pageImporterId)) {
-					Object ext = TeamUIPlugin.createExtension(elements[i],
-							IScmUrlImportWizardPage.ATT_PAGE);
+					Object ext = TeamUIPlugin.createExtension(element, IScmUrlImportWizardPage.ATT_PAGE);
 					IScmUrlImportWizardPage page = (IScmUrlImportWizardPage) ext;
 					pages.add(page);
 				}

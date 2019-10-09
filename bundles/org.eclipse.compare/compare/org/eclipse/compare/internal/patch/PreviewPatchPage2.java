@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2005, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,7 +39,9 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
@@ -131,8 +136,7 @@ public class PreviewPatchPage2 extends WizardPage {
 		// Initialize the input
 		try {
 			fInput.run(null);
-		} catch (InterruptedException e) {//ignore
-		} catch (InvocationTargetException e) {//ignore
+		} catch (InterruptedException | InvocationTargetException e) {//ignore
 		}
 
 		Label label = new Label(composite, SWT.NONE);
@@ -166,7 +170,7 @@ public class PreviewPatchPage2 extends WizardPage {
 	private void updateActions(IStructuredSelection ss) {
 		fExcludeAction.setEnabled(false);
 		fIncludeAction.setEnabled(false);
-		for (Iterator it = ss.iterator(); it.hasNext();) {
+		for (Iterator<?> it = ss.iterator(); it.hasNext();) {
 			Object element = it.next();
 			if (element instanceof PatchDiffNode) {
 				if (((PatchDiffNode) element).isEnabled()) {
@@ -220,7 +224,7 @@ public class PreviewPatchPage2 extends WizardPage {
 		fMoveAction .setToolTipText(PatchMessages.PreviewPatchPage2_RetargetTooltip);
 		fMoveAction.setEnabled(true);
 		fInput.getViewer().addSelectionChangedListener(event -> {
-			IStructuredSelection sel= (IStructuredSelection) event.getSelection();
+			IStructuredSelection sel= event.getStructuredSelection();
 			Object obj= sel.getFirstElement();
 			boolean enable = false;
 			if (obj instanceof PatchProjectDiffNode) {
@@ -240,7 +244,7 @@ public class PreviewPatchPage2 extends WizardPage {
 				ISelection selection = fInput.getViewer().getSelection();
 				if (selection instanceof TreeSelection){
 					TreeSelection treeSelection = (TreeSelection) selection;
-					Iterator iter = treeSelection.iterator();
+					Iterator<?> iter = treeSelection.iterator();
 					while (iter.hasNext()){
 						Object obj = iter.next();
 						if (obj instanceof PatchDiffNode){
@@ -262,7 +266,7 @@ public class PreviewPatchPage2 extends WizardPage {
 				ISelection selection = fInput.getViewer().getSelection();
 				if (selection instanceof TreeSelection){
 					TreeSelection treeSelection = (TreeSelection) selection;
-					Iterator iter = treeSelection.iterator();
+					Iterator<?> iter = treeSelection.iterator();
 					while (iter.hasNext()){
 						Object obj = iter.next();
 						if (obj instanceof PatchDiffNode){
@@ -295,8 +299,7 @@ public class PreviewPatchPage2 extends WizardPage {
 						}
 						monitor.done();
 					});
-				} catch (InvocationTargetException e) { //ignore
-				} catch (InterruptedException e) { //ignore
+				} catch (InvocationTargetException | InterruptedException e) { //ignore
 				}
 			}
 		};
@@ -321,8 +324,7 @@ public class PreviewPatchPage2 extends WizardPage {
 						}
 						monitor.done();
 					});
-				} catch (InvocationTargetException e) { //ignore
-				} catch (InterruptedException e) { //ignore
+				} catch (InvocationTargetException | InterruptedException e) { //ignore
 				}
 
 			}
@@ -712,9 +714,9 @@ public class PreviewPatchPage2 extends WizardPage {
 
 			fPatcher.countLines();
 			FilePatch2[] fileDiffs = fPatcher.getDiffs();
-			for (int i = 0; i < fileDiffs.length; i++) {
-				added += fileDiffs[i].getAddedLines();
-				removed += fileDiffs[i].getRemovedLines();
+			for (FilePatch2 fileDiff : fileDiffs) {
+				added += fileDiff.getAddedLines();
+				removed += fileDiff.getRemovedLines();
 			}
 
 		} else {
@@ -722,13 +724,9 @@ public class PreviewPatchPage2 extends WizardPage {
 			Pattern addedPattern = Pattern.compile(addedLinesRegex);
 			Pattern removedPattern = Pattern.compile(removedLinesRegex);
 
-			FilePatch2[] fileDiffs = fPatcher.getDiffs();
-			for (int i = 0; i < fileDiffs.length; i++) {
-				IHunk[] hunks = fileDiffs[i].getHunks();
-				for (int j = 0; j < hunks.length; j++) {
-					String[] lines = ((Hunk) hunks[j]).getLines();
-					for (int k = 0; k < lines.length; k++) {
-						String line = lines[k];
+			for (FilePatch2 fileDiff : fPatcher.getDiffs()) {
+				for (IHunk hunk : fileDiff.getHunks()) {
+					for (String line : ((Hunk) hunk).getLines()) {
 						if (addedPattern.matcher(line).find())
 							added++;
 						if (removedPattern.matcher(line).find())

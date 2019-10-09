@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,25 +22,24 @@ import org.eclipse.team.ui.synchronize.*;
  */
 public class CVSChangeSetActionGroup extends SynchronizePageActionGroup {
 
-    private OpenChangeSetAction openCommitSet;
-    
+	private OpenChangeSetAction openCommitSet;
+	
+	@Override
 	public void initialize(ISynchronizePageConfiguration configuration) {
 		super.initialize(configuration);
 		openCommitSet = new OpenChangeSetAction(configuration);
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.ui.synchronize.SynchronizePageActionGroup#fillContextMenu(org.eclipse.jface.action.IMenuManager)
-     */
-    public void fillContextMenu(IMenuManager menu) {
-        ISynchronizeParticipant participant = getConfiguration().getParticipant();
-        if (participant instanceof IChangeSetProvider) {  
-            if (((IChangeSetProvider)participant).getChangeSetCapability().enableCheckedInChangeSetsFor(getConfiguration())) {
-        		appendToGroup(
-        				menu, 
-        				ISynchronizePageConfiguration.FILE_GROUP, 
-        				openCommitSet);
-            }
-        }
-    }
+	@Override
+	public void fillContextMenu(IMenuManager menu) {
+		ISynchronizeParticipant participant = getConfiguration().getParticipant();
+		if (participant instanceof IChangeSetProvider) {  
+			if (((IChangeSetProvider)participant).getChangeSetCapability().enableCheckedInChangeSetsFor(getConfiguration())) {
+				appendToGroup(
+						menu, 
+						ISynchronizePageConfiguration.FILE_GROUP, 
+						openCommitSet);
+			}
+		}
+	}
 }

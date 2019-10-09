@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -375,8 +378,8 @@ public abstract class StructureCreator implements IStructureCreator2 {
 		if (tree != null) {
 			Object[] children= tree.getChildren();
 			if (children != null) {
-				for (int i= 0; i < children.length; i++) {
-					IStructureComparator child= (IStructureComparator) children[i];
+				for (Object c : children) {
+					IStructureComparator child = (IStructureComparator) c;
 					if (child instanceof ITypedElement && child instanceof DocumentRangeNode) {
 						String n1= ((DocumentRangeNode)child).getId();
 						if (n1 == null) {
@@ -436,21 +439,19 @@ public abstract class StructureCreator implements IStructureCreator2 {
 	 * <code>compareFilters</code> is not empty, the filters are applied to each
 	 * line of each node's text representation.
 	 *
-	 * @param node1
-	 * @param contributor1
-	 *            either 'A', 'L', or 'R' for ancestor, left or right
-	 *            contributor
-	 * @param node2
-	 * @param contributor2
-	 *            either 'A', 'L', or 'R' for ancestor, left or right
-	 *            contributor
-	 * @param ignoreWhitespace
-	 *            if <code>true</code> whitespace characters will be ignored
-	 *            when determining equality. Note: Will bypass any custom ignore
-	 *            whitespace behaviors contributed through implementations of
-	 *            <code>org.eclipse.compare.structuremergeviewer.IStructureCreator.getContents()</code>
-	 * @param compareFilters
-	 *            the filters used to customize the comparison of lines of text.
+	 * @param node1            first node
+	 * @param contributor1     either 'A', 'L', or 'R' for ancestor, left or right
+	 *                         contributor
+	 * @param node2            second node
+	 * @param contributor2     either 'A', 'L', or 'R' for ancestor, left or right
+	 *                         contributor
+	 * @param ignoreWhitespace if <code>true</code> whitespace characters will be
+	 *                         ignored when determining equality. Note: Will bypass
+	 *                         any custom ignore whitespace behaviors contributed
+	 *                         through implementations of
+	 *                         <code>org.eclipse.compare.structuremergeviewer.IStructureCreator.getContents()</code>
+	 * @param compareFilters   the filters used to customize the comparison of lines
+	 *                         of text.
 	 * @return whether the two nodes are equal for comparison purposes
 	 * @noreference This method is not intended to be referenced by clients.
 	 * @since 3.6

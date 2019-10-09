@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,7 @@ import java.util.Arrays;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.preferences.*;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.osgi.util.NLS;
@@ -41,6 +44,7 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 	 * Actions for the compare particpant's toolbar
 	 */
 	public class CompareParticipantActionContribution extends SynchronizePageActionGroup {
+		@Override
 		public void initialize(ISynchronizePageConfiguration configuration) {
 			super.initialize(configuration);
 			
@@ -65,6 +69,7 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 	
 	private SyncInfoFilter contentComparison = new SyncInfoFilter() {
 		private SyncInfoFilter contentCompare = new SyncInfoFilter.ContentComparisonSyncInfoFilter();
+		@Override
 		public boolean select(SyncInfo info, IProgressMonitor monitor) {
 			// Want to select infos whose contents do not match
 			return !contentCompare.select(info, monitor);
@@ -75,6 +80,7 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 		final SyncInfoFilter regexFilter = createRegexFilter();
 		if (isConsiderContents() && regexFilter != null) {
 			return new SyncInfoFilter() {
+				@Override
 				public boolean select(SyncInfo info, IProgressMonitor monitor) {
 					return contentComparison.select(info, monitor)
 							&& !regexFilter.select(info, monitor);
@@ -82,12 +88,14 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 			};
 		} else if (isConsiderContents()) {
 			return new SyncInfoFilter() {
+				@Override
 				public boolean select(SyncInfo info, IProgressMonitor monitor) {
 					return contentComparison.select(info, monitor);
 				}
 			};
 		} else if (regexFilter != null) {
 			return new SyncInfoFilter() {
+				@Override
 				public boolean select(SyncInfo info, IProgressMonitor monitor) {
 					// want to select infos which contain at least one unmatched difference
 					return !regexFilter.select(info, monitor);
@@ -112,12 +120,10 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 	}
 
 	public CompareParticipant(CVSCompareSubscriber subscriber) {
-	    setSubscriber(subscriber);
+		setSubscriber(subscriber);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.subscriber.SubscriberParticipant#setSubscriber(org.eclipse.team.core.subscribers.Subscriber)
-	 */
+	@Override
 	protected void setSubscriber(Subscriber subscriber) {
 		super.setSubscriber(subscriber);
 		setSyncInfoFilter(createSyncInfoFilter());
@@ -132,9 +138,7 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 		((IEclipsePreferences) CVSUIPlugin.getPlugin().getInstancePreferences().node("")).addPreferenceChangeListener(this); //$NON-NLS-1$
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeParticipant#getName()
-	 */
+	@Override
 	public String getName() {
 		return NLS.bind(CVSUIMessages.CompareParticipant_0, new String[] { getSubscriber().getName(), Utils.convertSelection(getSubscriber().roots()) }); 
 	}
@@ -144,13 +148,12 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 	 */
 	public static CompareParticipant getMatchingParticipant(IResource[] resources, CVSTag tag) {
 		ISynchronizeParticipantReference[] refs = TeamUI.getSynchronizeManager().getSynchronizeParticipants();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			if (reference.getId().equals(CVSCompareSubscriber.ID)) {
 				try {
-				    CompareParticipant p = (CompareParticipant) reference.getParticipant();
+					CompareParticipant p = (CompareParticipant) reference.getParticipant();
 					if (p.matches(resources, tag)) {
-					    return p;
+						return p;
 					}
 				} catch (TeamException e) {
 					continue;
@@ -184,15 +187,13 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 
 	/**
 	 * Return the subscriber as an instance of CVSCompareSubscriber.
-     * @return the subscriber as an instance of CVSCompareSubscriber
-     */
-    public CVSCompareSubscriber getCVSCompareSubscriber() {
-        return (CVSCompareSubscriber)getSubscriber();
-    }
-
-    /* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.subscribers.SubscriberParticipant#initializeConfiguration(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
+	 * @return the subscriber as an instance of CVSCompareSubscriber
 	 */
+	public CVSCompareSubscriber getCVSCompareSubscriber() {
+		return (CVSCompareSubscriber)getSubscriber();
+	}
+
+	@Override
 	protected void initializeConfiguration(ISynchronizePageConfiguration configuration) {
 		super.initializeConfiguration(configuration);
 		configuration.addMenuGroup(
@@ -204,18 +205,14 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 		configuration.addActionContribution(new CompareParticipantActionContribution());
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SubscriberParticipant#dispose()
-	 */
+	@Override
 	public void dispose() {
 		super.dispose();
 		((IEclipsePreferences) CVSUIPlugin.getPlugin().getInstancePreferences().node("")).removePreferenceChangeListener(this); //$NON-NLS-1$
 		getCVSCompareSubscriber().dispose();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.core.runtime.Preferences.IPropertyChangeListener#propertyChange(org.eclipse.core.runtime.Preferences.PropertyChangeEvent)
-	 */
+	@Override
 	public void preferenceChange(PreferenceChangeEvent event) {
 		if (event.getKey().equals(ICVSUIConstants.PREF_CONSIDER_CONTENTS) || event.getKey().equals(ICVSUIConstants.PREF_SYNCVIEW_REGEX_FILTER_PATTERN)) {
 			SyncInfoFilter filter = createSyncInfoFilter();
@@ -227,35 +224,28 @@ public class CompareParticipant extends CVSParticipant implements IPreferenceCha
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SubscriberParticipant#getLongTaskName()
-	 */
+	@Override
 	protected String getLongTaskName() {
 		return getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SubscriberParticipant#getShortTaskName()
-	 */
+	@Override
 	protected String getShortTaskName() {
 		return CVSUIMessages.Participant_comparing; 
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSParticipant#createChangeSetCapability()
-     */
-    protected CVSChangeSetCapability createChangeSetCapability() {
-        return new CVSChangeSetCapability() {
-            public ActiveChangeSetManager getActiveChangeSetManager() {
-                return CVSUIPlugin.getPlugin().getChangeSetManager();
-            }
-            /* (non-Javadoc)
-             * @see org.eclipse.team.ui.synchronize.ChangeSetCapability#enableActiveChangeSetsFor(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-             */
-            public boolean enableActiveChangeSetsFor(ISynchronizePageConfiguration configuration) {
-                return super.enableActiveChangeSetsFor(configuration) ||
-                	configuration.getComparisonType() == ISynchronizePageConfiguration.TWO_WAY;
-            }
-        };
-    }
+	@Override
+	protected CVSChangeSetCapability createChangeSetCapability() {
+		return new CVSChangeSetCapability() {
+			@Override
+			public ActiveChangeSetManager getActiveChangeSetManager() {
+				return CVSUIPlugin.getPlugin().getChangeSetManager();
+			}
+			@Override
+			public boolean enableActiveChangeSetsFor(ISynchronizePageConfiguration configuration) {
+				return super.enableActiveChangeSetsFor(configuration) ||
+					configuration.getComparisonType() == ISynchronizePageConfiguration.TWO_WAY;
+			}
+		};
+	}
 }

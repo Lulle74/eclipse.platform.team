@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,6 +38,7 @@ public class ConsolePreferencesPage extends FieldEditorPreferencePage implements
 	private IntegerFieldEditor highWaterMark;
 	private IntegerFieldEditor width;
 
+	@Override
 	protected void createFieldEditors() {
 		final Composite composite = getFieldEditorParent();
 		createLabel(composite, CVSUIMessages.ConsolePreferencesPage_9); 
@@ -78,10 +82,11 @@ public class ConsolePreferencesPage extends FieldEditorPreferencePage implements
 		addField(errorColorEditor);
 		
 		Dialog.applyDialogFont(composite);
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.CONSOLE_PREFERENCE_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.CONSOLE_PREFERENCE_PAGE);
 	}
 	
 	
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		super.propertyChange(event);
 		highWaterMark.setEnabled(restrictOutput.getBooleanValue(), getFieldEditorParent());
@@ -115,15 +120,11 @@ public class ConsolePreferencesPage extends FieldEditorPreferencePage implements
 		return editor;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
-	 */
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.preference.IPreferencePage#performOk()
-	 */
+	@Override
 	public boolean performOk() {
 		CVSUIPlugin.getPlugin().savePluginPreferences();
 		return super.performOk();

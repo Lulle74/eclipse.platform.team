@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *    IBM Corporation - initial API and implementation
@@ -37,9 +40,10 @@ public class FileDiffOperation extends DiffOperation {
 		this.file = file;
 	}
 
+	@Override
 	public void execute(IProgressMonitor monitor) throws CVSException, InterruptedException {
-	    super.execute(monitor);
-     
+		super.execute(monitor);
+	
 		if (tempFile.length() == 0) {
 			tempFile.delete();
 			reportEmptyDiff();
@@ -53,7 +57,7 @@ public class FileDiffOperation extends DiffOperation {
 			return;
 		}
 		
-		 copyFile();
+		copyFile();
 	}
 	
 	protected void copyFile() throws CVSException {
@@ -77,9 +81,7 @@ public class FileDiffOperation extends DiffOperation {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.DiffOperation#openStream()
-	 */
+	@Override
 	protected PrintStream openStream() throws CVSException {
 		try {
 			os = new FileOutputStream(tempFile);

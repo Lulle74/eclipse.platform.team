@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -48,9 +51,7 @@ public class CVSSyncInfo extends SyncInfo {
 		return subscriber;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.SyncInfo#computeSyncKind(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected int calculateKind() throws TeamException {
 		// special handling for folders, the generic sync algorithm doesn't work well
 		// with CVS because folders are not in namespaces (e.g. they exist in all versions
@@ -266,13 +267,13 @@ public class CVSSyncInfo extends SyncInfo {
 	 *  </ul>
 	 * </ul>
 	 */
-	 public IStatus makeInSync() throws CVSException {
-	 	
-	 	// Only works on folders
+	public IStatus makeInSync() throws CVSException {
+		
+		// Only works on folders
 		if (getLocal().getType() == IResource.FILE) {
 			return new CVSStatus(IStatus.WARNING, INVALID_RESOURCE_TYPE, NLS.bind(CVSMessages.CVSSyncInfo_7, new String[] { getLocal().getFullPath().toString()}), getLocal()); 
 		} 
-	 	
+		
 		// Only works on outgoing and conflicting changes
 		boolean outgoing = (getKind() & DIRECTION_MASK) == OUTGOING;
 		if (outgoing) {
@@ -317,9 +318,9 @@ public class CVSSyncInfo extends SyncInfo {
 		// It is also impossible for an incomming folder to be static.
 		FolderSyncInfo remoteInfo = remote.getFolderSyncInfo();
 		FolderSyncInfo localInfo = local.getParent().getFolderSyncInfo();
-        MutableFolderSyncInfo newInfo = remoteInfo.cloneMutable();
-        newInfo.setTag(localInfo.getTag());
-        newInfo.setStatic(false);
+		MutableFolderSyncInfo newInfo = remoteInfo.cloneMutable();
+		newInfo.setTag(localInfo.getTag());
+		newInfo.setStatic(false);
 		local.setFolderSyncInfo(newInfo);
 		return Status.OK_STATUS;
 	}
@@ -327,7 +328,7 @@ public class CVSSyncInfo extends SyncInfo {
 	public String toString() {
 		IResourceVariant base = getBase();
 		IResourceVariant remote = getRemote();
-		StringBuffer result = new StringBuffer(super.toString());
+		StringBuilder result = new StringBuilder(super.toString());
 		result.append("Local: "); //$NON-NLS-1$
 		result.append(getLocal().toString());
 		result.append(" Base: "); //$NON-NLS-1$
@@ -350,10 +351,7 @@ public class CVSSyncInfo extends SyncInfo {
 		return info != null ? info.getRevision() : null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.synchronize.SyncInfo#getLocalAuthor(org.eclipse.core.runtime.IProgressMonitor)
-	 * @since 3.6
-	 */
+	@Override
 	public String getLocalAuthor(IProgressMonitor monitor) {
 		final ICVSFile cvsFile= getCVSFile();
 		if (cvsFile == null)
@@ -371,10 +369,10 @@ public class CVSSyncInfo extends SyncInfo {
 		if (entries == null || entries.length == 0)
 			return null;
 		
-		for (int i = 0; i < entries.length; i++) {
+		for (ILogEntry entry : entries) {
 			try {
-				if (localRevision.equals(entries[i].getRemoteFile().getRevision())) {
-					return entries[i].getAuthor();
+				if (localRevision.equals(entry.getRemoteFile().getRevision())) {
+					return entry.getAuthor();
 				}
 			} catch (TeamException e) {
 				CVSProviderPlugin.log(e);

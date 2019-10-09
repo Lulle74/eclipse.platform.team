@@ -1,32 +1,51 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.history;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.compare.CompareUI;
 import org.eclipse.compare.ITypedElement;
-import org.eclipse.compare.structuremergeviewer.*;
+import org.eclipse.compare.structuremergeviewer.DiffNode;
+import org.eclipse.compare.structuremergeviewer.ICompareInput;
+import org.eclipse.compare.structuremergeviewer.IStructureComparator;
+import org.eclipse.compare.structuremergeviewer.IStructureCreator;
+import org.eclipse.compare.structuremergeviewer.IStructureCreator2;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.core.history.LocalFileHistory;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.actions.CompareRevisionAction;
 import org.eclipse.team.internal.ui.synchronize.LocalResourceTypedElement;
-import org.eclipse.team.ui.history.*;
+import org.eclipse.team.ui.history.HistoryPage;
+import org.eclipse.team.ui.history.IHistoryPage;
+import org.eclipse.team.ui.history.IHistoryPageSite;
 import org.eclipse.ui.IWorkbenchPage;
 
 /**
@@ -152,8 +171,7 @@ public class EditionHistoryPage extends LocalHistoryPage {
 		ITypedElement localEdition = null;
 		try {
 			localEdition = createLocalEdition(structureCreator, localFileElement, element);
-			for (int i = 0; i < revisions.length; i++) {
-				IFileRevision revision = revisions[i];
+			for (IFileRevision revision : revisions) {
 				ITypedElement edition = createEdition(structureCreator, element, new FileRevisionTypedElement(revision));
 				if (edition != null && !contentsEqual(structureCreator, localEdition, edition)) {
 					return edition;
@@ -226,8 +244,7 @@ public class EditionHistoryPage extends LocalHistoryPage {
 		List<IFileRevision> result = new ArrayList<IFileRevision>();
 		sortDescending(revisions);
 		editions.clear();
-		for (int i = 0; i < revisions.length; i++) {
-			IFileRevision revision = revisions[i];
+		for (IFileRevision revision : revisions) {
 			ITypedElement edition = createEdition(new FileRevisionTypedElement(revision));
 			if (edition != null && !contentsEqual(structureCreator, previousEdition, edition)) {
 				editions.put(revision, edition);

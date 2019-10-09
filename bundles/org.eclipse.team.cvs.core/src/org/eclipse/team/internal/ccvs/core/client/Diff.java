@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -39,21 +42,20 @@ public class Diff extends Command {
 	 * so when there is a difference between the checked files.	
 	 */
 	protected IStatus doExecute(Session session, GlobalOption[] globalOptions, LocalOption[] localOptions,
-								  String[] arguments, ICommandOutputListener listener, IProgressMonitor monitor) throws CVSException {
+								String[] arguments, ICommandOutputListener listener, IProgressMonitor monitor) throws CVSException {
 		try {
 			IStatus status = super.doExecute(session, globalOptions, localOptions, arguments, listener, monitor);
-            if (status.getCode() == CVSStatus.SERVER_ERROR) {
-                if (status.isMultiStatus()) {
-                    IStatus[] children = status.getChildren();
-                    for (int i = 0; i < children.length; i++) {
-                        IStatus child = children[i];
-                        if (child.getMessage().indexOf("[diff aborted]") != -1) { //$NON-NLS-1$
-                            throw new CVSServerException(status);
-                        }
-                    }
-                }
-            }
-            return status;
+			if (status.getCode() == CVSStatus.SERVER_ERROR) {
+				if (status.isMultiStatus()) {
+					IStatus[] children = status.getChildren();
+					for (IStatus child : children) {
+						if (child.getMessage().contains("[diff aborted]")) { //$NON-NLS-1$
+							throw new CVSServerException(status);
+						}
+					}
+				}
+			}
+			return status;
 		} catch (CVSServerException e) {
 			if (e.containsErrors()) throw e;
 			return e.getStatus();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,7 +23,6 @@ import org.eclipse.compare.INavigatable;
 import org.eclipse.compare.internal.Utilities;
 import org.eclipse.compare.internal.patch.DiffViewerComparator;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -263,19 +265,16 @@ public class DiffTreeViewer extends TreeViewer {
 		MenuManager mm= new MenuManager();
 		mm.setRemoveAllWhenShown(true);
 		mm.addMenuListener(
-			new IMenuListener() {
-				@Override
-				public void menuAboutToShow(IMenuManager mm2) {
+				mm2 -> {
 					fillContextMenu(mm2);
 					if (mm2.isEmpty()) {
 						if (fEmptyMenuAction == null) {
-							fEmptyMenuAction= new Action(Utilities.getString(fBundle, "emptyMenuItem")) { //$NON-NLS-1$
+							fEmptyMenuAction = new Action(Utilities.getString(fBundle, "emptyMenuItem")) { //$NON-NLS-1$
 								// left empty
 							};
 							fEmptyMenuAction.setEnabled(false);
-						}
-						mm2.add(fEmptyMenuAction);
 					}
+						mm2.add(fEmptyMenuAction);
 				}
 			}
 		);
@@ -371,8 +370,8 @@ public class DiffTreeViewer extends TreeViewer {
 	/**
 	 * Overridden to avoid expanding {@code DiffNode}s that shouldn't expand.
 	 *
-     * @param node the node to expand
-     * @param level non-negative level, or {@code ALL_LEVELS} to collapse all levels of the tree
+	 * @param node the node to expand
+	 * @param level non-negative level, or {@code ALL_LEVELS} to collapse all levels of the tree
 	 */
 	@Override
 	protected void internalExpandToLevel(Widget node, int level) {

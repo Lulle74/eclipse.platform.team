@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -16,7 +19,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableContext;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.ProjectSetImporter;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.ui.TeamOperation;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
@@ -86,11 +91,6 @@ public class ImportProjectSetOperation extends TeamOperation {
 		createWorkingSet(workingSets, newProjects);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public void run(IProgressMonitor monitor)
 			throws InvocationTargetException, InterruptedException{
@@ -101,21 +101,11 @@ public class ImportProjectSetOperation extends TeamOperation {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.team.ui.TeamOperation#canRunAsJob()
-	 */
 	@Override
 	protected boolean canRunAsJob() {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.team.ui.TeamOperation#getJobName()
-	 */
 	@Override
 	protected String getJobName() {
 		return TeamUIMessages.ImportProjectSetMainPage_jobName;
@@ -124,8 +114,8 @@ public class ImportProjectSetOperation extends TeamOperation {
 	private void createWorkingSet(IWorkingSet[] workingSets, IProject[] projects) {
 		IWorkingSetManager manager = TeamUIPlugin.getPlugin().getWorkbench().getWorkingSetManager();
 		String workingSetName;
-		for (int i = 0; i < workingSets.length; i++) {
-			workingSetName = workingSets[i].getName();
+		for (IWorkingSet workingSet : workingSets) {
+			workingSetName = workingSet.getName();
 			IWorkingSet oldSet = manager.getWorkingSet(workingSetName);
 			if (oldSet == null) {
 				IWorkingSet newSet = manager.createWorkingSet(workingSetName, projects);

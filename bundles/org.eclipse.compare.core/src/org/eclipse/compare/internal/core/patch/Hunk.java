@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,9 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.compare.patch.IFilePatchResult;
-import org.eclipse.compare.patch.IHunk;
-import org.eclipse.compare.patch.PatchConfiguration;
+import org.eclipse.compare.patch.*;
 import org.eclipse.core.runtime.Assert;
 
 /**
@@ -60,9 +61,9 @@ public class Hunk implements IHunk {
 	public Hunk(FilePatch2 parent, int hunkType, int oldStart, int oldLength,
 			int newStart, int newLength, String[] lines) {
 		this.fParent = parent;
-        if (this.fParent != null) {
-            this.fParent.add(this);
-        }
+		if (this.fParent != null) {
+			this.fParent.add(this);
+		}
 		this.hunkType = hunkType;
 		this.fOldLength = oldLength;
 		this.fOldStart = oldStart;
@@ -71,9 +72,9 @@ public class Hunk implements IHunk {
 		this.fLines = lines;
 	}
 
-    public Hunk(FilePatch2 parent, Hunk toCopy) {
-    	this(parent, toCopy.hunkType, toCopy.fOldStart, toCopy.fOldLength, toCopy.fNewStart, toCopy.fNewLength, toCopy.fLines);
-    }
+	public Hunk(FilePatch2 parent, Hunk toCopy) {
+		this(parent, toCopy.hunkType, toCopy.fOldStart, toCopy.fOldLength, toCopy.fNewStart, toCopy.fNewLength, toCopy.fLines);
+	}
 
 	/*
 	 * Returns the contents of this hunk.
@@ -89,8 +90,7 @@ public class Hunk implements IHunk {
 	 */
 	public String getContent() {
 		StringBuilder sb= new StringBuilder();
-		for (int i= 0; i < this.fLines.length; i++) {
-			String line= this.fLines[i];
+		for (String line : this.fLines) {
 			sb.append(line.substring(0, LineReader.length(line)));
 			sb.append('\n');
 		}
@@ -180,8 +180,7 @@ public class Hunk implements IHunk {
 		List<String> contextLines = new ArrayList<>();
 		boolean contextLinesMatched = true;
 		boolean precedingLinesChecked = false;
-		for (int i= 0; i < this.fLines.length; i++) {
-			String s = this.fLines[i];
+		for (String s : this.fLines) {
 			Assert.isTrue(s.length() > 0);
 			String line = s.substring(1);
 			char controlChar = s.charAt(0);
@@ -329,25 +328,24 @@ public class Hunk implements IHunk {
 		boolean precedingLinesChecked = false;
 		String lineDelimiter = getLineDelimiter(lines);
 
-		for (int i= 0; i < this.fLines.length; i++) {
-			String s= this.fLines[i];
+		for (String s : this.fLines) {
 			Assert.isTrue(s.length() > 0);
 			String line= s.substring(1);
 			char controlChar= s.charAt(0);
 			if (controlChar == ' ') {
 				// context lines
-					Assert.isTrue(pos < lines.size(), "doPatch: inconsistency in context"); //$NON-NLS-1$
-					contextLines.add(line);
-					if (linesMatch(configuration, line, lines.get(pos))) {
-						pos++;
-						continue;
-					} else if (fuzz > 0) {
-						// doesn't match, use the fuzz factor
-						contextLinesMatched = false;
-						pos++;
-						continue;
-					}
-					Assert.isTrue(false, "doPatch: context doesn't match"); //$NON-NLS-1$
+				Assert.isTrue(pos < lines.size(), "doPatch: inconsistency in context"); //$NON-NLS-1$
+				contextLines.add(line);
+				if (linesMatch(configuration, line, lines.get(pos))) {
+					pos++;
+					continue;
+				} else if (fuzz > 0) {
+					// doesn't match, use the fuzz factor
+					contextLinesMatched = false;
+					pos++;
+					continue;
+				}
+				Assert.isTrue(false, "doPatch: context doesn't match"); //$NON-NLS-1$
 //					pos++;
 			} else if (isDeletedDelimeter(controlChar, reverse)) {
 				// deleted lines
@@ -362,7 +360,7 @@ public class Hunk implements IHunk {
 						&& contextLines.size() >= fuzz
 						&& !checkPrecedingContextLines(configuration, lines,
 								fuzz, pos, contextLines))
-					Assert.isTrue(false, "doPatch: preceding context lines don't match, even though fuzz factor has been used"); //$NON-NLS-1$;
+					Assert.isTrue(false, "doPatch: preceding context lines don't match, even though fuzz factor has been used"); //$NON-NLS-1$
 				// else if there is less or equal context line to the fuzz
 				// factor we ignore them all and treat as matching
 
@@ -381,7 +379,7 @@ public class Hunk implements IHunk {
 						&& contextLines.size() >= fuzz
 						&& !checkPrecedingContextLines(configuration, lines,
 								fuzz, pos, contextLines))
-					Assert.isTrue(false, "doPatch: preceding context lines don't match, even though fuzz factor has been used"); //$NON-NLS-1$;
+					Assert.isTrue(false, "doPatch: preceding context lines don't match, even though fuzz factor has been used"); //$NON-NLS-1$
 
 				precedingLinesChecked = true;
 				contextLines.clear();
@@ -460,8 +458,7 @@ public class Hunk implements IHunk {
 
 	public String getContents(boolean isAfterState, boolean reverse) {
 		StringBuilder result= new StringBuilder();
-		for (int i= 0; i<this.fLines.length; i++) {
-			String line= this.fLines[i];
+		for (String line : this.fLines) {
 			String rest= line.substring(1);
 			char c = line.charAt(0);
 			if (c == ' ') {

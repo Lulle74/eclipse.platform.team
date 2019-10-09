@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +34,7 @@ public class RLog extends RemoteCommand {
 	 * ==== ==== =================================
 	 * date  	date		date<date (all revisions between date and later)
 	 * tag		tag		tag:tag (all revisions between tag and tag, must be on same branch)
- 	 * branch date 	>date (all revisions of date or later)
+	 * branch date 	>date (all revisions of date or later)
 	 * branch tag		tag: (all revisions from tag to the end of branchs tip)
 	 * 
 	 * Valid for: rlog
@@ -118,9 +121,7 @@ public class RLog extends RemoteCommand {
 		
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.Request#getRequestId()
-	 */
+	@Override
 	protected String getRequestId() {
 		return "rlog"; //$NON-NLS-1$
 	}

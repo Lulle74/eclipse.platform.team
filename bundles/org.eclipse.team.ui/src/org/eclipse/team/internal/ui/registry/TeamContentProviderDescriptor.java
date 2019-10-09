@@ -1,16 +1,23 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.registry;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.osgi.util.NLS;
@@ -96,25 +103,16 @@ public class TeamContentProviderDescriptor implements ITeamContentProviderDescri
 		throw new CoreException(new Status(IStatus.ERROR, TeamUIPlugin.ID, 0, reason, null));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.registry.ITeamContentProviderDescriptor#getContentExtensionId()
-	 */
 	@Override
 	public String getContentExtensionId() {
 		return contentExtensionId;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.registry.ITeamContentProviderDescriptor#getModelProviderId()
-	 */
 	@Override
 	public String getModelProviderId() {
 		return modelProviderId;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.registry.ITeamContentProviderDescriptor#getImageDescriptor()
-	 */
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		if (imageDescriptor != null)
@@ -126,9 +124,6 @@ public class TeamContentProviderDescriptor implements ITeamContentProviderDescri
 		return imageDescriptor;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.registry.ITeamContentProviderDescriptor#createPreferencePage()
-	 */
 	@Override
 	public IPreferencePage createPreferencePage() throws CoreException {
 		if (configElement.getAttribute(ATT_PREFERENCE_PAGE) == null)
@@ -137,9 +132,6 @@ public class TeamContentProviderDescriptor implements ITeamContentProviderDescri
 		return (IPreferencePage) obj;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor#isEnabled()
-	 */
 	@Override
 	public boolean isEnabled() {
 		if (!hasPreferences()) {
@@ -220,9 +212,6 @@ public class TeamContentProviderDescriptor implements ITeamContentProviderDescri
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor#isFlatLayoutSupported()
-	 */
 	@Override
 	public boolean isFlatLayoutSupported() {
 		return supportsFlatLayout;

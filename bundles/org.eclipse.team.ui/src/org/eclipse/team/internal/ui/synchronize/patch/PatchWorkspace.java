@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -14,9 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.compare.ITypedElement;
-import org.eclipse.compare.internal.core.patch.*;
-import org.eclipse.compare.internal.patch.*;
-import org.eclipse.compare.structuremergeviewer.*;
+import org.eclipse.compare.internal.core.patch.DiffProject;
+import org.eclipse.compare.internal.core.patch.FileDiffResult;
+import org.eclipse.compare.internal.core.patch.FilePatch2;
+import org.eclipse.compare.internal.core.patch.HunkResult;
+import org.eclipse.compare.internal.patch.HunkDiffNode;
+import org.eclipse.compare.internal.patch.PatchFileDiffNode;
+import org.eclipse.compare.internal.patch.PatchProjectDiffNode;
+import org.eclipse.compare.internal.patch.WorkspaceFileDiffResult;
+import org.eclipse.compare.internal.patch.WorkspacePatcher;
+import org.eclipse.compare.structuremergeviewer.DiffNode;
+import org.eclipse.compare.structuremergeviewer.Differencer;
+import org.eclipse.compare.structuremergeviewer.IDiffContainer;
+import org.eclipse.compare.structuremergeviewer.IDiffElement;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IAdaptable;
@@ -72,8 +85,8 @@ public class PatchWorkspace extends DiffNode implements IAdaptable {
 	// see org.eclipse.compare.internal.patch.PatchCompareEditorInput.processDiffs(FilePatch2[])
 	private IDiffElement[] processDiffs(FilePatch2[] diffs) {
 		List<IDiffElement> result = new ArrayList<>();
-		for (int i = 0; i < diffs.length; i++) {
-			result.addAll(processDiff(diffs[i], this));
+		for (FilePatch2 diff : diffs) {
+			result.addAll(processDiff(diff, this));
 		}
 		return result.toArray(new IDiffElement[result.size()]);
 	}
@@ -81,12 +94,11 @@ public class PatchWorkspace extends DiffNode implements IAdaptable {
 	// see org.eclipse.compare.internal.patch.PatchCompareEditorInput.processProjects(DiffProject[])
 	private IDiffElement[] processProjects(DiffProject[] diffProjects) {
 		List<IDiffElement> result = new ArrayList<>();
-		for (int i = 0; i < diffProjects.length; i++) {
-			PatchProjectDiffNode projectNode = new PatchProjectDiffNode(this, diffProjects[i], getPatcher().getConfiguration());
+		for (DiffProject diffProject : diffProjects) {
+			PatchProjectDiffNode projectNode = new PatchProjectDiffNode(this, diffProject, getPatcher().getConfiguration());
 			result.add(projectNode);
-			FilePatch2[] diffs = diffProjects[i].getFileDiffs();
-			for (int j = 0; j < diffs.length; j++) {
-				FilePatch2 fileDiff = diffs[j];
+			FilePatch2[] diffs = diffProject.getFileDiffs();
+			for (FilePatch2 fileDiff : diffs) {
 				processDiff(fileDiff, projectNode);
 			}
 		}
@@ -100,8 +112,7 @@ public class PatchWorkspace extends DiffNode implements IAdaptable {
 		PatchFileDiffNode node = new PatchFileDiffNode(diffResult, parent, PatchFileDiffNode.getKind(diffResult), PatchFileDiffNode.getAncestorElement(diffResult), getLeftElement(diffResult), PatchFileDiffNode.getRightElement(diffResult));
 		result.add(node);
 		HunkResult[] hunkResults = diffResult.getHunkResults();
-		for (int i = 0; i < hunkResults.length; i++) {
-			HunkResult hunkResult = hunkResults[i];
+		for (HunkResult hunkResult : hunkResults) {
 			new HunkDiffNode(hunkResult, node, Differencer.CHANGE, HunkDiffNode.getAncestorElement(hunkResult, false), getLeftElement(hunkResult), HunkDiffNode.getRightElement(hunkResult, false));
 			// result.add(hunkDiffNode);
 		}

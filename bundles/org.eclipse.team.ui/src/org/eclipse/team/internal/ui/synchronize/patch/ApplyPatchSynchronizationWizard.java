@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2009, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,15 +15,27 @@ package org.eclipse.team.internal.ui.synchronize.patch;
 
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.internal.core.patch.DiffProject;
-import org.eclipse.compare.internal.patch.*;
-import org.eclipse.core.resources.*;
+import org.eclipse.compare.internal.patch.InputPatchPage;
+import org.eclipse.compare.internal.patch.PatchTargetPage;
+import org.eclipse.compare.internal.patch.PatchWizard;
+import org.eclipse.compare.internal.patch.WorkspacePatcher;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ResourceMapping;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.team.core.subscribers.SubscriberMergeContext;
 import org.eclipse.team.core.subscribers.SubscriberScopeManager;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.wizards.PatchInaccessibleProjectsPage;
 import org.eclipse.team.ui.IConfigurationWizard;
 import org.eclipse.team.ui.TeamUI;
@@ -117,9 +132,8 @@ public class ApplyPatchSynchronizationWizard extends PatchWizard implements
 	private boolean isTargetingInaccessibleProjects() {
 		DiffProject[] diffProjects = getPatcher().getDiffProjects();
 		if (diffProjects != null) {
-			for (int i = 0; i < diffProjects.length; i++) {
-				IProject project = ResourcesPlugin.getWorkspace().getRoot()
-						.getProject(diffProjects[i].getName());
+			for (DiffProject diffProject : diffProjects) {
+				IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(diffProject.getName());
 				if (!project.isAccessible())
 					return true;
 			}
@@ -160,10 +174,9 @@ public class ApplyPatchSynchronizationWizard extends PatchWizard implements
 						IStatus.ERROR,
 						TeamUIMessages.PatchInaccessibleProjectsPage_openingProjects,
 						null);
-				for (int i = 0; i < projects.length; i++) {
-					IProject project = projects[i];
+				for (IProject project : projects) {
 					try {
-						project.open(new SubProgressMonitor(monitor, 1));
+						project.open(SubMonitor.convert(monitor, 1));
 					} catch (CoreException e) {
 						errorStatus.add(e.getStatus());
 					}

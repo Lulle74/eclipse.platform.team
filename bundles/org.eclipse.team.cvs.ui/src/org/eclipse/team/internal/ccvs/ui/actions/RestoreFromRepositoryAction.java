@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,8 +35,9 @@ import org.eclipse.team.internal.ccvs.core.connection.CVSServerException;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.FolderSyncInfo;
 import org.eclipse.team.internal.ccvs.core.util.KnownRepositories;
-import org.eclipse.team.internal.ccvs.ui.*;
+import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
 import org.eclipse.team.internal.ccvs.ui.Policy;
+import org.eclipse.team.internal.ccvs.ui.ResizableWizardDialog;
 import org.eclipse.team.internal.ccvs.ui.wizards.RestoreFromRepositoryWizard;
 
 /**
@@ -55,8 +59,9 @@ public class RestoreFromRepositoryAction extends WorkspaceTraversalAction {
 		private static final String RCS_FILE_POSTFIX = ",v"; //$NON-NLS-1$
 		private static final String LOGGING_PREFIX = "Logging "; //$NON-NLS-1$
 		ICVSFolder currentFolder;
-		List atticFiles = new ArrayList();
+		List<ICVSFile> atticFiles = new ArrayList<>();
 		
+		@Override
 		public IStatus messageLine(
 					String line,
 					ICVSRepositoryLocation location,
@@ -65,54 +70,55 @@ public class RestoreFromRepositoryAction extends WorkspaceTraversalAction {
 			
 			// Extract the file name and path from the RCS path
 			// String filePath = line.substring(index);
-            // Find all RCS file names that contain "Attic"
-            int start = line.lastIndexOf(Session.SERVER_SEPARATOR);
-            if (start != -1) {
-    			String fileName = line.substring(start + 1);
-    			if (fileName.endsWith(RCS_FILE_POSTFIX)) {
-    				fileName = fileName.substring(0, fileName.length() - RCS_FILE_POSTFIX.length());
-    			}
-                if (currentFolder != null) {
-        			try {
-        				ICVSFile file = currentFolder.getFile(fileName);
-                        if (!file.exists())
-                            atticFiles.add(file);
-        			} catch (CVSException e) {
-        				return e.getStatus();
-        			}
-                } else {
-                	// Executed for every message line when in quiet mode.
-                	// See bug 238334
-                	CVSRepositoryLocation repo = (CVSRepositoryLocation)location;
-                	// If exists, remove root directory
-                	if (line.startsWith(repo.getRootDirectory())) {
-                		String repoPath = line.substring(repo.getRootDirectory().length());
-                		try {
-                			String cmdRootRelativePath = commandRoot.getRepositoryRelativePath();
-                			// Remove command root path
-                			String path = repoPath.substring(repoPath.indexOf(cmdRootRelativePath)	+ cmdRootRelativePath.length());
-                			// Remove filename at the end
-                			String folderPath = path.substring(0, path.indexOf(fileName));
-                			// The "raw" folderPath contains CVS's 'Attic/' segment when a file has been deleted from cvs.
-                			if (folderPath.endsWith(ATTIC)) {
-                				folderPath = folderPath.substring(0, folderPath.length() - ATTIC_LENGTH);
-                			}
-                			// A separator means the same as "current folder"
-                			if (folderPath.equals(Session.SERVER_SEPARATOR))
-                				folderPath = Session.CURRENT_LOCAL_FOLDER;
-                			ICVSFolder folder = commandRoot.getFolder(folderPath);
-                			ICVSFile file = folder.getFile(fileName);
-                			if (!file.exists())
-                				atticFiles.add(file);
-                		} catch (CVSException e) {
-                			return e.getStatus();
-                		}
-                	}
-                }
-            }
+			// Find all RCS file names that contain "Attic"
+			int start = line.lastIndexOf(Session.SERVER_SEPARATOR);
+			if (start != -1) {
+				String fileName = line.substring(start + 1);
+				if (fileName.endsWith(RCS_FILE_POSTFIX)) {
+					fileName = fileName.substring(0, fileName.length() - RCS_FILE_POSTFIX.length());
+				}
+				if (currentFolder != null) {
+					try {
+						ICVSFile file = currentFolder.getFile(fileName);
+						if (!file.exists())
+							atticFiles.add(file);
+					} catch (CVSException e) {
+						return e.getStatus();
+					}
+				} else {
+					// Executed for every message line when in quiet mode.
+					// See bug 238334
+					CVSRepositoryLocation repo = (CVSRepositoryLocation)location;
+					// If exists, remove root directory
+					if (line.startsWith(repo.getRootDirectory())) {
+						String repoPath = line.substring(repo.getRootDirectory().length());
+						try {
+							String cmdRootRelativePath = commandRoot.getRepositoryRelativePath();
+							// Remove command root path
+							String path = repoPath.substring(repoPath.indexOf(cmdRootRelativePath)	+ cmdRootRelativePath.length());
+							// Remove filename at the end
+							String folderPath = path.substring(0, path.indexOf(fileName));
+							// The "raw" folderPath contains CVS's 'Attic/' segment when a file has been deleted from cvs.
+							if (folderPath.endsWith(ATTIC)) {
+								folderPath = folderPath.substring(0, folderPath.length() - ATTIC_LENGTH);
+							}
+							// A separator means the same as "current folder"
+							if (folderPath.equals(Session.SERVER_SEPARATOR))
+								folderPath = Session.CURRENT_LOCAL_FOLDER;
+							ICVSFolder folder = commandRoot.getFolder(folderPath);
+							ICVSFile file = folder.getFile(fileName);
+							if (!file.exists())
+								atticFiles.add(file);
+						} catch (CVSException e) {
+							return e.getStatus();
+						}
+					}
+				}
+			}
 			return OK;
 		}
 		
+		@Override
 		public IStatus errorLine(
 			String line,
 			ICVSRepositoryLocation location,
@@ -136,13 +142,11 @@ public class RestoreFromRepositoryAction extends WorkspaceTraversalAction {
 		}
 
 		public ICVSFile[] getAtticFilePaths() {
-			return (ICVSFile[]) atticFiles.toArray(new ICVSFile[atticFiles.size()]);
+			return atticFiles.toArray(new ICVSFile[atticFiles.size()]);
 		}
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#execute(org.eclipse.jface.action.IAction)
-	 */
+	@Override
 	protected void execute(IAction action) throws InvocationTargetException, InterruptedException {
 		IContainer resource = (IContainer)getSelectedResources()[0];
 		ICVSFile[] files = fetchDeletedFiles(resource);
@@ -157,9 +161,7 @@ public class RestoreFromRepositoryAction extends WorkspaceTraversalAction {
 		dialog.open();
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ui.actions.TeamAction#isEnabled()
-	 */
+	@Override
 	public boolean isEnabled() {
 		IResource[] resources = getSelectedResources();
 		if (resources.length != 1) return false;
@@ -177,16 +179,14 @@ public class RestoreFromRepositoryAction extends WorkspaceTraversalAction {
 		final ICVSFile[][] files = new ICVSFile[1][0];
 		files[0] = null;
 		try {
-			run(new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						ICVSFolder folder = CVSWorkspaceRoot.getCVSFolderFor(parent);
-						FolderSyncInfo info = folder.getFolderSyncInfo();
-						ICVSRepositoryLocation location = KnownRepositories.getInstance().getRepository(info.getRoot());
-						files[0] = fetchFilesInAttic(location, folder, monitor);
-					} catch (CVSException e) {
-						throw new InvocationTargetException(e);
-					}
+			run((IRunnableWithProgress) monitor -> {
+				try {
+					ICVSFolder folder = CVSWorkspaceRoot.getCVSFolderFor(parent);
+					FolderSyncInfo info = folder.getFolderSyncInfo();
+					ICVSRepositoryLocation location = KnownRepositories.getInstance().getRepository(info.getRoot());
+					files[0] = fetchFilesInAttic(location, folder, monitor);
+				} catch (CVSException e) {
+					throw new InvocationTargetException(e);
 				}
 			}, true, PROGRESS_DIALOG);
 		} catch (InvocationTargetException e) {

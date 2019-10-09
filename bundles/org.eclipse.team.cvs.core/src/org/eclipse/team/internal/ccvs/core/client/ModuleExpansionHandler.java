@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,16 +19,12 @@ import org.eclipse.team.internal.ccvs.core.CVSException;
 
 public class ModuleExpansionHandler extends ResponseHandler {
 
-	/*
-	 * @see ResponseHandler#getResponseID()
-	 */
+	@Override
 	public String getResponseID() {
 		return "Module-expansion";//$NON-NLS-1$
 	}
 
-	/*
-	 * @see ResponseHandler#handle(Session, String, IProgressMonitor)
-	 */
+	@Override
 	public void handle(Session session, String expansion, IProgressMonitor monitor)
 		throws CVSException {
 			

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,15 +44,13 @@ public class ConfigurationWizardAutoconnectPage extends CVSWizardPage {
 		super(pageName, title, titleImage);
 	}
 
-	/*
-	 * @see IDialogPage#createControl(Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite = createComposite(parent, 2, false);
 		setControl(composite);
 		
 		// set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_AUTOCONNECT_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_AUTOCONNECT_PAGE);
 		
 		Label description = new Label(composite, SWT.WRAP);
 		GridData data = new GridData();
@@ -90,11 +91,7 @@ public class ConfigurationWizardAutoconnectPage extends CVSWizardPage {
 		data = new GridData();
 		data.horizontalSpan = 2;
 		check.setText(CVSUIMessages.ConfigurationWizardAutoconnectPage_validate); 
-		check.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				validate = check.getSelection();
-			}
-		});
+		check.addListener(SWT.Selection, event -> validate = check.getSelection());
 		check.setSelection(true);		
 		Dialog.applyDialogFont(parent);	
 	}

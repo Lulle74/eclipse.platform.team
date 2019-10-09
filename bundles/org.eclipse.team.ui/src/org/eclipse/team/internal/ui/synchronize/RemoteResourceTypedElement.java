@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +15,8 @@ package org.eclipse.team.internal.ui.synchronize;
 
 import org.eclipse.compare.ITypedElement;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.variants.IResourceVariant;
 import org.eclipse.team.internal.core.mapping.ResourceVariantFileRevision;
@@ -39,17 +43,11 @@ public class RemoteResourceTypedElement extends StorageTypedElement {
 		this.remote = remote;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getName()
-	 */
 	@Override
 	public String getName() {
 		return remote.getName();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.StorageTypedElement#getType()
-	 */
 	@Override
 	public String getType() {
 		if (remote.isContainer()) {
@@ -58,17 +56,11 @@ public class RemoteResourceTypedElement extends StorageTypedElement {
 		return super.getType();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.StorageTypedElement#fetchContents(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	protected IStorage fetchContents(IProgressMonitor monitor) throws TeamException {
 		return remote.getStorage(monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ISharedDocumentAdapter#getDocumentKey(java.lang.Object)
-	 */
 	@Override
 	public IEditorInput getDocumentKey(Object element) {
 		if (element == this && getBufferedStorage() != null) {

@@ -1,21 +1,29 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.mapping;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.eclipse.compare.rangedifferencer.RangeDifference;
 import org.eclipse.compare.rangedifferencer.RangeDifferencer;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.team.core.mapping.IStorageMerger;
 import org.eclipse.team.internal.core.Messages;
 import org.eclipse.team.internal.core.TeamPlugin;
@@ -47,8 +55,7 @@ public class TextStorageMerger implements IStorageMerger {
 
 			RangeDifference[] diffs= RangeDifferencer.findRanges(monitor, a, t, o);
 
-			for (int i= 0; i < diffs.length; i++) {
-				RangeDifference rd= diffs[i];
+			for (RangeDifference rd : diffs) {
 				switch (rd.kind()) {
 				case RangeDifference.ANCESTOR: // pseudo conflict
 				case RangeDifference.NOCHANGE:

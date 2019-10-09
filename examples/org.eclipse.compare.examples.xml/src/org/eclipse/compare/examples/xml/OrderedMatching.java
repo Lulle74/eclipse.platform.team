@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,30 +31,29 @@ public class OrderedMatching extends AbstractMatching {
 		Object[] xc= x.getChildren();
 		Object[] yc= y.getChildren();
 
-		ArrayList xc_elementsAL= new ArrayList();
-		ArrayList xc_attrsAL= new ArrayList();
+		ArrayList<XMLNode> xc_elementsAL= new ArrayList<>();
+		ArrayList<XMLNode> xc_attrsAL= new ArrayList<>();
 
-		ArrayList yc_elementsAL= new ArrayList();
-		ArrayList yc_attrsAL= new ArrayList();
+		ArrayList<XMLNode> yc_elementsAL= new ArrayList<>();
+		ArrayList<XMLNode> yc_attrsAL= new ArrayList<>();
 
 		//find attributes and elements and put them in xc_elementsAL and xc_attrsAL, respectively
-		for (int i= 0; i < xc.length; i++) {
-			XMLNode x_i= (XMLNode) xc[i];
+		for (Object xc1 : xc) {
+			XMLNode x_i = (XMLNode) xc1;
 			if (x_i.getXMLType().equals(XMLStructureCreator.TYPE_ELEMENT)) {
 				xc_elementsAL.add(x_i);
 			} else if (
-				x_i.getXMLType().equals(XMLStructureCreator.TYPE_ATTRIBUTE)) {
+					x_i.getXMLType().equals(XMLStructureCreator.TYPE_ATTRIBUTE)) {
 				xc_attrsAL.add(x_i);
 			}
 		}
-
-		//do the same for yc				
-		for (int i= 0; i < yc.length; i++) {
-			XMLNode y_i= (XMLNode) yc[i];
+		//do the same for yc
+		for (Object yc1 : yc) {
+			XMLNode y_i = (XMLNode) yc1;
 			if (y_i.getXMLType().equals(XMLStructureCreator.TYPE_ELEMENT)) {
 				yc_elementsAL.add(y_i);
 			} else if (
-				y_i.getXMLType().equals(XMLStructureCreator.TYPE_ATTRIBUTE)) {
+					y_i.getXMLType().equals(XMLStructureCreator.TYPE_ATTRIBUTE)) {
 				yc_attrsAL.add(y_i);
 			}
 		}
@@ -66,9 +68,9 @@ public class OrderedMatching extends AbstractMatching {
 		// perform unordered matching on attributes
 		// this updates fDT and fDT_Matchings
 		if (xc_attrsAL.size() > 0 || yc_attrsAL.size() > 0) {
-			if (xc_attrsAL.size() == 0)
+			if (xc_attrsAL.isEmpty())
 				distance += yc_attrsAL.size();
-			else if (yc_attrsAL.size() == 0)
+			else if (yc_attrsAL.isEmpty())
 				distance += xc_attrsAL.size();
 			else {
 				//unorderedMatch(x, y, xc_attrs, yc_attrs);
@@ -120,9 +122,9 @@ public class OrderedMatching extends AbstractMatching {
 		boolean rightTreeIsAncestor,
 		IProgressMonitor monitor) {
 
-		fNLeft= new Vector();
+		fNLeft= new Vector<XMLNode>();
 		//numbering LeftTree: Mapping nodes in LeftTree to numbers to be used as array indexes
-		fNRight= new Vector();
+		fNRight= new Vector<XMLNode>();
 		//numbering RightTree: Mapping nodes in RightTree to numbers to be used as array indexes
 		numberNodes(LeftTree, fNLeft);
 		numberNodes(RightTree, fNRight);
@@ -181,16 +183,13 @@ public class OrderedMatching extends AbstractMatching {
 	}
 
 	public int handleAttributes(
-		ArrayList xc_attrs,
-		ArrayList yc_attrs,
-		ArrayList DTMatching) {
+		ArrayList<XMLNode> xc_attrs,
+		ArrayList<XMLNode> yc_attrs,
+		ArrayList<Match> DTMatching) {
 		int distance= 0;
-		x_for : for (
-			Iterator iter_xc= xc_attrs.iterator(); iter_xc.hasNext();) {
-			XMLNode x_attr= (XMLNode) iter_xc.next();
+		x_for : for (XMLNode x_attr : xc_attrs) {
 			String x_attr_name= x_attr.getName();
-			for (Iterator iter_yc= yc_attrs.iterator(); iter_yc.hasNext();) {
-				XMLNode y_attr= (XMLNode) iter_yc.next();
+			for (XMLNode y_attr : yc_attrs) {
 				if (y_attr.getName().equals(x_attr_name)) {
 					if (!y_attr.getValue().equals(x_attr.getValue()))
 						distance += 1;
@@ -203,8 +202,8 @@ public class OrderedMatching extends AbstractMatching {
 			distance += 1;
 		}
 
-		for (Iterator iter_yc= yc_attrs.iterator(); iter_yc.hasNext();) {
-			DTMatching.add(new Match(null, (XMLNode) iter_yc.next()));
+		for (Iterator<XMLNode> iter_yc= yc_attrs.iterator(); iter_yc.hasNext();) {
+			DTMatching.add(new Match(null, iter_yc.next()));
 			distance += 1;
 		}
 

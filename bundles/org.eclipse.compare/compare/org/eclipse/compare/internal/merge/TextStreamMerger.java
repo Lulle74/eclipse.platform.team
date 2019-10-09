@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.IStreamMerger;
 import org.eclipse.compare.rangedifferencer.RangeDifference;
 import org.eclipse.compare.rangedifferencer.RangeDifferencer;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -27,15 +31,6 @@ import org.eclipse.core.runtime.Status;
  */
 public class TextStreamMerger implements IStreamMerger {
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.compare.internal.merge.IAutoMerger#automerge(java.io.OutputStream,
-	 *      org.eclipse.core.resources.IEncodedStorage,
-	 *      org.eclipse.core.resources.IEncodedStorage,
-	 *      org.eclipse.core.resources.IEncodedStorage,
-	 *      org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public IStatus merge(OutputStream output, String outputEncoding, InputStream ancestor, String ancestorEncoding, InputStream target, String targetEncoding, InputStream other, String otherEncoding, IProgressMonitor monitor) {
 
@@ -58,8 +53,7 @@ public class TextStreamMerger implements IStreamMerger {
 
 			RangeDifference[] diffs= RangeDifferencer.findRanges(monitor, a, t, o);
 
-			for (int i= 0; i < diffs.length; i++) {
-				RangeDifference rd= diffs[i];
+			for (RangeDifference rd : diffs) {
 				switch (rd.kind()) {
 				case RangeDifference.ANCESTOR: // pseudo conflict
 				case RangeDifference.NOCHANGE:

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -32,13 +35,11 @@ public class ModelSynchronizeWizard extends ParticipantSynchronizeWizard {
 
 	private GlobalRefreshElementSelectionPage selectionPage;
 	
-    private boolean isShowModelSync() {
+	private boolean isShowModelSync() {
 		return CVSUIPlugin.getPlugin().getPreferenceStore().getBoolean(ICVSUIConstants.PREF_ENABLE_MODEL_SYNC);
 	}
-    
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#createParticipant()
-	 */
+	
+	@Override
 	protected void createParticipant() {
 		if (isShowModelSync()) {
 			ISynchronizeParticipant participant = createParticipant(
@@ -57,9 +58,7 @@ public class ModelSynchronizeWizard extends ParticipantSynchronizeWizard {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#createScopeSelectionPage()
-	 */
+	@Override
 	protected final WizardPage createScopeSelectionPage() {
 		if (isShowModelSync())
 			selectionPage = new ModelElementSelectionPage(getRootResources());
@@ -99,6 +98,7 @@ public class ModelSynchronizeWizard extends ParticipantSynchronizeWizard {
 		}
 	}
 	
+	@Override
 	protected String getPageTitle() {
 		ISynchronizeParticipantDescriptor desc = TeamUI.getSynchronizeManager().getParticipantDescriptor(WorkspaceModelParticipant.ID);
 		if(desc != null) {
@@ -108,10 +108,12 @@ public class ModelSynchronizeWizard extends ParticipantSynchronizeWizard {
 		}
 	}
 
+	@Override
 	protected IWizard getImportWizard() {
 		return new CheckoutWizard();
 	}
 
+	@Override
 	protected IResource[] getRootResources() {
 		return CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber().roots();
 	}

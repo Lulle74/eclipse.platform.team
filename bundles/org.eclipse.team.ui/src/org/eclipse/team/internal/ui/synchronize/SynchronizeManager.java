@@ -1,28 +1,74 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.registry.*;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.registry.SynchronizeParticipantDescriptor;
+import org.eclipse.team.internal.ui.registry.SynchronizeParticipantRegistry;
+import org.eclipse.team.internal.ui.registry.SynchronizeWizardDescription;
+import org.eclipse.team.internal.ui.registry.SynchronizeWizardRegistry;
+import org.eclipse.team.ui.synchronize.ISynchronizeManager;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantDescriptor;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantListener;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantReference;
+import org.eclipse.team.ui.synchronize.ISynchronizeView;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IPerspectiveRegistry;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
+import org.eclipse.ui.WorkbenchException;
+import org.eclipse.ui.XMLMemento;
 
 /**
  * Manages the registered synchronize participants. It handles notification of
@@ -127,8 +173,8 @@ public class SynchronizeManager implements ISynchronizeManager {
 			fChanged = participants;
 			fType = update;
 			Object[] copiedListeners = fListeners.getListeners();
-			for (int i = 0; i < copiedListeners.length; i++) {
-				fListener = (ISynchronizeParticipantListener) copiedListeners[i];
+			for (Object copiedListener : copiedListeners) {
+				fListener = (ISynchronizeParticipantListener) copiedListener;
 				SafeRunner.run(this);
 			}
 			fChanged = null;
@@ -318,8 +364,7 @@ public class SynchronizeManager implements ISynchronizeManager {
 	public synchronized void addSynchronizeParticipants(ISynchronizeParticipant[] participants) {
 		// renamed to createSynchronizeParticipant(id)
 		List<ISynchronizeParticipant> added = new ArrayList<>(participants.length);
-		for (int i = 0; i < participants.length; i++) {
-			ISynchronizeParticipant participant = participants[i];
+		for (ISynchronizeParticipant participant : participants) {
 			String key = Utils.getKey(participant.getId(), participant.getSecondaryId());
 			if(! participantReferences.containsKey(key)) {
 				try {
@@ -344,8 +389,7 @@ public class SynchronizeManager implements ISynchronizeManager {
 		ISynchronizeParticipantReference[] refs = get(id);
 		if (refs.length > 0) {
 			// Find an un-pinned participant and replace it
-			for (int i = 0; i < refs.length; i++) {
-				ISynchronizeParticipantReference reference = refs[i];
+			for (ISynchronizeParticipantReference reference : refs) {
 				ISynchronizeParticipant p;
 				try {
 					p = reference.getParticipant();
@@ -374,8 +418,7 @@ public class SynchronizeManager implements ISynchronizeManager {
 	@Override
 	public synchronized void removeSynchronizeParticipants(ISynchronizeParticipant[] participants) {
 		List<ISynchronizeParticipant> removed = new ArrayList<>(participants.length);
-		for (int i = 0; i < participants.length; i++) {
-			ISynchronizeParticipant participant = participants[i];
+		for (ISynchronizeParticipant participant : participants) {
 			String key = Utils.getKey(participant.getId(), participant.getSecondaryId());
 			if(participantReferences.containsKey(key)) {
 				ParticipantInstance ref = (ParticipantInstance)participantReferences.remove(key);
@@ -401,8 +444,7 @@ public class SynchronizeManager implements ISynchronizeManager {
 	public ISynchronizeParticipantReference[] get(String id) {
 		ISynchronizeParticipantReference[] refs = getSynchronizeParticipants();
 		ArrayList<ISynchronizeParticipantReference> refsForId = new ArrayList<>();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			if(reference.getId().equals(id)) {
 				refsForId.add(reference);
 			}
@@ -560,8 +602,7 @@ public class SynchronizeManager implements ISynchronizeManager {
 		}
 		IMemento memento = XMLMemento.createReadRoot(reader);
 		IMemento[] participantNodes = memento.getChildren(CTX_PARTICIPANT);
-		for (int i = 0; i < participantNodes.length; i++) {
-			IMemento memento2 = participantNodes[i];
+		for (IMemento memento2 : participantNodes) {
 			String id = memento2.getString(CTX_ID);
 			String secondayId = memento2.getString(CTX_SECONDARY_ID);
 			if (secondayId != null) {
@@ -600,11 +641,8 @@ public class SynchronizeManager implements ISynchronizeManager {
 			ref.save(participantData);
 		}
 		try {
-			Writer writer = new BufferedWriter(new FileWriter(getStateFile()));
-			try {
+			try (Writer writer = new BufferedWriter(new FileWriter(getStateFile()))) {
 				xmlMemento.save(writer);
-			} finally {
-				writer.close();
 			}
 		} catch (IOException e) {
 			TeamUIPlugin.log(new Status(IStatus.ERROR, TeamUIPlugin.ID, 1, TeamUIMessages.SynchronizeManager_10, e));

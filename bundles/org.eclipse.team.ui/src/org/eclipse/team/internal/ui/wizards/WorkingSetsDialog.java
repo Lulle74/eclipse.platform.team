@@ -1,27 +1,39 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.wizards;
 
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.ui.IWorkingSet;
@@ -111,7 +123,7 @@ public class WorkingSetsDialog extends TitleAreaDialog {
 
 	void setupListeners() {
 		wsTableViewer.addSelectionChangedListener(event -> {
-			IStructuredSelection s = (IStructuredSelection) event.getSelection();
+			IStructuredSelection s = event.getStructuredSelection();
 			Object obj = s.getFirstElement();
 			if (obj instanceof IWorkingSet)
 				wsNameText.setText(((IWorkingSet) obj).getName());
@@ -121,48 +133,48 @@ public class WorkingSetsDialog extends TitleAreaDialog {
 	}
 
 	class WorkingSetLabelProvider extends LabelProvider {
-		  private Map<ImageDescriptor, Image> icons;
+		private Map<ImageDescriptor, Image> icons;
 
-		    public WorkingSetLabelProvider() {
-		        icons = new Hashtable<>();
-		    }
-
-		    @Override
-			public void dispose() {
-		        Iterator<Image> iterator = icons.values().iterator();
-
-		        while (iterator.hasNext()) {
-		            Image icon = iterator.next();
-		            icon.dispose();
-		        }
-		        super.dispose();
-		    }
-
-		    @Override
-			public Image getImage(Object object) {
-		        Assert.isTrue(object instanceof IWorkingSet);
-		        IWorkingSet workingSet = (IWorkingSet) object;
-		        ImageDescriptor imageDescriptor = workingSet.getImageDescriptor();
-
-		        if (imageDescriptor == null) {
-					return null;
-				}
-
-		        Image icon = icons.get(imageDescriptor);
-		        if (icon == null) {
-		            icon = imageDescriptor.createImage();
-		            icons.put(imageDescriptor, icon);
-		        }
-		        return icon;
-		    }
-
-		    @Override
-			public String getText(Object object) {
-		        Assert.isTrue(object instanceof IWorkingSet);
-		        IWorkingSet workingSet = (IWorkingSet) object;
-		        return workingSet.getLabel();
-		    }
+		public WorkingSetLabelProvider() {
+			icons = new Hashtable<>();
 		}
+
+		@Override
+		public void dispose() {
+			Iterator<Image> iterator = icons.values().iterator();
+
+			while (iterator.hasNext()) {
+				Image icon = iterator.next();
+				icon.dispose();
+			}
+			super.dispose();
+		}
+
+		@Override
+		public Image getImage(Object object) {
+			Assert.isTrue(object instanceof IWorkingSet);
+			IWorkingSet workingSet = (IWorkingSet) object;
+			ImageDescriptor imageDescriptor = workingSet.getImageDescriptor();
+
+			if (imageDescriptor == null) {
+				return null;
+			}
+
+			Image icon = icons.get(imageDescriptor);
+			if (icon == null) {
+				icon = imageDescriptor.createImage();
+				icons.put(imageDescriptor, icon);
+			}
+			return icon;
+		}
+
+		@Override
+		public String getText(Object object) {
+			Assert.isTrue(object instanceof IWorkingSet);
+			IWorkingSet workingSet = (IWorkingSet) object;
+			return workingSet.getLabel();
+		}
+	}
 
 	public String getSelectedWorkingSet(){
 		return selectedWorkingSet;

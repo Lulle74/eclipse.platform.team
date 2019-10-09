@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Atsuhiko Yamanaka, JCraft,Inc. - initial API and implementation.
@@ -55,15 +58,15 @@ public class CVSSSH2Plugin extends Plugin {
 		super.start(context);
 
 		// register debug options listener
-		Hashtable properties = new Hashtable(2);
+		Hashtable<String, String> properties = new Hashtable<>(2);
 		properties.put(DebugOptions.LISTENER_SYMBOLICNAME, ID);
 		debugRegistration = context.registerService(DebugOptionsListener.class, Policy.DEBUG_OPTIONS_LISTENER, properties);
 
-	    tracker = new ServiceTracker(getBundle().getBundleContext(), IJSchService.class.getName(), null);
-	    tracker.open();
+		tracker = new ServiceTracker(getBundle().getBundleContext(), IJSchService.class.getName(), null);
+		tracker.open();
 	}
 	
-    public IJSchService getJSchService() {
-        return (IJSchService)tracker.getService();
-    }
+	public IJSchService getJSchService() {
+		return (IJSchService)tracker.getService();
+	}
 }

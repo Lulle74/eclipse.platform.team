@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,9 +16,7 @@ package org.eclipse.team.internal.ccvs.ui;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -37,9 +38,7 @@ public class AdaptableHierarchicalResourceList extends AdaptableResourceList {
 		this.root = root;
 	}
 
-	/**
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getChildren(java.lang.Object)
-	 */
+	@Override
 	public Object[] getChildren(Object o) {
 		return getChildenFor(root);
 	}
@@ -47,8 +46,7 @@ public class AdaptableHierarchicalResourceList extends AdaptableResourceList {
 	private IResource[] getChildenFor(IContainer parent) {
 		Set children = new HashSet();
 		IPath parentPath = parent.getFullPath();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			IPath resourcePath = resource.getFullPath();
 			if (parent instanceof IWorkspaceRoot) {
 				children.add(((IWorkspaceRoot)parent).getProject(resourcePath.segment(0)));
@@ -70,6 +68,7 @@ public class AdaptableHierarchicalResourceList extends AdaptableResourceList {
 	 */
 	public ITreeContentProvider getTreeContentProvider() {
 		return new WorkbenchContentProvider() {
+			@Override
 			public Object[] getChildren(Object o) {
 				if (o instanceof IContainer) {
 					return getChildenFor((IContainer) o);

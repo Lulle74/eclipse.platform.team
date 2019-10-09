@@ -1,13 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- * 	   Andreas Voss <av@tonbeller.com> - Bug 181141 [Examples] Team: filesystem provider example can not handle deletions     
+ * 	   Andreas Voss <av@tonbeller.com> - Bug 181141 [Examples] Team: filesystem provider example can not handle deletions
  *******************************************************************************/
 package org.eclipse.team.examples.filesystem;
 
@@ -16,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IContainer;
@@ -27,7 +29,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.variants.IResourceVariant;
 import org.eclipse.team.core.variants.IResourceVariantComparator;
@@ -48,7 +50,7 @@ public class FileSystemOperations {
 	}
 
 	/**
-	 * Make the local state of the project match the remote state by getting any out-of-sync 
+	 * Make the local state of the project match the remote state by getting any out-of-sync
 	 * resources. The overrideOutgoing flag is used to indicate whether locally modified
 	 * files should also be replaced or left alone.
 	 * @param resources the resources to get
@@ -63,15 +65,15 @@ public class FileSystemOperations {
 			progress = Policy.monitorFor(progress);
 			progress.beginTask(Policy.bind("GetAction.working"), 100); //$NON-NLS-1$
 			// Refresh the subscriber so we have the latest remote state
-			FileSystemSubscriber.getInstance().refresh(resources, depth, new SubProgressMonitor(progress, 30));
-			internalGet(resources, depth, overrideOutgoing, new SubProgressMonitor(progress, 70));
+			FileSystemSubscriber.getInstance().refresh(resources, depth, SubMonitor.convert(progress, 30));
+			internalGet(resources, depth, overrideOutgoing, SubMonitor.convert(progress, 70));
 		} finally {
 			progress.done();
 		}
 	}
 
 	/**
-	 * Make the local state of the traversals match the remote state by getting any out-of-sync 
+	 * Make the local state of the traversals match the remote state by getting any out-of-sync
 	 * resources. The overrideOutgoing flag is used to indicate whether locally modified
 	 * files should also be replaced or left alone.
 	 * @param traversals the traversals that cover the resources to get
@@ -84,15 +86,14 @@ public class FileSystemOperations {
 			// ensure the progress monitor is not null
 			monitor = Policy.monitorFor(monitor);
 			monitor.beginTask(null, 100* traversals.length);
-			for (int i = 0; i < traversals.length; i++) {
-				ResourceTraversal traversal = traversals[i];
-				get(traversal.getResources(), traversal.getDepth(), overrideOutgoing, new SubProgressMonitor(monitor, 100));
+			for (ResourceTraversal traversal : traversals) {
+				get(traversal.getResources(), traversal.getDepth(), overrideOutgoing, SubMonitor.convert(monitor, 100));
 			}
 		} finally {
 			monitor.done();
 		}
 	}
-	
+
 	/**
 	 * Checkout the given resources to the given depth by setting any files
 	 * to writable (i.e set read-only to <code>false</code>.
@@ -105,16 +106,14 @@ public class FileSystemOperations {
 		try {
 			progress = Policy.monitorFor(progress);
 			progress.beginTask(Policy.bind("FileSystemSimpleAccessOperations.1"), resources.length); //$NON-NLS-1$
-			for (int i = 0; i < resources.length; i++) {
+			for (IResource resource2 : resources) {
 				Policy.checkCanceled(progress);
-				resources[i].accept(new IResourceVisitor() {
-					public boolean visit(IResource resource) throws CoreException {
-						if (resource.getType() == IResource.FILE) {
-							//TODO: lock the file on the 'server'.
-							resource.setReadOnly(false);
-						}
-						return true;
+				resource2.accept((IResourceVisitor) resource -> {
+					if (resource.getType() == IResource.FILE) {
+						//TODO: lock the file on the 'server'.
+						resource.setReadOnly(false);
 					}
+					return true;
 				}, depth, false /* include phantoms */);
 				progress.worked(1);
 			}
@@ -127,7 +126,7 @@ public class FileSystemOperations {
 
 	/**
 	 * Check-in the given resources to the given depth by replacing the remote (i.e. file system)
-	 * contents with the local workspace contents. 
+	 * contents with the local workspace contents.
 	 * @param resources the resources
 	 * @param depth the depth of the operation
 	 * @param overrideIncoming indicate whether incoming remote changes should be replaced
@@ -140,8 +139,8 @@ public class FileSystemOperations {
 			progress = Policy.monitorFor(progress);
 			progress.beginTask(Policy.bind("PutAction.working"), 100); //$NON-NLS-1$
 			// Refresh the subscriber so we have the latest remote state
-			FileSystemSubscriber.getInstance().refresh(resources, depth, new SubProgressMonitor(progress, 30));
-			internalPut(resources, depth, overrideIncoming, new SubProgressMonitor(progress, 70));
+			FileSystemSubscriber.getInstance().refresh(resources, depth, SubMonitor.convert(progress, 30));
+			internalPut(resources, depth, overrideIncoming, SubMonitor.convert(progress, 70));
 		} finally {
 			progress.done();
 		}
@@ -149,7 +148,7 @@ public class FileSystemOperations {
 
 	/**
 	 * Check-in the given resources to the given depth by replacing the remote (i.e. file system)
-	 * contents with the local workspace contents. 
+	 * contents with the local workspace contents.
 	 * @param traversals the traversals that cover the resources to check in
 	 * @param overrideIncoming indicate whether incoming remote changes should be replaced
 	 * @param progress a progress monitor
@@ -160,15 +159,14 @@ public class FileSystemOperations {
 			// ensure the progress monitor is not null
 			monitor = Policy.monitorFor(monitor);
 			monitor.beginTask(null, 100* traversals.length);
-			for (int i = 0; i < traversals.length; i++) {
-				ResourceTraversal traversal = traversals[i];
-				checkin(traversal.getResources(), traversal.getDepth(), overrideIncoming, new SubProgressMonitor(monitor, 100));
+			for (ResourceTraversal traversal : traversals) {
+				checkin(traversal.getResources(), traversal.getDepth(), overrideIncoming, SubMonitor.convert(monitor, 100));
 			}
 		} finally {
 			monitor.done();
 		}
 	}
-	
+
 	/**
 	 * Return whether the local resource is checked out. A resource
 	 * is checked out if it is a file that is not read-only. Folders
@@ -187,16 +185,16 @@ public class FileSystemOperations {
 	private FileSystemResourceVariant getResourceVariant(IResource resource) {
 		return (FileSystemResourceVariant)provider.getResourceVariant(resource);
 	}
-	
+
 	private void internalGet(IResource[] resources, int depth, boolean overrideOutgoing, IProgressMonitor progress) throws TeamException {
 		// Traverse the resources and get any that are out-of-sync
 		progress.beginTask(Policy.bind("GetAction.working"), IProgressMonitor.UNKNOWN); //$NON-NLS-1$
-		for (int i = 0; i < resources.length; i++) {
+		for (IResource resource : resources) {
 			Policy.checkCanceled(progress);
-			if (resources[i].getType() == IResource.FILE) {
-				internalGet((IFile) resources[i], overrideOutgoing, progress);
+			if (resource.getType() == IResource.FILE) {
+				internalGet((IFile) resource, overrideOutgoing, progress);
 			} else if (depth != IResource.DEPTH_ZERO) {
-				internalGet((IContainer)resources[i], depth, overrideOutgoing, progress);
+				internalGet((IContainer)resource, depth, overrideOutgoing, progress);
 			}
 			progress.worked(1);
 		}
@@ -209,7 +207,7 @@ public class FileSystemOperations {
 		try {
 			ThreeWaySynchronizer synchronizer = FileSystemSubscriber.getInstance().getSynchronizer();
 			// Make the local folder state match the remote folder state
-			List toDelete = new ArrayList();
+			List<IFolder> toDelete = new ArrayList<>();
 			if (container.getType() == IResource.FOLDER) {
 				IFolder folder = (IFolder)container;
 				FileSystemResourceVariant remote = getResourceVariant(container);
@@ -223,16 +221,15 @@ public class FileSystemOperations {
 					toDelete.add(folder);
 				}
 			}
-			
+
 			// Get the children
 			IResource[] children = synchronizer.members(container);
 			if (children.length > 0) {
 				internalGet(children, depth == IResource.DEPTH_INFINITE ? IResource.DEPTH_INFINITE : IResource.DEPTH_ZERO, overrideOutgoing, progress);
 			}
-		
+
 			// Remove any empty folders
-			for (Iterator iter = toDelete.iterator(); iter.hasNext(); ) {
-				IFolder folder = (IFolder) iter.next();
+			for (IFolder folder : toDelete) {
 				if (folder.members().length == 0) {
 					folder.delete(false, true, progress);
 					synchronizer.flush(folder, IResource.DEPTH_INFINITE);
@@ -252,7 +249,7 @@ public class FileSystemOperations {
 		FileSystemResourceVariant remote = getResourceVariant(localFile);
 		byte[] baseBytes = synchronizer.getBaseBytes(localFile);
 		IResourceVariant base = provider.getResourceVariant(localFile, baseBytes);
-		if (!synchronizer.hasSyncBytes(localFile) 
+		if (!synchronizer.hasSyncBytes(localFile)
 				|| (isLocallyModified(localFile) && !overrideOutgoing)) {
 			// Do not overwrite the local modification
 			return;
@@ -267,29 +264,23 @@ public class FileSystemOperations {
 				throw TeamException.asTeamException(e);
 			}
 		}
-		if (!synchronizer.isLocallyModified(localFile) 
-				&& base != null 
-				&& remote != null 
+		if (!synchronizer.isLocallyModified(localFile)
+				&& base != null
+				&& remote != null
 				&& comparator.compare(base, remote)) {
 			// The base and remote are the same and there's no local changes
 			// so nothing needs to be done
 			return;
 		}
-		try {
-			//Copy from the local file to the remote file:
-			InputStream source = null;
-			try {
-				// Get the remote file content.
-				source = remote.getContents();
-				// Set the local file content to be the same as the remote file.
-				if (localFile.exists())
-					localFile.setContents(source, false, false, progress);
-				else
-					localFile.create(source, false, progress);
-			} finally {
-				if (source != null)
-					source.close();
-			}
+		// Copy from the local file to the remote file:
+		// Get the remote file content.
+		try (InputStream source = remote.getContents()) {
+			// Set the local file content to be the same as the remote file.
+			if (localFile.exists())
+				localFile.setContents(source, false, false, progress);
+			else
+				localFile.create(source, false, progress);
+
 			// Mark as read-only to force a checkout before editing
 			localFile.setReadOnly(true);
 			synchronizer.setBaseBytes(localFile, remote.asBytes());
@@ -299,23 +290,23 @@ public class FileSystemOperations {
 			throw FileSystemPlugin.wrapException(e);
 		}
 	}
-	
+
 	private void internalPut(IResource[] resources, int depth, boolean overrideIncoming, IProgressMonitor progress) throws TeamException {
 		// ensure the progress monitor is not null
 		progress = Policy.monitorFor(progress);
 		progress.beginTask(Policy.bind("PutAction.working"), IProgressMonitor.UNKNOWN); //$NON-NLS-1$
-		for (int i = 0; i < resources.length; i++) {
+		for (IResource resource : resources) {
 			Policy.checkCanceled(progress);
-			if (resources[i].getType() == IResource.FILE) {
-				internalPut((IFile)resources[i], overrideIncoming, progress);
+			if (resource.getType() == IResource.FILE) {
+				internalPut((IFile)resource, overrideIncoming, progress);
 			} else if (depth > 0) { //Assume that resources are either files or containers.
-				internalPut((IContainer)resources[i], depth, overrideIncoming, progress);
+				internalPut((IContainer)resource, depth, overrideIncoming, progress);
 			}
 			progress.worked(1);
 		}
 		progress.done();
 	}
-	
+
 	/**
 	 * Put the file if the sync state allows it.
 	 * @param localFile the local file
@@ -330,7 +321,7 @@ public class FileSystemOperations {
 		FileSystemResourceVariant remote = getResourceVariant(localFile);
 		byte[] baseBytes = synchronizer.getBaseBytes(localFile);
 		IResourceVariant base = provider.getResourceVariant(localFile, baseBytes);
-		
+
 		// Check whether we are overriding a remote change
 		if (base == null && remote != null && !overrideIncoming) {
 			// The remote is an incoming (or conflicting) addition.
@@ -357,10 +348,10 @@ public class FileSystemOperations {
 				return false;
 			}
 		}
-		
+
 		// Handle an outgoing deletion
 		File diskFile = provider.getFile(localFile);
-		if (!localFile.exists()) { 
+		if (!localFile.exists()) {
 			diskFile.delete();
 			synchronizer.flush(localFile, IResource.DEPTH_ZERO);
 		} else {
@@ -396,7 +387,7 @@ public class FileSystemOperations {
 		}
 		return true;
 	}
-	
+
 	private boolean isLocallyModified(IFile localFile) throws TeamException {
 		ThreeWaySynchronizer synchronizer = FileSystemSubscriber.getInstance().getSynchronizer();
 		if (!localFile.exists()) {
@@ -413,7 +404,7 @@ public class FileSystemOperations {
 		try {
 			ThreeWaySynchronizer synchronizer = FileSystemSubscriber.getInstance().getSynchronizer();
 			// Make the local folder state match the remote folder state
-			List toDelete = new ArrayList();
+			List<File> toDelete = new ArrayList<>();
 			if (container.getType() == IResource.FOLDER) {
 				IFolder folder = (IFolder)container;
 				File diskFile = provider.getFile(container);
@@ -428,16 +419,15 @@ public class FileSystemOperations {
 					synchronizer.setBaseBytes(folder, provider.getResourceVariant(folder).asBytes());
 				}
 			}
-			
+
 			// Get the children
 			IResource[] children = synchronizer.members(container);
 			if (children.length > 0) {
 				internalPut(children, depth == IResource.DEPTH_INFINITE ? IResource.DEPTH_INFINITE : IResource.DEPTH_ZERO, overrideIncoming, progress);
 			}
-		
+
 			// Remove any empty folders
-			for (Iterator iter = toDelete.iterator(); iter.hasNext(); ) {
-				File diskFile = (File) iter.next();
+			for (File diskFile : toDelete) {
 				File[] fileList = diskFile.listFiles();
 				if(fileList == null) {
 					throw new TeamException("Content from directory '" + diskFile.getAbsolutePath() + "' can not be listed."); //$NON-NLS-1$ //$NON-NLS-2$

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -91,9 +94,9 @@ public class Session {
 	private Map responseHandlers;
 	
 	// List of errors accumulated while the command is executing
-    private List errors = new ArrayList();
-    
-    private Command currentCommand;
+	private List errors = new ArrayList();
+	
+	private Command currentCommand;
 
 	/**
 	 * Creates a new CVS session, initially in the CLOSED state.
@@ -151,8 +154,7 @@ public class Session {
 	
 	public void open(IProgressMonitor monitor, boolean writeAccess) throws CVSException {
 		if (connection != null) throw new IllegalStateException();
-		monitor = Policy.monitorFor(monitor);
-		monitor.beginTask(null, 100);
+		monitor = Policy.subMonitorFor(monitor, 100);
 		boolean opened = false;	
 	
 		try {
@@ -234,7 +236,7 @@ public class Session {
 	 */
 	public boolean isValidRequest(String request) {
 		return (validRequests == null) ||
-			(validRequests.indexOf(" " + request + " ") != -1); //$NON-NLS-1$ //$NON-NLS-2$
+			(validRequests.contains(" " + request + " ")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	public boolean isCVSNT() {
@@ -758,14 +760,14 @@ public class Session {
 			}
 			size = Long.parseLong(sizeLine, 10);
 		} catch (NumberFormatException e) {
-		    // In some cases, the server will give us an error line here
-		    if (sizeLine != null && sizeLine.startsWith("E")) { //$NON-NLS-1$
-		        handleErrorLine(sizeLine.substring(1).trim(), org.eclipse.core.runtime.Status.OK_STATUS);
-		        return;
-		    } else {
-		    	IStatus status = new CVSStatus(IStatus.ERROR,CVSStatus.ERROR,CVSMessages.Session_badInt, e, localRoot);
-		        throw new CVSException(status); 
-		    }
+			// In some cases, the server will give us an error line here
+			if (sizeLine != null && sizeLine.startsWith("E")) { //$NON-NLS-1$
+				handleErrorLine(sizeLine.substring(1).trim(), org.eclipse.core.runtime.Status.OK_STATUS);
+				return;
+			} else {
+				IStatus status = new CVSStatus(IStatus.ERROR,CVSStatus.ERROR,CVSMessages.Session_badInt, e, localRoot);
+				throw new CVSException(status); 
+			}
 		}
 		// create an input stream that spans the next 'size' bytes from the connection
 		InputStream in = new SizeConstrainedInputStream(connection.getInputStream(), size, true /*discardOnClose*/);
@@ -806,7 +808,7 @@ public class Session {
 		file.setContents(in, responseType, true, new NullProgressMonitor());
 	}
 
-    /**
+	/**
 	 * Stores the value of the last Mod-time response encountered.
 	 * Valid only for the duration of a single CVS command.
 	 */
@@ -970,7 +972,7 @@ public class Session {
 	 * @return a space-delimited list of all valid response strings
 	 */
 	private String makeResponseList() {
-		StringBuffer result = new StringBuffer("ok error M E");  //$NON-NLS-1$
+		StringBuilder result = new StringBuilder("ok error M E");  //$NON-NLS-1$
 		Iterator elements = getReponseHandlers().keySet().iterator();
 		while (elements.hasNext()) {
 			result.append(' ');
@@ -991,53 +993,53 @@ public class Session {
 		return (ResponseHandler)getReponseHandlers().get(responseID);
 	}
 
-    /**
-     * Accumulate the added errors so they can be included in the status returned
-     * when the command execution is finished. OK status are ignored.
-     * @param status the status to be accumulated
-     */
-    public void addError(IStatus status) {
-        if (!status.isOK())
-            errors.add(status);
-    }
-    
-    public boolean hasErrors() {
-        return !errors.isEmpty();
-    }
-    
-    public IStatus[] getErrors() {
-        return (IStatus[]) errors.toArray(new IStatus[errors.size()]);
-    }
+	/**
+	 * Accumulate the added errors so they can be included in the status returned
+	 * when the command execution is finished. OK status are ignored.
+	 * @param status the status to be accumulated
+	 */
+	public void addError(IStatus status) {
+		if (!status.isOK())
+			errors.add(status);
+	}
 	
-    public void clearErrors() {
-        errors.clear();
-    }
+	public boolean hasErrors() {
+		return !errors.isEmpty();
+	}
+	
+	public IStatus[] getErrors() {
+		return (IStatus[]) errors.toArray(new IStatus[errors.size()]);
+	}
+	
+	public void clearErrors() {
+		errors.clear();
+	}
 
-    public void setCurrentCommand(Command c) {
-        currentCommand = c;
-    }
-    
-    public Command getCurrentCommand() {
-        return currentCommand;
-    }
+	public void setCurrentCommand(Command c) {
+		currentCommand = c;
+	}
+	
+	public Command getCurrentCommand() {
+		return currentCommand;
+	}
 
 	/**
 	 * Report the given error line to any listeners
-     * @param line the error line
-     * @param status the status that indicates any problems encountered parsing the line
-     */
-    public void handleErrorLine(String line, IStatus status) {
-        ConsoleListeners.getInstance().errorLineReceived(this, line, status);
-    }
-    
-    /**
-     * An error has occurred while processing responses from the 
-     * server. Place this error is the status that will be returned
-     * from the command and show the error in the console
-     * @param status the status that descibes the error
-     */
-    public void handleResponseError(IStatus status) {
-        addError(status);
-        handleErrorLine(NLS.bind(CVSMessages.Session_0, new String[] { status.getMessage() }), status); 
-    }
+	 * @param line the error line
+	 * @param status the status that indicates any problems encountered parsing the line
+	 */
+	public void handleErrorLine(String line, IStatus status) {
+		ConsoleListeners.getInstance().errorLineReceived(this, line, status);
+	}
+	
+	/**
+	 * An error has occurred while processing responses from the 
+	 * server. Place this error is the status that will be returned
+	 * from the command and show the error in the console
+	 * @param status the status that descibes the error
+	 */
+	public void handleResponseError(IStatus status) {
+		addError(status);
+		handleErrorLine(NLS.bind(CVSMessages.Session_0, new String[] { status.getMessage() }), status); 
+	}
 }

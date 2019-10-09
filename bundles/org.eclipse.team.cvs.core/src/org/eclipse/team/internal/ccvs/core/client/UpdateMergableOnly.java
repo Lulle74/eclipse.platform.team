@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,9 +57,7 @@ public class UpdateMergableOnly extends Update {
 			super(UpdatedHandler.HANDLE_MERGED);
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.team.internal.ccvs.core.client.UpdatedHandler#getTargetFile(org.eclipse.team.internal.ccvs.core.ICVSFolder, java.lang.String, byte[])
-		 */
+		@Override
 		protected ICVSFile getTargetFile(ICVSFolder mParent, String fileName, byte[] entryBytes) throws CVSException {
 			String adjustedFileName = fileName;
 			if (ResourceSyncInfo.isMergedWithConflicts(entryBytes)) {
@@ -67,9 +68,7 @@ public class UpdateMergableOnly extends Update {
 			return super.getTargetFile(mParent, adjustedFileName, entryBytes);
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.team.internal.ccvs.core.client.UpdatedHandler#receiveTargetFile(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.ICVSFile, java.lang.String, java.util.Date, boolean, boolean, org.eclipse.core.runtime.IProgressMonitor)
-		 */
+		@Override
 		protected void receiveTargetFile(
 			Session session,
 			ICVSFile mFile,
@@ -126,9 +125,7 @@ public class UpdateMergableOnly extends Update {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#doExecute(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.client.Command.GlobalOption[], org.eclipse.team.internal.ccvs.core.client.Command.LocalOption[], java.lang.String[], org.eclipse.team.internal.ccvs.core.client.listeners.ICommandOutputListener, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus doExecute(
 		Session session,
 		GlobalOption[] globalOptions,

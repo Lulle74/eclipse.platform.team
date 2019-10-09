@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,8 +24,8 @@ import org.eclipse.team.tests.ccvs.core.EclipseTest;
 public class ReflectionUtils {
 
 	public static Object construct(String className, ClassLoader classLoader,
-			Class[] constructorTypes, Object[] constructorArgs) {
-		Class clazz = null;
+			Class<?>[] constructorTypes, Object[] constructorArgs) {
+		Class<?> clazz = null;
 		try {
 			clazz = Class.forName(className, true, classLoader);
 		} catch (ClassNotFoundException e) {
@@ -30,7 +33,7 @@ public class ReflectionUtils {
 		} catch (ExceptionInInitializerError e) {
 			EclipseTest.fail(e.getMessage());
 		}
-		Constructor constructor = null;
+		Constructor<?> constructor = null;
 		try {
 			constructor = clazz.getDeclaredConstructor(constructorTypes);
 		} catch (SecurityException e) {
@@ -42,23 +45,17 @@ public class ReflectionUtils {
 		constructor.setAccessible(true);
 		try {
 			return constructor.newInstance(constructorArgs);
-		} catch (IllegalArgumentException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (InvocationTargetException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (InstantiationException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (IllegalAccessException e) {
+		} catch (IllegalArgumentException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
 			EclipseTest.fail(e.getMessage());
 		}
 		return null;
 	}
 
-	public static Object callMethod(Object object, String name, Class types[],
+	public static Object callMethod(Object object, String name, Class<?> types[],
 			Object args[]) {
 		try {
 			Method method = null;
-			Class clazz = object.getClass();
+			Class<?> clazz = object.getClass();
 			NoSuchMethodException ex = null;
 			while (method == null && clazz != null) {
 				try {
@@ -76,22 +73,14 @@ public class ReflectionUtils {
 			method.setAccessible(true);
 			Object ret = method.invoke(object, args);
 			return ret;
-		} catch (IllegalArgumentException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (IllegalAccessException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (SecurityException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (NoSuchMethodException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (InvocationTargetException e) {
+		} catch (IllegalArgumentException | IllegalAccessException | SecurityException | NoSuchMethodException | InvocationTargetException e) {
 			EclipseTest.fail(e.getMessage());
 		}
 		return null;
 	}
 
 	public static Object callMethod(Object object, String name, Object args[]) {
-		Class types[] = new Class[args.length];
+		Class<?> types[] = new Class[args.length];
 		for (int i = 0; i < args.length; i++) {
 			types[i] = args[i].getClass();
 		}
@@ -101,7 +90,7 @@ public class ReflectionUtils {
 	public static Object getField(Object object, String name) {
 		try {
 			Field field = null;
-			Class clazz = object.getClass();
+			Class<?> clazz = object.getClass();
 			NoSuchFieldException ex = null;
 			while (field == null && clazz != null) {
 				try {
@@ -119,13 +108,7 @@ public class ReflectionUtils {
 			field.setAccessible(true);
 			Object ret = field.get(object);
 			return ret;
-		} catch (IllegalArgumentException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (IllegalAccessException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (SecurityException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalArgumentException | IllegalAccessException | SecurityException | NoSuchFieldException e) {
 			EclipseTest.fail(e.getMessage());
 		}
 		return null;
@@ -134,7 +117,7 @@ public class ReflectionUtils {
 	public static void setField(Object object, String name, Object value) {
 		try {
 			Field field = null;
-			Class clazz = object.getClass();
+			Class<?> clazz = object.getClass();
 			NoSuchFieldException ex = null;
 			while (field == null && clazz != null) {
 				try {
@@ -151,13 +134,7 @@ public class ReflectionUtils {
 			}
 			field.setAccessible(true);
 			field.set(object, value);
-		} catch (IllegalArgumentException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (IllegalAccessException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (SecurityException e) {
-			EclipseTest.fail(e.getMessage());
-		} catch (NoSuchFieldException e) {
+		} catch (IllegalArgumentException | IllegalAccessException | SecurityException | NoSuchFieldException e) {
 			EclipseTest.fail(e.getMessage());
 		}
 	}

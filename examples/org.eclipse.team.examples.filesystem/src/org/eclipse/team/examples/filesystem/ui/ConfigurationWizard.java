@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -77,8 +80,7 @@ public class ConfigurationWizard extends Wizard implements IConfigurationWizard,
 				FileSystemProvider provider = (FileSystemProvider) RepositoryProvider.getProvider(projects[0]);
 				provider.setTargetLocation(mainPage.getLocation());
 			} else {
-				for (int i = 0; i < projects.length; i++) {
-					IProject project = projects[i];
+				for (IProject project : projects) {
 					RepositoryProvider.map(project, FileSystemPlugin.PROVIDER_ID);
 					FileSystemProvider provider = (FileSystemProvider) RepositoryProvider.getProvider(project);
 					String path = new Path(mainPage.getLocation()).append(project.getName()).toOSString();

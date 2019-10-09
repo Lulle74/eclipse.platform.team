@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -22,9 +25,18 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerCheckedTreeViewer;
 import org.eclipse.ui.dialogs.IWorkingSetSelectionDialog;
 
@@ -75,7 +87,7 @@ public abstract class GlobalRefreshElementSelectionPage extends WizardPage {
 		top.setLayoutData(data);
 		setControl(top);
 
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_RESOURCE_SELECTION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_RESOURCE_SELECTION_PAGE);
 
 		Label l = new Label(top, SWT.NULL);
 		l.setText(TeamUIMessages.GlobalRefreshResourceSelectionPage_5);
@@ -217,8 +229,7 @@ public abstract class GlobalRefreshElementSelectionPage extends WizardPage {
 	 */
 	private boolean areAnyElementsChecked() {
 		TreeItem[] item = fViewer.getTree().getItems();
-		for (int i = 0; i < item.length; i++) {
-			TreeItem child = item[i];
+		for (TreeItem child : item) {
 			if(child.getChecked() || child.getGrayed()) {
 				return true;
 			}
@@ -235,8 +246,7 @@ public abstract class GlobalRefreshElementSelectionPage extends WizardPage {
 	public Object[] getRootElement() {
 		TreeItem[] item = fViewer.getTree().getItems();
 		List checked = new ArrayList();
-		for (int i = 0; i < item.length; i++) {
-			TreeItem child = item[i];
+		for (TreeItem child : item) {
 			collectCheckedItems(child, checked);
 		}
 		return checked.toArray(new Object[checked.size()]);
@@ -336,8 +346,7 @@ public abstract class GlobalRefreshElementSelectionPage extends WizardPage {
 			checked.add(item.getData());
 		} else if(item.getGrayed()) {
 			TreeItem[] children = item.getItems();
-			for (int i = 0; i < children.length; i++) {
-				TreeItem child = children[i];
+			for (TreeItem child : children) {
 				collectCheckedItems(child, checked);
 			}
 		}
@@ -367,9 +376,9 @@ public abstract class GlobalRefreshElementSelectionPage extends WizardPage {
 	}
 
 	protected void setWorkspaceSelected(boolean selected) {
-		 workingSetScope.setSelection(!selected);
-		 selectedResourcesScope.setSelection(!selected);
-		 participantScope.setSelection(selected);
+		workingSetScope.setSelection(!selected);
+		selectedResourcesScope.setSelection(!selected);
+		participantScope.setSelection(selected);
 	}
 
 	protected boolean isWorkingSetSelected() {

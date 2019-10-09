@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -67,8 +70,7 @@ public class CompareStructureViewerSwitchingPane extends
 			if (fSelectedViewerDescriptor != null) {
 				ViewerDescriptor[] array = CompareUIPlugin.getDefault().findStructureViewerDescriptor(
 						oldViewer, (ICompareInput)input, getCompareConfiguration());
-				List list = array != null ? Arrays.asList(array)
-						: Collections.EMPTY_LIST;
+				List<ViewerDescriptor> list = array != null ? Arrays.asList(array) : Collections.emptyList();
 				if (list.contains(fSelectedViewerDescriptor)) {
 					// use selected viewer only when appropriate for the new input
 					fCompareEditorInput
@@ -168,8 +170,7 @@ public class CompareStructureViewerSwitchingPane extends
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// add others
-		for (int i = 0; i < vd.length; i++) {
-			final ViewerDescriptor vdi = vd[i];
+		for (ViewerDescriptor vdi : vd) {
 			label = vdi.getLabel();
 			if (label == null || label.equals("")) { //$NON-NLS-1$
 				String l = CompareUIPlugin.getDefault().findStructureTypeNameOrType((ICompareInput) getInput(), vdi, getCompareConfiguration());
@@ -224,9 +225,9 @@ public class CompareStructureViewerSwitchingPane extends
 	public void setText(String label) {
 		Composite c = (Composite) getTopLeft();
 		Control[] children = c.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			if (children[i] instanceof CLabel) {
-				CLabel cl = (CLabel) children[i];
+		for (Control child : children) {
+			if (child instanceof CLabel) {
+				CLabel cl = (CLabel) child;
 				if (cl != null && !cl.isDisposed()) {
 					cl.setText(label);
 					c.layout();
@@ -240,9 +241,9 @@ public class CompareStructureViewerSwitchingPane extends
 	public void setImage(Image image) {
 		Composite c = (Composite) getTopLeft();
 		Control[] children = c.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			if (children[i] instanceof CLabel) {
-				CLabel cl = (CLabel) children[i];
+		for (Control child : children) {
+			if (child instanceof CLabel) {
+				CLabel cl = (CLabel) child;
 				if (cl != null && !cl.isDisposed())
 					cl.setImage(image);
 				return;
@@ -254,9 +255,9 @@ public class CompareStructureViewerSwitchingPane extends
 	public void addMouseListener(MouseListener listener) {
 		Composite c = (Composite) getTopLeft();
 		Control[] children = c.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			if (children[i] instanceof CLabel) {
-				CLabel cl = (CLabel) children[i];
+		for (Control child : children) {
+			if (child instanceof CLabel) {
+				CLabel cl = (CLabel) child;
 				cl.addMouseListener(listener);
 			}
 		}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,7 +39,7 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 /*package*/ class SynchronizerSyncInfoCache extends SyncInfoCache {
 	
 	// Map of sync bytes that were set without a scheduling rule
-	Map pendingCacheWrites = new HashMap();
+	Map<IResource, Object> pendingCacheWrites = new HashMap<>();
 	private static final Object BYTES_REMOVED = new byte[0];
 
 	public SynchronizerSyncInfoCache() {
@@ -79,7 +82,7 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 	
 	boolean hasCachedFolderSync(IContainer container) throws CVSException {
 		return internalGetCachedSyncBytes(container) != null;
-	};
+	}
 	
 	/*
 	 * Retieve the cached sync bytes from the synchronizer. A null
@@ -115,9 +118,6 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		}
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#getCachedSyncBytes(org.eclipse.core.resources.IResource, boolean)
-	 */
 	byte[] getCachedSyncBytes(IResource resource, boolean threadSafeAccess) throws CVSException {
 		try {
 			byte[] bytes = null;
@@ -143,9 +143,6 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		}
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#setCachedSyncBytes(org.eclipse.core.resources.IResource, byte[])
-	 */
 	void setCachedSyncBytes(IResource resource, byte[] syncBytes, boolean canModifyWorkspace) throws CVSException {
 		byte[] oldBytes = getCachedSyncBytes(resource, true);
 		try {
@@ -199,9 +196,7 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		return Util.equals(syncBytes, oldBytes);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#getDirtyIndicator(org.eclipse.core.resources.IResource)
-	 */
+	@Override
 	String getDirtyIndicator(IResource resource, boolean threadSafeAccess) throws CVSException {		
 		if (resource.getType() == IResource.FILE) {
 			// a phantom file is dirty if it was managed before it was deleted			 
@@ -213,17 +208,13 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#setDirtyIndicator(org.eclipse.core.resources.IResource, java.lang.String)
-	 */
+	@Override
 	void setDirtyIndicator(IResource resource, String indicator) throws CVSException {
 		// We don't cache the dirty count for folders because it would cause
 		// resource delta's in the decorator thread and possible deadlock.
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#cachesDirtyState()
-	 */
+	@Override
 	public boolean cachesDirtyState() {
 		// We don't cache the dirty count for folders because it would cause
 		// resource delta's in the decorator thread and possible deadlock.
@@ -238,23 +229,15 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		return true;
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#isResourceSyncInfoCached(org.eclipse.core.resources.IContainer)
-	 */
 	boolean isResourceSyncInfoCached(IContainer container) throws CVSException {
 		// the sync info is always cahced when using the synchronizer
 		return true;
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#setResourceSyncInfoCached(org.eclipse.core.resources.IContainer)
-	 */
 	void setResourceSyncInfoCached(IContainer container) throws CVSException {
 		// do nothing
 	}
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.SyncInfoCache#isFolderSyncInfoCached(org.eclipse.core.resources.IContainer)
-	 */
+	
 	boolean isFolderSyncInfoCached(IContainer container) throws CVSException {
 		return true;
 	}
@@ -271,8 +254,7 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		
 		String indicator = NOT_DIRTY_INDICATOR;
 		ICVSResource[] children = cvsFolder.members(ICVSFolder.MANAGED_MEMBERS | ICVSFolder.PHANTOM_MEMBERS);
-		for (int i = 0; i < children.length; i++) {
-			ICVSResource resource = children[i];
+		for (ICVSResource resource : children) {
 			// keep looking into phantom folders until a managed phantom file 
 			// is found.
 			if (resource.isFolder()) {
@@ -321,16 +303,15 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 	public IResource[] members(IContainer folder) throws CoreException {
 		IResource[] pendingWrites = getPendingCacheWrites();
 		if (pendingWrites != null){
-			HashSet cachedResources = new HashSet();
-			for (int i = 0; i < pendingWrites.length; i++) {
-				IResource resource = pendingWrites[i];
+			HashSet<IResource> cachedResources = new HashSet<>();
+			for (IResource resource : pendingWrites) {
 				if (resource.getParent().equals(folder))
 					cachedResources.add(resource);
 			}
 			
-			if (cachedResources.size() != 0){
+			if (!cachedResources.isEmpty()){
 				IResource[] resources = folder.members(true);
-				IResource[] cachedResourcesArray = (IResource[]) cachedResources.toArray(new IResource[cachedResources.size()]);
+				IResource[] cachedResourcesArray = cachedResources.toArray(new IResource[cachedResources.size()]);
 				IResource[]finalResources = new IResource[resources.length + cachedResourcesArray.length];
 				System.arraycopy(resources, 0, finalResources, 0, resources.length);
 				System.arraycopy(cachedResourcesArray, 0, finalResources, resources.length, cachedResourcesArray.length);
@@ -414,7 +395,7 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
 		synchronized (pendingCacheWrites) {
 			if (pendingCacheWrites.isEmpty())
 				return null;
-			return (IResource[]) pendingCacheWrites.keySet().toArray(new IResource[pendingCacheWrites.size()]);
+			return pendingCacheWrites.keySet().toArray(new IResource[pendingCacheWrites.size()]);
 		}
 	}
 }

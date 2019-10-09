@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,7 +44,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 
 	private boolean involvesMultipleResources = false;
 
-	private List errors = new ArrayList(); // of IStatus
+	private List<IStatus> errors = new ArrayList<>(); // of IStatus
 
 	protected static final IStatus OK = Status.OK_STATUS; 
 	
@@ -53,23 +56,17 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 		super(part);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.actions.TeamOperation#getJobName()
-	 */
+	@Override
 	protected String getJobName() {
 		return getTaskName();
 	}
 		
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#getOperationIcon()
-	 */
+	@Override
 	protected URL getOperationIcon() {
 		return Platform.find(CVSUIPlugin.getPlugin().getBundle(), new Path(ICVSUIConstants.ICON_PATH + ICVSUIConstants.IMG_CVS_PERSPECTIVE));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public final void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		startOperation();
 		try {
@@ -92,7 +89,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 	}
 	
 	protected void endOperation() throws CVSException {
-		handleErrors((IStatus[]) errors.toArray(new IStatus[errors.size()]));
+		handleErrors(errors.toArray(new IStatus[errors.size()]));
 	}
 
 	/**
@@ -123,7 +120,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 	}
 	
 	protected IStatus[] getErrors() {
-		return (IStatus[]) errors.toArray(new IStatus[errors.size()]);
+		return errors.toArray(new IStatus[errors.size()]);
 	}
 	
 	/**
@@ -138,7 +135,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 	 */
 	protected IStatus getLastError() {
 		Assert.isTrue(errors.size() > 0);
-		IStatus status = (IStatus)errors.get(errors.size() - 1);
+		IStatus status = errors.get(errors.size() - 1);
 		return status;
 	}
 	
@@ -157,8 +154,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 			throw new CVSException(errors[0]);
 		}
 		MultiStatus result = new MultiStatus(CVSUIPlugin.ID, 0, getErrorMessage(errors, statusCount), null);
-		for (int i = 0; i < errors.length; i++) {
-			IStatus s = errors[i];
+		for (IStatus s : errors) {
 			if (s.isMultiStatus()) {
 				result.add(new CVSStatus(s.getSeverity(), s.getMessage(), s.getException()));
 				result.addAll(s);
@@ -179,16 +175,14 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 	 */
 	protected final void handleErrors(IStatus[] errors) throws CVSException {
 		// We are only concerned with reportable errors.
-	    // Others will appear in the console
-		List reportableErrors = new ArrayList();
-		for (int i = 0; i < errors.length; i++) {
-			IStatus status = errors[i];
+		// Others will appear in the console
+		List<IStatus> reportableErrors = new ArrayList<>();
+		for (IStatus status : errors) {
 			if (isReportableError(status)) {
 				reportableErrors.add(status);
 			} else if (status.isMultiStatus()) {
 				IStatus[] children = status.getChildren();
-				for (int j = 0; j < children.length; j++) {
-					IStatus child = children[j];
+				for (IStatus child : children) {
 					if (isReportableError(child)) {
 						reportableErrors.add(status);
 						break;
@@ -197,7 +191,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 			}
 		}
 		if (!reportableErrors.isEmpty())
-		    asException((IStatus[]) reportableErrors.toArray(new IStatus[reportableErrors.size()]));
+			asException(reportableErrors.toArray(new IStatus[reportableErrors.size()]));
 	}
 
 	/**
@@ -206,11 +200,11 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 	 * @param status an error status
 	 * @return whether the status is reportable or should be ignored
 	 */
-    protected boolean isReportableError(IStatus status) {
-        return status.getCode() == CVSStatus.SERVER_ERROR || CVSStatus.isInternalError(status) || status.getCode() == TeamException.UNABLE;
-    }
+	protected boolean isReportableError(IStatus status) {
+		return status.getCode() == CVSStatus.SERVER_ERROR || CVSStatus.isInternalError(status) || status.getCode() == TeamException.UNABLE;
+	}
 
-    protected String getErrorMessage(IStatus[] failures, int totalOperations) {
+	protected String getErrorMessage(IStatus[] failures, int totalOperations) {
 		return NLS.bind(CVSUIMessages.CVSOperation_0, new String[] { String.valueOf(failures.length), String.valueOf(totalOperations) }); 
 	}
 
@@ -265,8 +259,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 			if (isReportableError(status)) return true;
 			if (status.isMultiStatus()) {
 				IStatus[] children = status.getChildren();
-				for (int j = 0; j < children.length; j++) {
-					IStatus child = children[j];
+				for (IStatus child : children) {
 					if (isReportableError(child)) {
 						return true;
 					}
@@ -276,9 +269,7 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.actions.TeamOperation#getShell()
-	 */
+	@Override
 	public Shell getShell() {
 		// Use the shell assigned to the operation if possible
 		if (shell != null && !shell.isDisposed()) {
@@ -297,37 +288,35 @@ public abstract class CVSOperation extends TeamOperation implements IShellProvid
 		this.shell = shell;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#canRunAsJob()
-	 */
+	@Override
 	protected boolean canRunAsJob() {
 		// Put CVS jobs in the background by default.
 		return true;
 	}
 	
-    /* (non-Javadoc)
-     * @see org.eclipse.team.ui.TeamOperation#isSameFamilyAs(org.eclipse.team.ui.TeamOperation)
-     */
-    protected boolean isSameFamilyAs(TeamOperation operation) {
-        // Trat all CVS operations as a single family
-        return operation instanceof CVSOperation;
-    }
-    
-    /*
-     * Action to show the console that can be used by subclasses
-     * that wish to link the progress service to the console
-     */
-    protected IAction getShowConsoleAction() {
-        // Show the console as the goto action
-        return new Action(CVSUIMessages.CVSOperation_1) { 
-            public void run() {
-                CVSOutputConsole console = CVSUIPlugin.getPlugin().getConsole();
-                if (console != null)
-                    console.show(true);
-            }
-            public String getToolTipText() {
-                return CVSUIMessages.CVSOperation_2; 
-            }
-        };
-    }
+	@Override
+	protected boolean isSameFamilyAs(TeamOperation operation) {
+		// Trat all CVS operations as a single family
+		return operation instanceof CVSOperation;
+	}
+	
+	/*
+	 * Action to show the console that can be used by subclasses
+	 * that wish to link the progress service to the console
+	 */
+	protected IAction getShowConsoleAction() {
+		// Show the console as the goto action
+		return new Action(CVSUIMessages.CVSOperation_1) { 
+			@Override
+			public void run() {
+				CVSOutputConsole console = CVSUIPlugin.getPlugin().getConsole();
+				if (console != null)
+					console.show(true);
+			}
+			@Override
+			public String getToolTipText() {
+				return CVSUIMessages.CVSOperation_2; 
+			}
+		};
+	}
 }

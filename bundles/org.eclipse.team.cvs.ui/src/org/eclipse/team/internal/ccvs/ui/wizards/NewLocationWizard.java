@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,10 +17,8 @@ package org.eclipse.team.internal.ccvs.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.*;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -64,6 +65,7 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 	/**
 	 * Creates the wizard pages
 	 */
+	@Override
 	public void addPages() {
 		mainPage = createMainPage();
 		if (properties != null) {
@@ -79,9 +81,7 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 		return new ConfigurationWizardMainPage("repositoryPage1", CVSUIMessages.NewLocationWizard_heading, CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_WIZBAN_NEW_LOCATION)); //$NON-NLS-1$ 
 	}
 	
-	/*
-	 * @see IWizard#performFinish
-	 */
+	@Override
 	public boolean performFinish() {
 		final ICVSRepositoryLocation[] location = new ICVSRepositoryLocation[] { null };
 		boolean keepLocation = false;
@@ -93,13 +93,11 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 			
 			if (mainPage.getValidate()) {
 				try {
-					getContainer().run(true, true, new IRunnableWithProgress() {
-						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							try {
-								location[0].validateConnection(monitor);
-							} catch (TeamException e) {
-								throw new InvocationTargetException(e);
-							}
+					getContainer().run(true, true, monitor -> {
+						try {
+							location[0].validateConnection(monitor);
+						} catch (TeamException e) {
+							throw new InvocationTargetException(e);
 						}
 					});
 					keepLocation = true;
@@ -142,9 +140,9 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 		if (keepLocation) {
 			KnownRepositories.getInstance().addRepository(location[0], true /* let the world know */);
 			if (switchPerspectives) {
-		        final IWorkbench workbench= PlatformUI.getWorkbench();
-		        final IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-		        
+				final IWorkbench workbench= PlatformUI.getWorkbench();
+				final IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+				
 				final String defaultPerspectiveID= promptForPerspectiveSwitch();
 
 				if (defaultPerspectiveID != null) {
@@ -161,6 +159,7 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 		return keepLocation;	
 	}
 
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		// Nothing to do
 	}
@@ -194,7 +193,7 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 		}
 		
 		if (desired != null) {
-		    
+			
 			String message;;
 			String desc = desired.getDescription();
 			if (desc == null) {
@@ -202,25 +201,25 @@ public class NewLocationWizard extends Wizard implements INewWizard {
 			} else {
 				message = NLS.bind(CVSUIMessages.NewLocationWizard_3, new String[] { desired.getLabel(), desc });
 			}
-		    // Ask the user whether to switch
+			// Ask the user whether to switch
 			final MessageDialogWithToggle m = MessageDialogWithToggle.openYesNoQuestion(
-			        Utils.getShell(null),
-			        CVSUIMessages.NewLocationWizard_1, 
-			        message, 
-			        CVSUIMessages.NewLocationWizard_4,   
-			        false /* toggle state */,
-			        store,
-			        ICVSUIConstants.PREF_CHANGE_PERSPECTIVE_ON_NEW_REPOSITORY_LOCATION);
+					Utils.getShell(null),
+					CVSUIMessages.NewLocationWizard_1, 
+					message, 
+					CVSUIMessages.NewLocationWizard_4,   
+					false /* toggle state */,
+					store,
+					ICVSUIConstants.PREF_CHANGE_PERSPECTIVE_ON_NEW_REPOSITORY_LOCATION);
 			
 			final int result = m.getReturnCode();
 			switch (result) {
 			// yes
 			case IDialogConstants.YES_ID:
 			case IDialogConstants.OK_ID :
-			    return desiredID;
+				return desiredID;
 			// no
 			case IDialogConstants.NO_ID :
-			    return null;
+				return null;
 			}
 		}
 		return null;

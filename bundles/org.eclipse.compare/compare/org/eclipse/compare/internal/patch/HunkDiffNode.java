@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -83,8 +86,7 @@ public class HunkDiffNode extends PatchDiffNode {
 		if (fuzz > 0) {
 			String[] lines = result.getHunk().getLines();
 			int contextLines = 0;
-			for (int i = 0; i < lines.length; i++) {
-				String line = lines[i];
+			for (String line : lines) {
 				char c = line.charAt(0);
 				if (c == ' ') {
 					contextLines++;

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -50,21 +53,25 @@ public class ConcurrencyTests extends EclipseTest {
 	public void testBackgroundMemberFetch() throws CoreException, InvocationTargetException, InterruptedException {
 		IProject project = createProject("testBackgroundMemberFetch", new String[] { "file1.txt", "folder1/", "folder1/a.txt", "folder2/", "folder2/a.txt", "folder2/folder3/", "folder2/folder3/b.txt", "folder2/folder3/c.txt"});
 		ICVSRemoteFolder folder = (ICVSRemoteFolder)CVSWorkspaceRoot.getRemoteResourceFor(project);
-		final List result = new ArrayList(); 
+		final List<Object> result = new ArrayList<>(); 
 		final boolean[] done = new boolean[] { false };
 		IElementCollector collector = new IElementCollector() {
+			@Override
 			public void add(Object element, IProgressMonitor monitor) {
 				result.add(element);
 			}
+			@Override
 			public void add(Object[] elements, IProgressMonitor monitor) {
 				result.addAll(Arrays.asList(elements));
 			}
+			@Override
 			public void done() {
 				done[0] = true;
 			}
 		};
 		
 		FetchMembersOperation operation = new FetchMembersOperation(null, folder, collector) {
+			@Override
 			public void done(IJobChangeEvent event) {
 				done[0] = true;
 				super.done(event);
@@ -80,7 +87,7 @@ public class ConcurrencyTests extends EclipseTest {
 			}
 		}
 		assertTrue(result.size() == project.members().length);
-		for (Iterator iter = result.iterator(); iter.hasNext();) {
+		for (Iterator<Object> iter = result.iterator(); iter.hasNext();) {
 			ICVSRemoteResource remote = (ICVSRemoteResource) iter.next();
 			IResource local = project.findMember(remote.getName());
 			assertNotNull(local);

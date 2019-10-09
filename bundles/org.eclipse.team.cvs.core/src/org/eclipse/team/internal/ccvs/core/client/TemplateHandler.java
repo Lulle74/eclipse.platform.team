@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,30 +32,26 @@ import org.eclipse.team.internal.ccvs.core.util.SyncFileWriter;
  */
 public class TemplateHandler extends ResponseHandler {
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.ResponseHandler#getResponseID()
-	 */
+	@Override
 	public String getResponseID() {
 		return "Template"; //$NON-NLS-1$
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.ResponseHandler#handle(org.eclipse.team.internal.ccvs.core.client.Session, java.lang.String, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void handle(Session session, String localDir, IProgressMonitor monitor) throws CVSException {
 		session.readLine(); /* read the remote dir which is not needed */
-        // Only read the template file if the container exists.
-        // This is OK as we only use the template from the project folder which must exist
-        ICVSFolder localFolder = session.getLocalRoot().getFolder(localDir);
+		// Only read the template file if the container exists.
+		// This is OK as we only use the template from the project folder which must exist
+		ICVSFolder localFolder = session.getLocalRoot().getFolder(localDir);
 		IContainer container = (IContainer)localFolder.getIResource();
 		ICVSStorage templateFile = null;
 		if (container != null && container.exists()) {
-		    try {
-                templateFile = CVSWorkspaceRoot.getCVSFileFor(SyncFileWriter.getTemplateFile(container));
-            } catch (CVSException e) {
-                // Log the inability to create the template file
-                CVSProviderPlugin.log(new CVSStatus(IStatus.ERROR, CVSStatus.ERROR, "Could not write template file in " + container.getFullPath() + ": " + e.getMessage(), e, session.getLocalRoot())); //$NON-NLS-1$ //$NON-NLS-2$
-            }
+			try {
+				templateFile = CVSWorkspaceRoot.getCVSFileFor(SyncFileWriter.getTemplateFile(container));
+			} catch (CVSException e) {
+				// Log the inability to create the template file
+				CVSProviderPlugin.log(new CVSStatus(IStatus.ERROR, CVSStatus.ERROR, "Could not write template file in " + container.getFullPath() + ": " + e.getMessage(), e, session.getLocalRoot())); //$NON-NLS-1$ //$NON-NLS-2$
+			}
 		}
 		if (container == null || templateFile == null) {
 			// Create a dummy storage handle to recieve the contents from the server
@@ -67,18 +66,13 @@ public class TemplateHandler extends ResponseHandler {
 					IProgressMonitor monitor)
 					throws CVSException {
 
-					try {
-						// Transfer the contents
-						OutputStream out = new ByteArrayOutputStream();
-						try {
-							byte[] buffer = new byte[1024];
-							int read;
-							while ((read = stream.read(buffer)) >= 0) {
-								Policy.checkCanceled(monitor);
-								out.write(buffer, 0, read);
-							}
-						} finally {
-							out.close();
+					try ( // Transfer the contents
+							OutputStream out = new ByteArrayOutputStream()) {
+						byte[] buffer = new byte[1024];
+						int read;
+						while ((read = stream.read(buffer)) >= 0) {
+							Policy.checkCanceled(monitor);
+							out.write(buffer, 0, read);
 						}
 					} catch (IOException e) {
 						throw CVSException.wrapException(e); 
@@ -99,12 +93,12 @@ public class TemplateHandler extends ResponseHandler {
 			};
 		}
 		try {
-            session.receiveFile(templateFile, false, UpdatedHandler.HANDLE_UPDATED, monitor);
-        } catch (CVSException e) {
-            if (!(templateFile instanceof ICVSFile && handleInvalidResourceName(session, (ICVSFile)templateFile, e))) {
-                throw e;
-            }
-        }
+			session.receiveFile(templateFile, false, UpdatedHandler.HANDLE_UPDATED, monitor);
+		} catch (CVSException e) {
+			if (!(templateFile instanceof ICVSFile && handleInvalidResourceName(session, (ICVSFile)templateFile, e))) {
+				throw e;
+			}
+		}
 	}
 
 }

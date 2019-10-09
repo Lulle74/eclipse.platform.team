@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,13 +24,8 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.team.internal.ccvs.core.CVSException;
-import org.eclipse.team.internal.ccvs.core.CVSTag;
-import org.eclipse.team.internal.ccvs.core.ICVSFolder;
-import org.eclipse.team.internal.ccvs.core.ICVSResource;
+import org.eclipse.team.internal.ccvs.core.*;
 import org.eclipse.team.internal.ccvs.ui.*;
-import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
-import org.eclipse.team.internal.ccvs.ui.ICVSUIConstants;
 import org.eclipse.team.internal.ccvs.ui.operations.ITagOperation;
 import org.eclipse.team.internal.ccvs.ui.repo.RepositoryManager;
 import org.eclipse.team.internal.ccvs.ui.tags.TagAsVersionDialog;
@@ -40,21 +38,18 @@ public abstract class TagAction extends WorkspaceTraversalAction {
 	// remember if the execute action was cancelled
 	private boolean wasCancelled = false;
 
-	/**
-	 * @see CVSAction#execute(IAction)
-	 */
+	@Override
 	public void execute(IAction action) throws InvocationTargetException, InterruptedException {
 		setWasCancelled(false);
 		
 		// Prompt for the tag name
 		final ITagOperation[] result = new ITagOperation[1];
-		getShell().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				result[0] = configureOperation();
-				if (result[0] == null)  {
-					return;
-				}
-			}});
+		getShell().getDisplay().syncExec(() -> {
+			result[0] = configureOperation();
+			if (result[0] == null) {
+				return;
+			}
+		});
 		
 		if (result[0] == null)  {
 			setWasCancelled(true);
@@ -77,7 +72,7 @@ public abstract class TagAction extends WorkspaceTraversalAction {
 		IPreferenceStore store = CVSUIPlugin.getPlugin().getPreferenceStore();
 		ITagOperation operation = createTagOperation();
 		if (operation.isEmpty()) {
-		    return null;
+			return null;
 		}
 		if (!performPrompting(operation)) {
 			return null;
@@ -110,17 +105,17 @@ public abstract class TagAction extends WorkspaceTraversalAction {
 	
 	protected abstract ITagOperation createTagOperation();
 
+	@Override
 	protected String getErrorTitle() {
 		return CVSUIMessages.TagAction_tagErrorTitle; 
 	}
 	
+	@Override
 	protected String getWarningTitle() {
 		return CVSUIMessages.TagAction_tagWarningTitle; 
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForAddedResources()
-	 */
+	@Override
 	protected boolean isEnabledForAddedResources() {
 		return false;
 	}
@@ -136,10 +131,10 @@ public abstract class TagAction extends WorkspaceTraversalAction {
 	public static void broadcastTagChange(final ICVSResource[] resources, final CVSTag tag) throws InvocationTargetException, InterruptedException {
 		final RepositoryManager manager = CVSUIPlugin.getPlugin().getRepositoryManager();
 		manager.run(new IRunnableWithProgress() {
+			@Override
 			public void run(IProgressMonitor monitor) {
 				try {
-					for (int i = 0; i < resources.length; i++) {
-						ICVSResource resource = resources[i];
+					for (ICVSResource resource : resources) {
 						// Cache the new tag creation even if the tag may have had warnings.
 						manager.addTags(getRootParent(resource), new CVSTag[] {tag});
 					}

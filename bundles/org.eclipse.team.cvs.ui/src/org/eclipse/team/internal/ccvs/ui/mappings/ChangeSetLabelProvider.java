@@ -1,15 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.mappings;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -96,8 +100,7 @@ public class ChangeSetLabelProvider extends ResourceModelLabelProvider {
 		if (element instanceof DiffChangeSet) {
 			DiffChangeSet dcs = (DiffChangeSet) element;
 			IResource[] resources = dcs.getResources();
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				if (getContext().getDiffTree().getProperty(resource.getFullPath(), IDiffTree.P_BUSY_HINT))
 					return true;
 			}
@@ -111,8 +114,7 @@ public class ChangeSetLabelProvider extends ResourceModelLabelProvider {
 		if (element instanceof DiffChangeSet) {
 			DiffChangeSet dcs = (DiffChangeSet) element;
 			IResource[] resources = dcs.getResources();
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				if (getContext().getDiffTree().getProperty(resource.getFullPath(), IDiffTree.P_HAS_DESCENDANT_CONFLICTS))
 					return true;
 			}
@@ -146,8 +148,7 @@ public class ChangeSetLabelProvider extends ResourceModelLabelProvider {
 			Set projects = new HashSet();
 			IResource[] resources = dcs.getResources();
 			int severity = -1;
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				IProject project = resource.getProject();
 				if (!projects.contains(project)) {
 					projects.add(project);
@@ -169,16 +170,12 @@ public class ChangeSetLabelProvider extends ResourceModelLabelProvider {
 
 	private Object[] addSetsContainingElements(Object[] elements) {
 		Set result = new HashSet();
-		for (int i = 0; i < elements.length; i++) {
-			Object object = elements[i];
+		for (Object object : elements) {
 			result.add(object);
 			if (object instanceof IProject) {
 				IProject project = (IProject) object;
 				ChangeSet[] sets = getSetsContaing(project);
-				for (int j = 0; j < sets.length; j++) {
-					ChangeSet set = sets[j];
-					result.add(set);
-				}
+				Collections.addAll(result, sets);
 			}
 		}
 		return result.toArray();
@@ -202,9 +199,9 @@ public class ChangeSetLabelProvider extends ResourceModelLabelProvider {
 	
 	public Font getFont(Object element) {
 		element = internalGetElement(element);
-	    if (element instanceof ActiveChangeSet && isDefaultActiveSet((ActiveChangeSet)element)) {
+		if (element instanceof ActiveChangeSet && isDefaultActiveSet((ActiveChangeSet)element)) {
 			return JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT);
-	    }
+		}
 		return super.getFont(element);
 	}
 

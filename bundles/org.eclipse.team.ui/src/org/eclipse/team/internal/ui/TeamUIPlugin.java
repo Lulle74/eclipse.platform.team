@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,11 +14,23 @@
 package org.eclipse.team.internal.ui;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -30,6 +45,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.team.core.RepositoryProviderType;
 import org.eclipse.team.core.subscribers.Subscriber;
+import org.eclipse.team.internal.ui.history.IFileHistoryConstants;
 import org.eclipse.team.internal.ui.mapping.StreamMergerDelegate;
 import org.eclipse.team.internal.ui.mapping.WorkspaceTeamStateProvider;
 import org.eclipse.team.internal.ui.synchronize.SynchronizeManager;
@@ -37,10 +53,16 @@ import org.eclipse.team.internal.ui.synchronize.TeamSynchronizingPerspective;
 import org.eclipse.team.internal.ui.synchronize.actions.GlobalRefreshAction;
 import org.eclipse.team.ui.ISharedImages;
 import org.eclipse.team.ui.mapping.ITeamStateProvider;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeManager;
+import org.eclipse.team.ui.synchronize.SubscriberTeamStateProvider;
+import org.eclipse.team.ui.synchronize.TeamStateProvider;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * TeamUIPlugin is the plugin for generic, non-provider specific,
@@ -66,7 +88,7 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 
 	private WorkspaceTeamStateProvider provider;
 
-	private Map<String, TeamStateProvider> decoratedStateProviders = new HashMap<String, TeamStateProvider>();
+	private Map<String, TeamStateProvider> decoratedStateProviders = new HashMap<>();
 
 	// manages synchronize participants
 	private SynchronizeManager synchronizeManager;
@@ -162,15 +184,15 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 		store.setDefault(IPreferenceIds.SYNCHRONIZING_DEFAULT_PARTICIPANT_SEC_ID, GlobalRefreshAction.NO_DEFAULT_PARTICPANT);
 		store.setDefault(IPreferenceIds.SYNCHRONIZING_COMPLETE_PERSPECTIVE, MessageDialogWithToggle.PROMPT);
 		store.setDefault(IPreferenceIds.SYNCVIEW_REMOVE_FROM_VIEW_NO_PROMPT, false);
-		store.setDefault(IPreferenceIds.PREF_WORKSPACE_FIRST_TIME, true);
+		store.setDefault(IFileHistoryConstants.PREF_GENERIC_HISTORYVIEW_EDITOR_LINKING, true);
 
 		// Convert the old compressed folder preference to the new layout preference
 		if (!store.isDefault(IPreferenceIds.SYNCVIEW_COMPRESS_FOLDERS) && !store.getBoolean(IPreferenceIds.SYNCVIEW_COMPRESS_FOLDERS)) {
-		    // Set the compress folder preference to the default true) \
-		    // so will will ignore it in the future
-		    store.setToDefault(IPreferenceIds.SYNCVIEW_COMPRESS_FOLDERS);
-		    // Set the layout to tree (which was used when compress folder was false)
-		    store.setDefault(IPreferenceIds.SYNCVIEW_DEFAULT_LAYOUT, IPreferenceIds.TREE_LAYOUT);
+			// Set the compress folder preference to the default true) \
+			// so will will ignore it in the future
+			store.setToDefault(IPreferenceIds.SYNCVIEW_COMPRESS_FOLDERS);
+			// Set the layout to tree (which was used when compress folder was false)
+			store.setDefault(IPreferenceIds.SYNCVIEW_DEFAULT_LAYOUT, IPreferenceIds.TREE_LAYOUT);
 		}
 	}
 
@@ -208,9 +230,6 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 		log(new Status(severity, ID, 0, message, e));
 	}
 
-	/**
-	 * @see Plugin#start(BundleContext)
-	 */
 	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -221,38 +240,9 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 		debugRegistration = context.registerService(DebugOptionsListener.class, Policy.DEBUG_OPTIONS_LISTENER, properties);
 
 		initializeImages(this);
-
-		// This is a backwards compatibility check to ensure that repository
-		// provider capability are enabled automatically if an old workspace is
-		// opened for the first time and contains projects shared with a disabled
-		// capability. We defer the actual processing of the projects to another
-		// job since it is not critical to the startup of the team ui plugin.
-		IPreferenceStore store = getPreferenceStore();
-		if (store.getBoolean(IPreferenceIds.PREF_WORKSPACE_FIRST_TIME)) {
-			Job capabilityInitializer = new Job(TeamUIMessages.LoadingTeamCapabilities) {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					TeamCapabilityHelper.getInstance();
-					getPreferenceStore().setValue(IPreferenceIds.PREF_WORKSPACE_FIRST_TIME, false);
-					return Status.OK_STATUS;
-				}
-				@Override
-				public boolean shouldRun() {
-				    // Only initialize the capability helper if the UI is running (bug 76348)
-				    return PlatformUI.isWorkbenchRunning();
-				}
-			};
-			capabilityInitializer.setSystem(true);
-			capabilityInitializer.setPriority(Job.DECORATE);
-			capabilityInitializer.schedule(1000);
-		}
-
 		StreamMergerDelegate.start();
 	}
 
-	/* (non-Javadoc)
-	 * @see Plugin#stop(BundleContext)
-	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		try {
@@ -312,12 +302,12 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 		plugin.privateCreateImageDescriptor(id);
 	}
 	private void privateCreateImageDescriptor(String id) {
-        ImageDescriptor desc = ImageDescriptor.createFromURL(getImageUrl(id));
-        imageDescriptors.put(id, desc);
+		ImageDescriptor desc = ImageDescriptor.createFromURL(getImageUrl(id));
+		imageDescriptors.put(id, desc);
 	}
 	private void privateCreateImageDescriptor(String id, String imageUrl) {
-        ImageDescriptor desc = ImageDescriptor.createFromURL(getImageUrl(imageUrl));
-        imageDescriptors.put(id, desc);
+		ImageDescriptor desc = ImageDescriptor.createFromURL(getImageUrl(imageUrl));
+		imageDescriptors.put(id, desc);
 	}
 
 	/**
@@ -346,8 +336,20 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 	 * @return the image
 	 */
 	public static ImageDescriptor getImageDescriptorFromExtension(IExtension extension, String subdirectoryAndFilename) {
-		URL fullPathString = FileLocator.find(Platform.getBundle(extension.getContributor().getName()), new Path(subdirectoryAndFilename), null);
-		return ImageDescriptor.createFromURL(fullPathString);
+		URL iconURL = FileLocator.find(Platform.getBundle(extension.getContributor().getName()), new Path(subdirectoryAndFilename), null);
+		if (iconURL != null) {
+			return ImageDescriptor.createFromURL(iconURL);
+		}
+		// try to search as a URL in case it is absolute path
+		try {
+			iconURL = FileLocator.find(new URL(subdirectoryAndFilename));
+			if (iconURL != null) {
+				return ImageDescriptor.createFromURL(iconURL);
+			}
+		} catch (MalformedURLException e) {
+			//ignore
+		}
+		return null;
 	}
 
 	public static final String FILE_DIRTY_OVR = "ovr/dirty_ov.png"; //$NON-NLS-1$
@@ -421,9 +423,9 @@ public class TeamUIPlugin extends AbstractUIPlugin {
 		createImageDescriptor(plugin, ITeamUIImages.IMG_LOCALREVISION_TABLE);
 	}
 
-    private URL getImageUrl(String relative) {
-        return FileLocator.find(Platform.getBundle(PLUGIN_ID), new Path(ICON_PATH + relative), null);
-    }
+	private URL getImageUrl(String relative) {
+		return FileLocator.find(Platform.getBundle(PLUGIN_ID), new Path(ICON_PATH + relative), null);
+	}
 
 	/**
 	 * Returns the standard display to be used. The method first checks, if the

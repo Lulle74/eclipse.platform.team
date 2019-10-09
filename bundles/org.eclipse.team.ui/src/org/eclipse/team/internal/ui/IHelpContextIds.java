@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,14 +16,14 @@ package org.eclipse.team.internal.ui;
 public interface IHelpContextIds {
 	public static final String PREFIX = TeamUIPlugin.ID + "."; //$NON-NLS-1$
 
-    // Dialogs
-    public static final String CONFIGURE_REFRESH_SCHEDULE_DIALOG = PREFIX + "configre_refresh_schedule_dialog_context"; //$NON-NLS-1$
+	// Dialogs
+	public static final String CONFIGURE_REFRESH_SCHEDULE_DIALOG = PREFIX + "configre_refresh_schedule_dialog_context"; //$NON-NLS-1$
 
 	// Preference Pages
 	public static final String IGNORE_PREFERENCE_PAGE = PREFIX + "ignore_preference_page_context"; //$NON-NLS-1$
 	public static final String MODEL_PREFERENCE_PAGE = PREFIX + "model_preference_page_context"; //$NON-NLS-1$
 	public static final String FILE_TYPE_PREFERENCE_PAGE = PREFIX + "file_type_preference_page_context"; //$NON-NLS-1$
-    public static final String SYNC_PREFERENCE_PAGE = PREFIX + "sync_preference_page_context"; //$NON-NLS-1$
+	public static final String SYNC_PREFERENCE_PAGE = PREFIX + "sync_preference_page_context"; //$NON-NLS-1$
 	public static final String SYNC_STARTUP_PREFERENCE_PAGE = PREFIX + "sync_startup_preference_page_context"; //$NON-NLS-1$
 	public static final String RESOURCE_MODEL_PREFERENCE_PAGE = PREFIX + "resource_model_preference_page_context"; //$NON-NLS-1$
 
@@ -29,7 +32,7 @@ public interface IHelpContextIds {
 	public static final String IMPORT_PROJECT_SET_PAGE = PREFIX + "import_project_set_page_context"; //$NON-NLS-1$
 	public static final String EXPORT_PROJECT_SET_PAGE = PREFIX + "export_project_set_page_context"; //$NON-NLS-1$
 	public static final String SYNC_RESOURCE_SELECTION_PAGE = PREFIX + "sync_resource_selection_page_context"; //$NON-NLS-1$
-    public static final String REFRESH_WIZARD_SELECTION_PAGE = PREFIX + "refresh_wizard_selection_page_context"; //$NON-NLS-1$
+	public static final String REFRESH_WIZARD_SELECTION_PAGE = PREFIX + "refresh_wizard_selection_page_context"; //$NON-NLS-1$
 
 	// Catchup Release Viewers
 	public static final String TARGET_CATCHUP_RELEASE_VIEWER = PREFIX + "target_catchup_release_viewer_context"; //$NON-NLS-1$

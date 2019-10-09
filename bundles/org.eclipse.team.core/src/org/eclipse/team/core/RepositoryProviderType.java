@@ -1,39 +1,50 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.team.core.subscribers.Subscriber;
 import org.eclipse.team.internal.core.DefaultProjectSetCapability;
 import org.eclipse.team.internal.core.TeamPlugin;
 
 /**
- * This class represents things you can ask/do with a type of provider. This
- * is in the absence of a project, as opposed to RepositoryProvider which
- * requires a concrete project in order to be instantiated.
+ * This class represents things you can ask/do with a type of provider. This is
+ * in the absence of a project, as opposed to RepositoryProvider which requires
+ * a concrete project in order to be instantiated.
  * <p>
- * A repository provider type class is associated with it's provider ID along with it's
- * corresponding repository provider class. To add a
- * repository provider type and have it registered with the platform, a client
- * must minimally:
+ * A repository provider type class is associated with it's provider ID along
+ * with it's corresponding repository provider class. To add a repository
+ * provider type and have it registered with the platform, a client must
+ * minimally:
+ * </p>
  * <ol>
- * 	<li>extend <code>RepositoryProviderType</code>
- * 	<li>add the typeClass field to the repository extension in <code>plugin.xml</code>.
- *     Here is an example extension point definition:
+ * <li>extend <code>RepositoryProviderType</code>
+ * <li>add the typeClass field to the repository extension in
+ * <code>plugin.xml</code>. Here is an example extension point definition:
  *
- *  <code>
+ * <code>
  *	<br>&lt;extension point="org.eclipse.team.core.repository"&gt;
  *  <br>&nbsp;&lt;repository
  *  <br>&nbsp;&nbsp;class="org.eclipse.myprovider.MyRepositoryProvider"
@@ -42,11 +53,12 @@ import org.eclipse.team.internal.core.TeamPlugin;
  *  <br>&nbsp;&lt;/repository&gt;
  *	<br>&lt;/extension&gt;
  *  </code>
- * </ol></p>
+ * </ol>
  *
  * <p>
- * Once a repository provider type is registered with Team, then you
- * can access the singleton instance of the class by invoking <code>RepositoryProviderType.getProviderType()</code>.
+ * Once a repository provider type is registered with Team, then you can access
+ * the singleton instance of the class by invoking
+ * <code>RepositoryProviderType.getProviderType()</code>.
  * </p>
  *
  * @see RepositoryProviderType#getProviderType(String)
@@ -94,8 +106,7 @@ public abstract class RepositoryProviderType extends PlatformObject {
 	 * @since 3.2
 	 */
 	public static RepositoryProviderType getTypeForScheme(String scheme) {
-		for (Iterator iter = allProviderTypes.values().iterator(); iter.hasNext();) {
-			RepositoryProviderType type = (RepositoryProviderType) iter.next();
+		for (RepositoryProviderType type : allProviderTypes.values()) {
 			if (type.getFileSystemScheme() != null && type.getFileSystemScheme().equals(scheme))
 				return type;
 		}
@@ -106,11 +117,11 @@ public abstract class RepositoryProviderType extends PlatformObject {
 		IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(TeamPlugin.ID, TeamPlugin.REPOSITORY_EXTENSION);
 		if (extension != null) {
 			IExtension[] extensions =  extension.getExtensions();
-			for (int i = 0; i < extensions.length; i++) {
-				IConfigurationElement [] configElements = extensions[i].getConfigurationElements();
-				for (int j = 0; j < configElements.length; j++) {
-					String extensionId = configElements[j].getAttribute("id"); //$NON-NLS-1$
-					String typeScheme = configElements[j].getAttribute("fileSystemScheme"); //$NON-NLS-1$
+			for (IExtension ext : extensions) {
+				IConfigurationElement[] configElements = ext.getConfigurationElements();
+				for (IConfigurationElement configElement : configElements) {
+					String extensionId = configElement.getAttribute("id"); //$NON-NLS-1$
+					String typeScheme = configElement.getAttribute("fileSystemScheme"); //$NON-NLS-1$
 					if (typeScheme != null && typeScheme.equals(scheme) && extensionId != null) {
 						return newProviderType(extensionId);
 					}
@@ -128,30 +139,28 @@ public abstract class RepositoryProviderType extends PlatformObject {
 		IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(TeamPlugin.ID, TeamPlugin.REPOSITORY_EXTENSION);
 		if (extension != null) {
 			IExtension[] extensions =  extension.getExtensions();
-			for (int i = 0; i < extensions.length; i++) {
-				IConfigurationElement [] configElements = extensions[i].getConfigurationElements();
-				for (int j = 0; j < configElements.length; j++) {
-					String extensionId = configElements[j].getAttribute("id"); //$NON-NLS-1$
-
+			for (IExtension ext : extensions) {
+				IConfigurationElement[] configElements = ext.getConfigurationElements();
+				for (IConfigurationElement configElement : configElements) {
+					String extensionId = configElement.getAttribute("id"); //$NON-NLS-1$
 					if (extensionId != null && extensionId.equals(id)) {
 						try {
 							RepositoryProviderType providerType;
 							//Its ok not to have a typeClass extension.  In this case, a default instance will be created.
-							if(configElements[j].getAttribute("typeClass") == null) { //$NON-NLS-1$
+							if (configElement.getAttribute("typeClass") == null) { //$NON-NLS-1$
 								providerType = new DefaultRepositoryProviderType();
 							} else {
-								providerType = (RepositoryProviderType) configElements[j].createExecutableExtension("typeClass"); //$NON-NLS-1$
+								providerType = (RepositoryProviderType) configElement.createExecutableExtension("typeClass"); //$NON-NLS-1$
 							}
-
 							providerType.setID(id);
 							allProviderTypes.put(id, providerType);
-							String scheme = configElements[j].getAttribute("fileSystemScheme"); //$NON-NLS-1$
+							String scheme = configElement.getAttribute("fileSystemScheme"); //$NON-NLS-1$
 							providerType.setFileSystemScheme(scheme);
 							return providerType;
 						} catch (CoreException e) {
 							TeamPlugin.log(e);
 						} catch (ClassCastException e) {
-							String className = configElements[j].getAttribute("typeClass"); //$NON-NLS-1$
+							String className = configElement.getAttribute("typeClass"); //$NON-NLS-1$
 							TeamPlugin.log(IStatus.ERROR, "Class " + className + " registered for repository provider type id " + id + " is not a subclass of RepositoryProviderType", e); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						}
 						return null;
@@ -220,9 +229,9 @@ public abstract class RepositoryProviderType extends PlatformObject {
 	 * or in any way modify workspace resources (including auto-sharing the project). However,
 	 * auto-sharing (or other modification) could be performed by a background job scheduled from
 	 * this callback.
-     *
-     * @since 3.1
-     *
+	 *
+	 * @since 3.1
+	 *
 	 * @param project the project that contains the detected meta-files.
 	 * @param containers the folders (possibly including the project folder) in which meta-files were found
 	 */

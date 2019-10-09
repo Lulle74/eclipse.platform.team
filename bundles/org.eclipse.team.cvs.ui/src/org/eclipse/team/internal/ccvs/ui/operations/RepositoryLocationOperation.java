@@ -1,21 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.operations;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.internal.ccvs.core.*;
@@ -31,9 +29,7 @@ public abstract class RepositoryLocationOperation extends RemoteOperation {
 		super(part, remoteResources);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#execute(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void execute(IProgressMonitor monitor) throws CVSException, InterruptedException {
 		Map table = getLocationMapping(getRemoteResources());
 		Set keySet = table.keySet();
@@ -62,8 +58,7 @@ public abstract class RepositoryLocationOperation extends RemoteOperation {
 	 */
 	private Map getLocationMapping(ICVSRemoteResource[] remoteResources) {
 		Map locationsMap = new HashMap();
-		for (int i = 0; i < remoteResources.length; i++) {
-			ICVSRemoteResource resource = remoteResources[i];
+		for (ICVSRemoteResource resource : remoteResources) {
 			ICVSRepositoryLocation location = resource.getRepository();
 			List resources = (List)locationsMap.get(location);
 			if (resources == null) {

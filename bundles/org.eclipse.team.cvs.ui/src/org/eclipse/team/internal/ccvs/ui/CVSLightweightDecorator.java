@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,16 +88,13 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	 * @param colors color ids to cache
 	 */
 	private void ensureFontAndColorsCreated(final String[] fonts, final String[] colors) {
-		CVSUIPlugin.getStandardDisplay().syncExec(new Runnable() {
-			public void run() {
-				ITheme theme  = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme();
-				for (int i = 0; i < colors.length; i++) {
-					theme.getColorRegistry().get(colors[i]);
-					
-				}
-				for (int i = 0; i < fonts.length; i++) {
-					theme.getFontRegistry().get(fonts[i]);
-				}
+		CVSUIPlugin.getStandardDisplay().syncExec(() -> {
+			ITheme theme = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme();
+			for (String color : colors) {
+				theme.getColorRegistry().get(color);
+			}
+			for (String font : fonts) {
+				theme.getFontRegistry().get(font);
 			}
 		});
 	}
@@ -133,6 +133,7 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	 * 
 	 * @see org.eclipse.jface.viewers.ILightweightLabelDecorator#decorate(java.lang.Object, org.eclipse.jface.viewers.IDecoration)
 	 */
+	@Override
 	public void decorate(Object element, IDecoration decoration) {
 		
 		// Don't decorate the workspace root
@@ -164,12 +165,12 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		} catch(CoreException e) {
 			handleException(element, e);
 		} catch (IllegalStateException e) {
-		    // This is thrown by Core if the workspace is in an illegal state
-		    // If we are not active, ignore it. Otherwise, propagate it.
-		    // (see bug 78303)
-		    if (Platform.getBundle(CVSUIPlugin.ID).getState() == Bundle.ACTIVE) {
-		        throw e;
-		    }
+			// This is thrown by Core if the workspace is in an illegal state
+			// If we are not active, ignore it. Otherwise, propagate it.
+			// (see bug 78303)
+			if (Platform.getBundle(CVSUIPlugin.ID).getState() == Bundle.ACTIVE) {
+				throw e;
+			}
 		}
 	}
 
@@ -183,29 +184,28 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	/*
 	 * Return whether any of the projects of the mapping are mapped to CVS
 	 */
-    private boolean isMappedToCVS(ResourceMapping mapping) {
-        IProject[] projects = mapping.getProjects();
-        boolean foundOne = false;
-        for (int i = 0; i < projects.length; i++) {
-            IProject project = projects[i];
-            if (project != null) {
-	            RepositoryProvider provider = RepositoryProvider.getProvider(project);
+	private boolean isMappedToCVS(ResourceMapping mapping) {
+		IProject[] projects = mapping.getProjects();
+		boolean foundOne = false;
+		for (IProject project : projects) {
+			if (project != null) {
+				RepositoryProvider provider = RepositoryProvider.getProvider(project);
 				if (provider instanceof CVSTeamProvider) {
 					foundOne = true;
-	            } else if (provider != null) {
-	            	return false;
-	            }
-            }
-        }
-        return foundOne;
-    }
-    
-    public static CVSDecoration decorate(Object element, SynchronizationStateTester tester) throws CoreException {
-    	IPreferenceStore store = CVSUIPlugin.getPlugin().getPreferenceStore();
-        CVSDecoration result = new CVSDecoration();
-        
-        // First, decorate the synchronization state
-    	int state = IDiff.NO_CHANGE;
+				} else if (provider != null) {
+					return false;
+				}
+			}
+		}
+		return foundOne;
+	}
+	
+	public static CVSDecoration decorate(Object element, SynchronizationStateTester tester) throws CoreException {
+		IPreferenceStore store = CVSUIPlugin.getPlugin().getPreferenceStore();
+		CVSDecoration result = new CVSDecoration();
+		
+		// First, decorate the synchronization state
+		int state = IDiff.NO_CHANGE;
 		if (isSupervised(element)) {
 			// TODO: Not quite right
 			result.setHasRemote(true);
@@ -215,9 +215,9 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 						: 0, 
 					new NullProgressMonitor());
 			result.setStateFlags(state);
-        } else {
-        	result.setIgnored(true);
-        }
+		} else {
+			result.setIgnored(true);
+		}
 		// Tag
 		if (!result.isIgnored()) {
 			CVSTag tag = getTagToShow(element);
@@ -241,13 +241,12 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 			decorate(resource, result);
 		}
 		tester.elementDecorated(element, result.asTeamStateDescription(null));
-        return result;
-    }
-    
+		return result;
+	}
+	
 	private static boolean isSupervised(Object element) throws CoreException {
 		IResource[] resources = getTraversalRoots(element);
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			if (getSubscriber().isSupervised(resource))
 				return true;
 		}
@@ -259,13 +258,9 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		ResourceMapping mapping = Utils.getResourceMapping(element);
 		if (mapping != null) {
 			ResourceTraversal[] traversals = mapping.getTraversals(ResourceMappingContext.LOCAL_CONTEXT, null);
-			for (int i = 0; i < traversals.length; i++) {
-				ResourceTraversal traversal = traversals[i];
+			for (ResourceTraversal traversal : traversals) {
 				IResource[] resources = traversal.getResources();
-				for (int j = 0; j < resources.length; j++) {
-					IResource resource = resources[j];
-					result.add(resource);
-				}
+				Collections.addAll(result, resources);
 			}
 		}
 		return (IResource[]) result.toArray(new IResource[result.size()]);
@@ -340,13 +335,13 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		}
 		if (!cvsDecoration.isIgnored()) {
 			// Dirty
-            if (includeDirtyCheck) {
-    			boolean computeDeepDirtyCheck = store.getBoolean(ICVSUIConstants.PREF_CALCULATE_DIRTY);
-    			int type = resource.getType();
-    			if (type == IResource.FILE || computeDeepDirtyCheck) {
-    				cvsDecoration.setDirty(CVSLightweightDecorator.isDirty(resource));
-    			}
-            }
+			if (includeDirtyCheck) {
+				boolean computeDeepDirtyCheck = store.getBoolean(ICVSUIConstants.PREF_CALCULATE_DIRTY);
+				int type = resource.getType();
+				if (type == IResource.FILE || computeDeepDirtyCheck) {
+					cvsDecoration.setDirty(CVSLightweightDecorator.isDirty(resource));
+				}
+			}
 		}
 		decorate(resource, cvsDecoration);
 		return cvsDecoration;
@@ -389,8 +384,7 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		IResource[] resources = getTraversalRoots(element);
 		boolean first = true;
 		CVSTag tag = null;
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			if (getSubscriber().isSupervised(resource)) {
 				CVSTag nextTag = getTagToShow(resource);
 				if (first) {
@@ -460,7 +454,7 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	/*
 	 * Add resource and its parents to the List
 	 */
-	 
+	
 	private void addWithParents(IResource resource, Set resources) {
 		IResource current = resource;
 
@@ -480,15 +474,13 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	/*
 	 * Update the decorators for every resource in project
 	 */
-	 
+	
 	public void refresh(IProject project) {
 		final List resources = new ArrayList();
 		try {
-			project.accept(new IResourceVisitor() {
-				public boolean visit(IResource resource) {
-					resources.add(resource);
-					return true;
-				}
+			project.accept(resource -> {
+				resources.add(resource);
+				return true;
 			});
 			postLabelEvent(new LabelProviderChangedEvent(this, resources.toArray()));
 		} catch (CoreException e) {
@@ -496,23 +488,17 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#resourceSyncInfoChanged(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void resourceSyncInfoChanged(IResource[] changedResources) {
 		resourceStateChanged(changedResources);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#externalSyncInfoChange(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void externalSyncInfoChange(IResource[] changedResources) {
 		resourceStateChanged(changedResources);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#resourceModificationStateChanged(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void resourceModified(IResource[] changedResources) {
 		resourceStateChanged(changedResources);
 	}
@@ -528,9 +514,7 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		IPreferenceStore store = CVSUIPlugin.getPlugin().getPreferenceStore();
 		boolean showingDeepDirtyIndicators = store.getBoolean(ICVSUIConstants.PREF_CALCULATE_DIRTY);
 
-		for (int i = 0; i < changedResources.length; i++) {
-			IResource resource = changedResources[i];
-
+		for (IResource resource : changedResources) {
 			if(showingDeepDirtyIndicators) {
 				addWithParents(resource, resourcesToUpdate);
 			} else {
@@ -541,15 +525,11 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		postLabelEvent(new LabelProviderChangedEvent(this, resourcesToUpdate.toArray()));
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#projectConfigured(org.eclipse.core.resources.IProject)
-	 */
+	@Override
 	public void projectConfigured(IProject project) {
 		refresh(project);
 	}
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#projectDeconfigured(org.eclipse.core.resources.IProject)
-	 */
+	@Override
 	public void projectDeconfigured(IProject project) {
 		refresh(project);
 	}
@@ -560,16 +540,10 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 	 * @param events  the events to post
 	 */
 	private void postLabelEvent(final LabelProviderChangedEvent event) {
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				fireLabelProviderChanged(event);
-			}
-		});
+		Display.getDefault().asyncExec(() -> fireLabelProviderChanged(event));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#dispose()
-	 */
+	@Override
 	public void dispose() {
 		super.dispose();
 		PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().removePropertyChangeListener(this);
@@ -600,8 +574,7 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		}
 		ResourceMapping mapping = Utils.getResourceMapping(element);
 		IProject[] projects = mapping.getProjects();
-		for (int i = 0; i < projects.length; i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			if (!project.isAccessible()) {
 				return;
 			}
@@ -609,28 +582,26 @@ public class CVSLightweightDecorator extends LabelProvider implements ILightweig
 		exceptions.handleException(e);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
-	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (isEventOfInterest(event)) {
 			ensureFontAndColorsCreated(fonts, colors);
-		    refresh();
+			refresh();
 		}	
 	}
 
-    private boolean isEventOfInterest(PropertyChangeEvent event) {
-        String prop = event.getProperty();
-        return prop.equals(TeamUI.GLOBAL_IGNORES_CHANGED) 
-        	|| prop.equals(TeamUI.GLOBAL_FILE_TYPES_CHANGED) 
-        	|| prop.equals(CVSUIPlugin.P_DECORATORS_CHANGED)
+	private boolean isEventOfInterest(PropertyChangeEvent event) {
+		String prop = event.getProperty();
+		return prop.equals(TeamUI.GLOBAL_IGNORES_CHANGED) 
+			|| prop.equals(TeamUI.GLOBAL_FILE_TYPES_CHANGED) 
+			|| prop.equals(CVSUIPlugin.P_DECORATORS_CHANGED)
 			|| prop.equals(CVSDecoratorConfiguration.OUTGOING_CHANGE_BACKGROUND_COLOR)
 			|| prop.equals(CVSDecoratorConfiguration.OUTGOING_CHANGE_FOREGROUND_COLOR)
 			|| prop.equals(CVSDecoratorConfiguration.OUTGOING_CHANGE_FONT)
 			|| prop.equals(CVSDecoratorConfiguration.IGNORED_FOREGROUND_COLOR)
 			|| prop.equals(CVSDecoratorConfiguration.IGNORED_BACKGROUND_COLOR)
 			|| prop.equals(CVSDecoratorConfiguration.IGNORED_FONT);
-    }
+	}
 	
 	private static CVSWorkspaceSubscriber getSubscriber() {
 		return CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber();

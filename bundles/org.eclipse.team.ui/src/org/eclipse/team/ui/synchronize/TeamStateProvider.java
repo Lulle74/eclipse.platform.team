@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -15,13 +18,19 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.mapping.ResourceMapping;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IAdapterManager;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.team.core.RepositoryProvider;
 import org.eclipse.team.core.RepositoryProviderType;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.registry.TeamDecoratorDescription;
 import org.eclipse.team.internal.ui.registry.TeamDecoratorManager;
-import org.eclipse.team.ui.mapping.*;
+import org.eclipse.team.ui.mapping.ITeamStateChangeEvent;
+import org.eclipse.team.ui.mapping.ITeamStateChangeListener;
+import org.eclipse.team.ui.mapping.ITeamStateProvider;
+import org.eclipse.team.ui.mapping.SynchronizationStateTester;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -92,8 +101,8 @@ public abstract class TeamStateProvider implements ITeamStateProvider {
 	 */
 	protected final void fireStateChangeEvent(final ITeamStateChangeEvent event) {
 		Object[] allListeners = listeners.getListeners();
-		for (int i = 0; i < allListeners.length; i++) {
-			final ITeamStateChangeListener listener = (ITeamStateChangeListener)allListeners[i];
+		for (Object l : allListeners) {
+			final ITeamStateChangeListener listener = (ITeamStateChangeListener) l;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void run() throws Exception {
@@ -110,8 +119,7 @@ public abstract class TeamStateProvider implements ITeamStateProvider {
 	private int internalGetDecoratedStateMask(IProject[] projects) {
 		int stateMask = 0;
 		String[] providerIds = getProviderIds(projects);
-		for (int i = 0; i < providerIds.length; i++) {
-			String providerId = providerIds[i];
+		for (String providerId : providerIds) {
 			stateMask |= internalGetDecoratedStateMask(providerId);
 		}
 		return stateMask;
@@ -127,8 +135,7 @@ public abstract class TeamStateProvider implements ITeamStateProvider {
 
 	private String[] getProviderIds(IProject[] projects) {
 		Set<String> providerIds = new HashSet<>();
-		for (int i = 0; i < projects.length; i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			String id = getProviderId(project);
 			if (id != null)
 				providerIds.add(id);
@@ -145,8 +152,7 @@ public abstract class TeamStateProvider implements ITeamStateProvider {
 
 	private boolean internalIsDecorationEnabled(IProject[] projects) {
 		String[] providerIds = getProviderIds(projects);
-		for (int i = 0; i < providerIds.length; i++) {
-			String providerId = providerIds[i];
+		for (String providerId : providerIds) {
 			if (internalIsDecorationEnabled(providerId)) {
 				return true;
 			}

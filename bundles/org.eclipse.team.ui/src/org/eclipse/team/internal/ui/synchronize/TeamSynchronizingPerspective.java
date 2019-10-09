@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,15 +15,14 @@ package org.eclipse.team.internal.ui.synchronize;
 
 import org.eclipse.team.ui.history.IHistoryView;
 import org.eclipse.team.ui.synchronize.ISynchronizeView;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IFolderLayout;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IPerspectiveFactory;
 
 public class TeamSynchronizingPerspective implements IPerspectiveFactory {
 
 	public final static String ID = "org.eclipse.team.ui.TeamSynchronizingPerspective"; //$NON-NLS-1$
 
-	/* (Non-javadoc)
-	 * Method declared on IPerpsectiveFactory
-	 */
 	@Override
 	public void createInitialLayout(IPageLayout layout) {
 		defineActions(layout);

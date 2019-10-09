@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +21,9 @@ import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.mapping.IResourceMappingMerger;
 import org.eclipse.team.core.mapping.ISynchronizationScopeParticipantFactory;
 import org.eclipse.team.internal.ui.history.FileRevisionEditorInput;
-import org.eclipse.team.internal.ui.mapping.*;
+import org.eclipse.team.internal.ui.mapping.DefaultResourceMappingMerger;
+import org.eclipse.team.internal.ui.mapping.ResourceModelPersistenceAdapter;
+import org.eclipse.team.internal.ui.mapping.ResourceModelScopeParticipantFactory;
 import org.eclipse.team.internal.ui.synchronize.DiffNodeWorkbenchAdapter;
 import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
 import org.eclipse.team.ui.mapping.ITeamStateProvider;

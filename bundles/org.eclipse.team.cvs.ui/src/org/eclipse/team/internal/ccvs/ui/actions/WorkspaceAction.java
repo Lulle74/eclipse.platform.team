@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,12 +14,7 @@
 package org.eclipse.team.internal.ccvs.ui.actions;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -45,13 +43,13 @@ import org.eclipse.team.internal.ui.dialogs.PromptingDialog;
  */
 public abstract class WorkspaceAction extends CVSAction {
 
+	protected CVSTag resourceCommonTag = null;
+	
 	public interface IProviderAction {
 		public IStatus execute(CVSTeamProvider provider, IResource[] resources, IProgressMonitor monitor) throws CVSException;
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#beginExecution(IAction)
-	 */
+	@Override
 	protected boolean beginExecution(IAction action) throws TeamException {
 		if (super.beginExecution(action)) {
 			// Ensure that the required sync info is loaded
@@ -79,8 +77,7 @@ public abstract class WorkspaceAction extends CVSAction {
 	private boolean handleOrphanedSubtrees() {
 		// invoke the inherited method so that overlaps are maintained
 		IResource[] resources = getSelectedResources();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			handleOrphanedSubtree(resource);
 		}
 		return false;
@@ -112,13 +109,11 @@ public abstract class WorkspaceAction extends CVSAction {
 		if (folder.getIResource().getType() == IResource.PROJECT) return;
 		if (CVSWorkspaceRoot.isOrphanedSubtree((IContainer)folder.getIResource())) {
 			try {
-				run(new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							folder.unmanage(null);
-						} catch (CVSException e) {
-							CVSProviderPlugin.log(e);
-						}
+				run((IRunnableWithProgress) monitor -> {
+					try {
+						folder.unmanage(null);
+					} catch (CVSException e) {
+						CVSProviderPlugin.log(e);
 					}
 				}, true, PROGRESS_BUSYCURSOR);
 			} catch (InvocationTargetException e) {
@@ -172,13 +167,12 @@ public abstract class WorkspaceAction extends CVSAction {
 			} catch (CVSException e) {
 				if (e.getStatus().getCode() == IResourceStatus.OUT_OF_SYNC_LOCAL) {
 					// determine the projects of the resources involved
-					Set projects = new HashSet();
-					for (int i = 0; i < resources.length; i++) {
-						IResource resource = resources[i];
+					Set<IProject> projects = new HashSet<>();
+					for (IResource resource : resources) {
 						projects.add(resource.getProject());
 					}
 					// prompt to refresh
-					if (promptToRefresh(getShell(), (IResource[]) projects.toArray(new IResource[projects.size()]), e.getStatus())) {
+					if (promptToRefresh(getShell(), projects.toArray(new IResource[projects.size()]), e.getStatus())) {
 						for (Iterator iter = projects.iterator();iter.hasNext();) {
 							IProject project = (IProject) iter.next();
 							try {
@@ -204,6 +198,7 @@ public abstract class WorkspaceAction extends CVSAction {
 	 * 
 	 * @see org.eclipse.team.internal.ui.actions.TeamAction#setActionEnablement(IAction)
 	 */
+	@Override
 	protected void setActionEnablement(IAction action) {
 		try {
 			boolean requires = requiresLocalSyncInfo();
@@ -241,20 +236,20 @@ public abstract class WorkspaceAction extends CVSAction {
 
 	protected boolean promptToRefresh(final Shell shell, final IResource[] resources, final IStatus status) {
 		final boolean[] result = new boolean[] { false};
-		Runnable runnable = new Runnable() {
-			public void run() {
-				Shell shellToUse = shell;
-				if (shell == null) {
-					shellToUse = new Shell(Display.getCurrent());
-				}
-				String question;
-				if (resources.length == 1) {
-					question = NLS.bind(CVSUIMessages.CVSAction_refreshQuestion, new String[] { status.getMessage(), resources[0].getFullPath().toString() });
-				} else {
-					question = NLS.bind(CVSUIMessages.CVSAction_refreshMultipleQuestion, new String[] { status.getMessage() });
-				}
-				result[0] = MessageDialog.openQuestion(shellToUse, CVSUIMessages.CVSAction_refreshTitle, question);
+		Runnable runnable = () -> {
+			Shell shellToUse = shell;
+			if (shell == null) {
+				shellToUse = new Shell(Display.getCurrent());
 			}
+			String question;
+			if (resources.length == 1) {
+				question = NLS.bind(CVSUIMessages.CVSAction_refreshQuestion,
+						new String[] { status.getMessage(), resources[0].getFullPath().toString() });
+			} else {
+				question = NLS.bind(CVSUIMessages.CVSAction_refreshMultipleQuestion,
+						new String[] { status.getMessage() });
+			}
+			result[0] = MessageDialog.openQuestion(shellToUse, CVSUIMessages.CVSAction_refreshTitle, question);
 		};
 		Display.getDefault().syncExec(runnable);
 		return result[0];
@@ -265,6 +260,7 @@ public abstract class WorkspaceAction extends CVSAction {
 	 * save dirty editors.
 	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#needsToSaveDirtyEditors()
 	 */
+	@Override
 	protected boolean needsToSaveDirtyEditors() {
 		return true;
 	}
@@ -285,6 +281,7 @@ public abstract class WorkspaceAction extends CVSAction {
 	 * </ol>
 	 * @see TeamAction#isEnabled()
 	 */
+	@Override
 	public boolean isEnabled() {
 		
 		// allow the super to decide enablement. if the super doesn't know it will return false.
@@ -301,11 +298,9 @@ public abstract class WorkspaceAction extends CVSAction {
 		if (!isEnabledForMultipleResources() && resources.length != 1) return false;
 		
 		// validate enabled for each resource in the selection
-		List folderPaths = new ArrayList();
-		List filePaths = new ArrayList();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
-			
+		List<IPath> folderPaths = new ArrayList<>();
+		List<IPath> filePaths = new ArrayList<>();
+		for (IResource resource : resources) {
 			// only enable for accessible resources
 			if(resource.getType() == IResource.PROJECT) {
 				if (! resource.isAccessible()) return false;
@@ -354,7 +349,7 @@ public abstract class WorkspaceAction extends CVSAction {
 		return true;
 	}
 
-    /**
+	/**
 	 * Method isEnabledForCVSResource.
 	 * @param cvsResource
 	 * @return boolean
@@ -435,10 +430,10 @@ public abstract class WorkspaceAction extends CVSAction {
 		Iterator iterator = keySet.iterator();
 
 		while (iterator.hasNext()) {
-			IProgressMonitor subMonitor = new SubProgressMonitor(monitor, 1000);
+			IProgressMonitor subMonitor = SubMonitor.convert(monitor, 1000);
 			CVSTeamProvider provider = (CVSTeamProvider)iterator.next();
-			List list = (List)table.get(provider);
-			IResource[] providerResources = (IResource[])list.toArray(new IResource[list.size()]);
+			List<?> list = (List) table.get(provider);
+			IResource[] providerResources = list.toArray(new IResource[list.size()]);
 			try {
 				addStatus(action.execute(provider, providerResources, subMonitor));
 			} catch (CVSException e) {
@@ -459,24 +454,25 @@ public abstract class WorkspaceAction extends CVSAction {
 	 */
 	protected String calculateActionTagValue() {
 		try {
+			resourceCommonTag = null;
 			IResource[] resources = getSelectedResources();
 			CVSTag commonTag = null;
 			boolean sameTagType = true;
 			boolean multipleSameNames = true;
 			
-			for (int i = 0; i < resources.length; i++) {
-				ICVSResource cvsResource = getCVSResourceFor(resources[i]);
+			for (IResource resource : resources) {
+				ICVSResource cvsResource = getCVSResourceFor(resource);
 				CVSTag tag = null;
-				if(cvsResource.isFolder()) {
+				if (cvsResource.isFolder()) {
 					FolderSyncInfo info = ((ICVSFolder)cvsResource).getFolderSyncInfo();
 					if(info != null) {
 						tag = info.getTag();
 					}
 					if (tag != null && tag.getType() == CVSTag.BRANCH) {
-						tag = Util.getAccurateFolderTag(resources[i], tag);
+						tag = Util.getAccurateFolderTag(resource, tag);
 					}
 				} else {
-					tag = Util.getAccurateFileTag(cvsResource);
+					tag = CVSAction.getAccurateFileTag(cvsResource);
 				}
 				if(tag == null) {
 					tag = new CVSTag();
@@ -498,6 +494,9 @@ public abstract class WorkspaceAction extends CVSAction {
 			if(commonTag != null) {
 				int tagType = commonTag.getType();
 				String tagName = commonTag.getName();
+				if(tagType != CVSTag.HEAD) {
+					resourceCommonTag = commonTag;
+				}
 				// multiple tag names but of the same type
 				if(sameTagType && !multipleSameNames) {
 					if(tagType == CVSTag.BRANCH) {
@@ -525,15 +524,14 @@ public abstract class WorkspaceAction extends CVSAction {
 	}
 
 	protected IResource[] checkOverwriteOfDirtyResources(IResource[] resources, IProgressMonitor monitor) throws CVSException, InterruptedException {
-		List dirtyResources = new ArrayList();
+		List<IResource> dirtyResources = new ArrayList<>();
 		IResource[] selectedResources = getSelectedResources();
 		
 		try {
 			monitor = Policy.monitorFor(monitor);
 			monitor.beginTask(null, selectedResources.length * 100);
 			monitor.setTaskName(CVSUIMessages.ReplaceWithAction_calculatingDirtyResources);
-			for (int i = 0; i < selectedResources.length; i++) {
-				IResource resource = selectedResources[i];
+			for (IResource resource : selectedResources) {
 				ICVSResource cvsResource = getCVSResourceFor(resource);
 				if(cvsResource.isModified(Policy.subMonitorFor(monitor, 100))) {
 					dirtyResources.add(resource);
@@ -544,7 +542,7 @@ public abstract class WorkspaceAction extends CVSAction {
 		}
 		
 		PromptingDialog dialog = new PromptingDialog(getShell(), selectedResources,
-				getPromptCondition((IResource[]) dirtyResources.toArray(new IResource[dirtyResources.size()])), CVSUIMessages.ReplaceWithAction_confirmOverwrite);
+				getPromptCondition(dirtyResources.toArray(new IResource[dirtyResources.size()])), CVSUIMessages.ReplaceWithAction_confirmOverwrite);
 		return dialog.promptForMultiple();
 	}
 

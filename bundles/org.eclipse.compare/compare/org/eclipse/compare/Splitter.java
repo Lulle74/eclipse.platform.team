@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2015 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -88,9 +91,9 @@ public class Splitter extends SashForm {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * Recursively calls setMaximizedControl for all direct parents that are
-	 * itself Splitters.
+	/*
+	 * Recursively calls setMaximizedControl for all direct parents that are itself
+	 * Splitters.
 	 */
 	@Override
 	public void setMaximizedControl(Control control) {
@@ -103,11 +106,11 @@ public class Splitter extends SashForm {
 		Composite parent= getParent();
 		if (parent instanceof Splitter)
 			((Splitter) parent).setMaximizedControl(this);
-		
+
 		layout(true);
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * Returns true if Splitter has no children or if all children are invisible.
 	 */
 	private boolean isEmpty() {
@@ -118,9 +121,9 @@ public class Splitter extends SashForm {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * Returns the visibility state of the given child control. If the
-	 * control is a Sash, this method always returns false.
+	/*
+	 * Returns the visibility state of the given child control. If the control is a
+	 * Sash, this method always returns false.
 	 */
 	private boolean isVisible(Control child) {
 		if (child instanceof Sash)

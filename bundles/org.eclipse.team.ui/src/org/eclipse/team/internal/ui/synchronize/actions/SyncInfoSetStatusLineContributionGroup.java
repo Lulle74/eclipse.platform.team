@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,7 +16,10 @@ package org.eclipse.team.internal.ui.synchronize.actions;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.core.ITeamStatus;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.team.core.synchronize.ISyncInfoSetChangeEvent;
+import org.eclipse.team.core.synchronize.ISyncInfoSetChangeListener;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
 
@@ -32,27 +38,17 @@ public class SyncInfoSetStatusLineContributionGroup extends
 		getSyncInfoSet().removeSyncSetChangedListener(this);
 		super.dispose();
 	}
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.team.internal.ui.sync.sets.ISyncSetChangedListener#syncSetChanged(org.eclipse.team.internal.ui.sync.sets.SyncSetChangedEvent)
-	 */
+
 	@Override
 	public void syncInfoChanged(ISyncInfoSetChangeEvent event, IProgressMonitor monitor) {
 		updateCounts();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.ISyncInfoSetChangeListener#syncInfoSetReset(org.eclipse.team.core.subscribers.SyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public void syncInfoSetReset(SyncInfoSet set, IProgressMonitor monitor) {
 		updateCounts();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.ISyncInfoSetChangeListener#syncInfoSetError(org.eclipse.team.core.subscribers.SyncInfoSet, org.eclipse.team.core.ITeamStatus[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public void syncInfoSetErrors(SyncInfoSet set, ITeamStatus[] errors, IProgressMonitor monitor) {
 		// Nothing to do for errors

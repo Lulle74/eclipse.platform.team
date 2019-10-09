@@ -1,22 +1,43 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare.internal.patch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.compare.internal.core.Messages;
-import org.eclipse.compare.internal.core.patch.*;
+import org.eclipse.compare.internal.core.patch.DiffProject;
+import org.eclipse.compare.internal.core.patch.FilePatch2;
+import org.eclipse.compare.internal.core.patch.Hunk;
+import org.eclipse.compare.internal.core.patch.PatchReader;
 import org.eclipse.compare.patch.IHunk;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceRuleFactory;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
 
@@ -31,7 +52,7 @@ public class WorkspacePatcher extends Patcher {
 	private DiffProject[] fDiffProjects;
 	private boolean fIsWorkspacePatch= false;
 	private boolean fIsGitPatch = false;
-	private final Map retargetedDiffs = new HashMap();
+	private final Map<Object, IPath> retargetedDiffs = new HashMap<>();
 
 	public WorkspacePatcher() {
 		// nothing to do
@@ -74,8 +95,7 @@ public class WorkspacePatcher extends Patcher {
 
 			// get all files to be modified in order to call validateEdit
 			List<IFile> list= new ArrayList<>();
-			for (int j= 0; j < fDiffProjects.length; j++) {
-				DiffProject diffProject= fDiffProjects[j];
+			for (DiffProject diffProject : fDiffProjects) {
 				if (Utilities.getProject(diffProject).isAccessible())
 					list.addAll(Arrays.asList(getTargetFiles(diffProject)));
 			}
@@ -90,11 +110,8 @@ public class WorkspacePatcher extends Patcher {
 				pm.beginTask(message, diffs.length * WORK_UNIT);
 			}
 
-			for (int i= 0; i < diffs.length; i++) {
-
+			for (FilePatch2 diff : diffs) {
 				int workTicks= WORK_UNIT;
-
-				FilePatch2 diff= diffs[i];
 				if (isAccessible(diff)) {
 					IFile file= getTargetFile(diff);
 					IPath path= file.getProjectRelativePath();
@@ -110,18 +127,18 @@ public class WorkspacePatcher extends Patcher {
 							// patch it and collect rejected hunks
 							List<String> result= apply(diff, file, true, failed);
 							if (result != null)
-								store(LineReader.createString(isPreserveLineDelimeters(), result), file, new SubProgressMonitor(pm, workTicks));
+								store(LineReader.createString(isPreserveLineDelimeters(), result), file, SubMonitor.convert(pm, workTicks));
 							workTicks -= WORK_UNIT;
 							break;
 						case FilePatch2.DELETION :
-							file.delete(true, true, new SubProgressMonitor(pm, workTicks));
+							file.delete(true, true, SubMonitor.convert(pm, workTicks));
 							workTicks -= WORK_UNIT;
 							break;
 						case FilePatch2.CHANGE :
 							// patch it and collect rejected hunks
 							result= apply(diff, file, false, failed);
 							if (result != null)
-								store(LineReader.createString(isPreserveLineDelimeters(), result), file, new SubProgressMonitor(pm, workTicks));
+								store(LineReader.createString(isPreserveLineDelimeters(), result), file, SubMonitor.convert(pm, workTicks));
 							workTicks -= WORK_UNIT;
 							break;
 					}
@@ -170,8 +187,7 @@ public class WorkspacePatcher extends Patcher {
 	public IFile[] getTargetFiles(DiffProject project) {
 		List<IFile> files= new ArrayList<>();
 		FilePatch2[] diffs = project.getFileDiffs();
-		for (int i = 0; i < diffs.length; i++) {
-			FilePatch2 diff = diffs[i];
+		for (FilePatch2 diff : diffs) {
 			if (isEnabled(diff)) {
 				files.add(getTargetFile(diff));
 			}
@@ -200,8 +216,8 @@ public class WorkspacePatcher extends Patcher {
 		List<ISchedulingRule> projects= new ArrayList<>();
 		IResourceRuleFactory ruleFactory= ResourcesPlugin.getWorkspace().getRuleFactory();
 		// Determine the appropriate scheduling rules
-		for (int i= 0; i < fDiffProjects.length; i++) {
-			IProject tempProject= Utilities.getProject(fDiffProjects[i]);
+		for (DiffProject diffProject : fDiffProjects) {
+			IProject tempProject = Utilities.getProject(diffProject);
 			// The goal here is to lock as little of the workspace as necessary
 			// but still allow the patcher to obtain the locks it needs.
 			// As such, we need to get the modify rules from the rule factory for the .project file. A pessimistic
@@ -223,9 +239,9 @@ public class WorkspacePatcher extends Patcher {
 	public void removeProject(DiffProject project) {
 		DiffProject[] temp = new DiffProject[fDiffProjects.length - 1];
 		int counter = 0;
-		for (int i = 0; i < fDiffProjects.length; i++) {
-			if (fDiffProjects[i] != project){
-				temp[counter++] = fDiffProjects[i];
+		for (DiffProject diffProject : fDiffProjects) {
+			if (diffProject != project) {
+				temp[counter++] = diffProject;
 			}
 		}
 		fDiffProjects = temp;
@@ -235,8 +251,7 @@ public class WorkspacePatcher extends Patcher {
 	protected Object getElementParent(Object element) {
 		if (element instanceof FilePatch2 && fDiffProjects != null) {
 			FilePatch2 diff = (FilePatch2) element;
-			for (int i = 0; i < fDiffProjects.length; i++) {
-				DiffProject project = fDiffProjects[i];
+			for (DiffProject project : fDiffProjects) {
 				if (project.contains(diff))
 					return project;
 			}
@@ -249,7 +264,7 @@ public class WorkspacePatcher extends Patcher {
 	}
 
 	public IPath getOriginalPath(Object object) {
-		return (IPath)retargetedDiffs.get(object);
+		return retargetedDiffs.get(object);
 	}
 
 	public void retargetDiff(FilePatch2 diff, IFile file) {
@@ -262,8 +277,8 @@ public class WorkspacePatcher extends Patcher {
 		}
 		removeDiff(diff);
 		FilePatch2 newDiff = getDiffForFile(file);
-		for (int i = 0; i < hunks.length; i++) {
-			Hunk hunk = (Hunk) hunks[i];
+		for (IHunk h : hunks) {
+			Hunk hunk = (Hunk) h;
 			newDiff.add(hunk);
 		}
 	}
@@ -275,9 +290,9 @@ public class WorkspacePatcher extends Patcher {
 			// Check if the diff project already exists for the file
 			IProject project = file.getProject();
 			DiffProject[] diffProjects = getDiffProjects();
-			for (int i = 0; i < diffProjects.length; i++) {
-				if (Utilities.getProject(diffProjects[i]).equals(project)){
-					diffProject = diffProjects[i];
+			for (DiffProject d : diffProjects) {
+				if (Utilities.getProject(d).equals(project)) {
+					diffProject = d;
 					break;
 				}
 			}
@@ -290,8 +305,7 @@ public class WorkspacePatcher extends Patcher {
 			diffsToCheck = getDiffs();
 		}
 		// Check to see if a diff already exists for the file
-		for (int i = 0; i < diffsToCheck.length; i++) {
-			FilePatch2 fileDiff = diffsToCheck[i];
+		for (FilePatch2 fileDiff : diffsToCheck) {
 			if (isDiffForFile(fileDiff, file)) {
 				return fileDiff;
 			}
@@ -341,8 +355,8 @@ public class WorkspacePatcher extends Patcher {
 		if (selectedProject == null)
 			selectedProject = addDiffProjectForProject(targetProject);
 		// Copy over the diffs to the new project
-		for (int i = 0; i < diffs.length; i++) {
-			selectedProject.add(diffs[i]);
+		for (FilePatch2 diff : diffs) {
+			selectedProject.add(diff);
 		}
 		// Since the project has been retargeted, remove it from the patcher
 		removeProject(project);
@@ -360,9 +374,10 @@ public class WorkspacePatcher extends Patcher {
 		if (!isWorkspacePatch())
 			return null;
 		DiffProject[] projects = getDiffProjects();
-		for (int i = 0; i < projects.length; i++) {
-			if (Utilities.getProject(projects[i]).equals(project))
-				return projects[i];
+		for (DiffProject p : projects) {
+			if (Utilities.getProject(p).equals(project)) {
+				return p;
+			}
 		}
 		return null;
 	}
@@ -380,9 +395,9 @@ public class WorkspacePatcher extends Patcher {
 		if (diffs.length == 0)
 			return -1;
 		int skip = -1;
-		for (int i = 0; i < diffs.length; i++) {
-			IPath oldPath = diffs[i].getPath(false);
-			IPath newPath = diffs[i].getPath(true);
+		for (FilePatch2 diff : diffs) {
+			IPath oldPath = diff.getPath(false);
+			IPath newPath = diff.getPath(true);
 			if (checkFirstSegments(new IPath[] { oldPath, newPath },
 					new String[][] { { "a", "b" }, // change //$NON-NLS-1$ //$NON-NLS-2$
 							{ "b", "b" }, // addition //$NON-NLS-1$ //$NON-NLS-2$
@@ -407,10 +422,11 @@ public class WorkspacePatcher extends Patcher {
 	}
 
 	private boolean checkFirstSegments(IPath[] paths, String[][] segments) {
-		SEGMENTS: for (int i = 0; i < segments.length; i++) {
+		SEGMENTS: for (String[] segment : segments) {
 			for (int j = 0; j < paths.length; j++) {
-				if (!paths[j].segment(0).equals(segments[i][j]))
+				if (!paths[j].segment(0).equals(segment[j])) {
 					continue SEGMENTS;
+				}
 			}
 			return true;
 		}

@@ -1,38 +1,33 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2008, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare.tests;
 
+import static org.junit.Assert.assertEquals;
+
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.contentmergeviewer.ContentMergeViewer;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.widgets.Composite;
-import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class ContentMergeViewerTest extends TestCase {
+public class ContentMergeViewerTest  {
 	private MyContentMergeViewer myContentMergeViewer;
 	/**
 	 * result[0]-event occurred or not; result[1]-new state that was set
 	 */
 	boolean[] result = new boolean[] { false, false };
 
-	public ContentMergeViewerTest() {
-		super();
-	}
-
-	public ContentMergeViewerTest(String name) {
-		super(name);
-	}
 
 	private class MyContentMergeViewer extends ContentMergeViewer {
 
@@ -95,160 +90,169 @@ public class ContentMergeViewerTest extends TestCase {
 		}
 	}
 
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp()  {
 		result = new boolean[] { false, false };
 		myContentMergeViewer = new MyContentMergeViewer();
-		myContentMergeViewer.addPropertyChangeListener(new IPropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				result[0] = true;
-				result[1] = ((Boolean) event.getNewValue()).booleanValue();
-			}
+		myContentMergeViewer.addPropertyChangeListener(event -> {
+			result[0] = true;
+			result[1] = ((Boolean) event.getNewValue()).booleanValue();
 		});
 	}
 
 	// set left to true
-
+	@Test
 	public void testFFTX() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setLeftDirty(true);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(true, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(true, result[1]);
 	}
 
+	@Test
 	public void testFTTX() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setLeftDirty(true);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(true, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(true, result[1]);
 	}
 
+	@Test
 	public void testTFTX() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setLeftDirty(true);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testTTTX() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setLeftDirty(true);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
 	// set left to false
-
+	@Test
 	public void testFFFX() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setLeftDirty(false);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testFTFX() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setLeftDirty(false);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testTFFX() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setLeftDirty(false);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(false, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(false, result[1]);
 	}
 
+	@Test
 	public void testTTFX() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setLeftDirty(false);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(false, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(false, result[1]);
 	}
 
 	// set right to true
-
+	@Test
 	public void testFFXT() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setRightDirty(true);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(true, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(true, result[1]);
 	}
 
+	@Test
 	public void testFTXT() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setRightDirty(true);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testTFXT() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setRightDirty(true);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(true, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(true, result[1]);
 	}
 
+	@Test
 	public void testTTXT() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setRightDirty(true);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
 	// set right to false
-
+	@Test
 	public void testFFXF() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setRightDirty(false);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testFTXF() {
 		myContentMergeViewer.leftDirty = false;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setRightDirty(false);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(false, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(false, result[1]);
 	}
 
+	@Test
 	public void testTFXF() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = false;
 		myContentMergeViewer.setRightDirty(false);
 
-		Assert.assertEquals(false, result[0]);
+		assertEquals(false, result[0]);
 	}
 
+	@Test
 	public void testTTXF() {
 		myContentMergeViewer.leftDirty = true;
 		myContentMergeViewer.rightDirty = true;
 		myContentMergeViewer.setRightDirty(false);
 
-		Assert.assertEquals(true, result[0]);
-		Assert.assertEquals(false, result[1]);
+		assertEquals(true, result[0]);
+		assertEquals(false, result[1]);
 	}
 }

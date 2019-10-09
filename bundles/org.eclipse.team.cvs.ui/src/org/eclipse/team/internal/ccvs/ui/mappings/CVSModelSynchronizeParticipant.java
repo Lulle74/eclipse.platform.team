@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -25,13 +28,11 @@ import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
 public abstract class CVSModelSynchronizeParticipant extends ModelSynchronizeParticipant {
 
 	public static PreferencePage[] addCVSPreferencePages(PreferencePage[] inheritedPages) {
-	    PreferencePage[] pages = new PreferencePage[inheritedPages.length + 1];
-	    for (int i = 0; i < inheritedPages.length; i++) {
-	        pages[i] = inheritedPages[i];
-	    }
-	    pages[pages.length - 1] = new ComparePreferencePage();
-	    pages[pages.length - 1].setTitle(CVSUIMessages.CVSParticipant_2); 
-	    return pages;
+		PreferencePage[] pages = new PreferencePage[inheritedPages.length + 1];
+		System.arraycopy(inheritedPages, 0, pages, 0, inheritedPages.length);
+		pages[pages.length - 1] = new ComparePreferencePage();
+		pages[pages.length - 1].setTitle(CVSUIMessages.CVSParticipant_2); 
+		return pages;
 	}
 
 	public CVSModelSynchronizeParticipant() {
@@ -43,21 +44,18 @@ public abstract class CVSModelSynchronizeParticipant extends ModelSynchronizePar
 	}
 
 	public PreferencePage[] getPreferencePages() {
-	    return addCVSPreferencePages(super.getPreferencePages());
+		return addCVSPreferencePages(super.getPreferencePages());
 	}
 	
 	public ModelProvider[] getEnabledModelProviders() {
 		ModelProvider[] enabledProviders = super.getEnabledModelProviders();
 		if (this instanceof IChangeSetProvider) {
-			for (int i = 0; i < enabledProviders.length; i++) {
-				ModelProvider provider = enabledProviders[i];
+			for (ModelProvider provider : enabledProviders) {
 				if (provider.getId().equals(ChangeSetModelProvider.ID))
 					return enabledProviders;
 			}
 			ModelProvider[] extended = new ModelProvider[enabledProviders.length + 1];
-			for (int i = 0; i < enabledProviders.length; i++) {
-				extended[i] = enabledProviders[i];
-			}
+			System.arraycopy(enabledProviders, 0, extended, 0, enabledProviders.length);
 			ChangeSetModelProvider provider = ChangeSetModelProvider.getProvider();
 			if (provider == null)
 				return enabledProviders;
@@ -68,7 +66,7 @@ public abstract class CVSModelSynchronizeParticipant extends ModelSynchronizePar
 	}
 
 	protected  ILabelDecorator getLabelDecorator(ISynchronizePageConfiguration configuration) {
-	    return new CVSParticipantLabelDecorator(configuration);
+		return new CVSParticipantLabelDecorator(configuration);
 	}
 	
 	protected void initializeConfiguration(ISynchronizePageConfiguration configuration) {

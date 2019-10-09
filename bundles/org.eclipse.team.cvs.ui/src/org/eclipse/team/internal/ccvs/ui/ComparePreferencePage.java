@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,24 +29,18 @@ public class ComparePreferencePage extends CVSFieldEditorPreferencePage {
 	private BooleanFieldEditor contents;
 	private StringFieldEditor regex;
 
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ccvs.ui.CVSFieldEditorPreferencePage#getPageHelpContextId()
-     */
-    protected String getPageHelpContextId() {
-        return IHelpContextIds.COMPARE_PREFERENCE_PAGE;
-    }
+	@Override
+	protected String getPageHelpContextId() {
+		return IHelpContextIds.COMPARE_PREFERENCE_PAGE;
+	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ccvs.ui.CVSFieldEditorPreferencePage#getPageDescription()
-     */
-    protected String getPageDescription() {
-        return CVSUIMessages.ComparePreferencePage_0;
-    }
+	@Override
+	protected String getPageDescription() {
+		return CVSUIMessages.ComparePreferencePage_0;
+	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.jface.preference.FieldEditorPreferencePage#createFieldEditors()
-     */
-    protected void createFieldEditors() {
+	@Override
+	protected void createFieldEditors() {
 		IPreferenceStore store = getPreferenceStore();
 
 		contents = new BooleanFieldEditor(ICVSUIConstants.PREF_CONSIDER_CONTENTS,
@@ -56,18 +53,21 @@ public class ComparePreferencePage extends CVSFieldEditorPreferencePage {
 				return event;
 			}
 			// invert the UI
+			@Override
 			protected void doLoad() {
 				super.doLoad();
 				getChangeControl(getFieldEditorParent()).setSelection(!getBooleanValue());
 				getChangeControl(getFieldEditorParent()).notifyListeners(SWT.Selection,
 						selectionEvent);
 			}
+			@Override
 			protected void doLoadDefault() {
 				super.doLoadDefault();
 				getChangeControl(getFieldEditorParent()).setSelection(!getBooleanValue());
 				getChangeControl(getFieldEditorParent()).notifyListeners(SWT.Selection,
 						selectionEvent);
 			}
+			@Override
 			protected void doStore() {
 				getPreferenceStore().setValue(getPreferenceName(), !getBooleanValue());
 			}
@@ -110,6 +110,7 @@ public class ComparePreferencePage extends CVSFieldEditorPreferencePage {
 		}
 	}
 
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		super.propertyChange(event);
 		regex.setEnabled(!contents.getBooleanValue(), getFieldEditorParent());

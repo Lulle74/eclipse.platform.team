@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,14 +15,17 @@ package org.eclipse.compare.examples.xml;
 
 import java.util.HashMap;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-
 import org.eclipse.compare.examples.xml.ui.StatusDialog;
 import org.eclipse.compare.examples.xml.ui.StatusInfo;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * This class is used to add or edit a particular ID Mapping
@@ -84,12 +90,7 @@ public class XMLCompareEditMappingDialog extends StatusDialog {
 		fElementText= new Text(inner, SWT.BORDER);
 		fElementText.setText(fMapping.getElement());
 		fElementText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fElementText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fElementText.addModifyListener(e -> doValidation());
 
 		//Signature
 		label= new Label(inner, SWT.NULL);
@@ -101,12 +102,7 @@ public class XMLCompareEditMappingDialog extends StatusDialog {
 		GridData data= new GridData(GridData.FILL_HORIZONTAL);
 		data.widthHint= convertWidthInCharsToPixels(50);
 		fSignatureText.setLayoutData(data);
-		fSignatureText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fSignatureText.addModifyListener(e -> doValidation());
 		
 		//Id Attribute
 		label= new Label(inner, SWT.NULL);
@@ -116,12 +112,7 @@ public class XMLCompareEditMappingDialog extends StatusDialog {
 		fIdAttributeText= new Text(inner, SWT.BORDER);
 
 		fIdAttributeText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fIdAttributeText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fIdAttributeText.addModifyListener(e -> doValidation());
 
 		//Id Source
 		createIdSourceGroup(inner);

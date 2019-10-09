@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Atsuhiko Yamanaka, JCraft,Inc. - initial API and implementation.
@@ -92,10 +95,10 @@ public class PServerSSH2ServerConnection implements IServerConnection {
 				String[] list = session.getPortForwardingL();
 				String name = ":" + rhost + ":" + rport; //$NON-NLS-1$ //$NON-NLS-2$
 				boolean done = false;
-				for (int i = 0; i < list.length; i++) {
-					if (list[i].endsWith(name)) {
+				for (String l : list) {
+					if (l.endsWith(name)) {
 						try {
-							String foo = list[i].substring(0, list[i].indexOf(':'));
+							String foo = l.substring(0, l.indexOf(':'));
 							lport = Integer.parseInt(foo);
 						} catch (Exception ee) {
 							// Ignore
@@ -109,14 +112,14 @@ public class PServerSSH2ServerConnection implements IServerConnection {
 					session.setPortForwardingL(lport, rhost, rport);
 				}
 			} catch (JSchException ee) {
-				  retry--;
-				  if(retry<0){
-				    throw new CVSAuthenticationException(CVSSSH2Messages.CVSSSH2ServerConnection_3, CVSAuthenticationException.NO_RETRY, location); 
-				  }
-				  if(session != null && session.isConnected()){
-				    session.disconnect();
-				  }
-				  continue;
+				retry--;
+				if(retry<0){
+					throw new CVSAuthenticationException(CVSSSH2Messages.CVSSSH2ServerConnection_3, CVSAuthenticationException.NO_RETRY, location); 
+				}
+				if(session != null && session.isConnected()){
+					session.disconnect();
+				}
+				continue;
 			}
 			break;
 		}

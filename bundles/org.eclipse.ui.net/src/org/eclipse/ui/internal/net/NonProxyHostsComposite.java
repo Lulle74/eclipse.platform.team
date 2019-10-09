@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -148,9 +151,8 @@ public class NonProxyHostsComposite extends Composite {
 	protected void addHost() {
 		String hosts[] = promptForHost(null);
 		if (hosts != null) {
-			for (int i = 0; i < hosts.length; i++) {
-				bypassHosts.add(0, new ProxyBypassData(hosts[i],
-						getEditableProvider()));
+			for (String host : hosts) {
+				bypassHosts.add(0, new ProxyBypassData(host, getEditableProvider()));
 			}
 			hostsViewer.refresh();
 			setProvider(currentProvider);
@@ -159,9 +161,9 @@ public class NonProxyHostsComposite extends Composite {
 
 	private String getEditableProvider() {
 		String providers[] = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			if (ProxySelector.canSetBypassHosts(providers[i])) {
-				return providers[i];
+		for (String provider : providers) {
+			if (ProxySelector.canSetBypassHosts(provider)) {
+				return provider;
 			}
 		}
 		return null;
@@ -239,9 +241,9 @@ public class NonProxyHostsComposite extends Composite {
 			String value = dialog.getValue();
 			String hosts[] = StringUtil.split(value, new String[] { ";", "|" }); //$NON-NLS-1$ //$NON-NLS-2$
 			ArrayList<String> filtered = new ArrayList<>();
-			for (int i = 0; i < hosts.length; i++) {
-				if (hosts[i].length() != 0) {
-					filtered.add(hosts[i]);
+			for (String host : hosts) {
+				if (host.length() != 0) {
+					filtered.add(host);
 				}
 			}
 			return filtered.toArray(new String[0]);
@@ -258,8 +260,8 @@ public class NonProxyHostsComposite extends Composite {
 
 	public void initializeValues() {
 		String providers[] = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			bypassHosts.addAll(getProxyBypassData(providers[i]));
+		for (String provider : providers) {
+			bypassHosts.addAll(getProxyBypassData(provider));
 		}
 		hostsViewer.setInput(bypassHosts);
 		setProvider(ProxySelector.getDefaultProvider());
@@ -309,9 +311,9 @@ public class NonProxyHostsComposite extends Composite {
 		}
 		bypassHosts.removeAll(natives);
 		String providers[] = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			if (!providers[i].equals(provider)) {
-				bypassHosts.addAll(getProxyBypassData(providers[i]));
+		for (String p : providers) {
+			if (!p.equals(provider)) {
+				bypassHosts.addAll(getProxyBypassData(p));
 			}
 		}
 		hostsViewer.refresh();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,12 +45,11 @@ public class Util {
 	private static String readString(InputStream is, String encoding) {
 		if (is == null)
 			return null;
-		BufferedReader reader= null;
-		try {
+		try (BufferedReader reader=new BufferedReader(new InputStreamReader(is, encoding)))
+		{
 			StringBuilder buffer= new StringBuilder();
 			char[] part= new char[2048];
 			int read= 0;
-			reader= new BufferedReader(new InputStreamReader(is, encoding));
 
 			while ((read= reader.read(part)) != -1)
 				buffer.append(part, 0, read);
@@ -56,15 +58,7 @@ public class Util {
 			
 		} catch (IOException ex) {
 			// silently ignored
-		} finally {
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (IOException ex) {
-					// we don't log IOException when closing a file
-				}
-			}
-		}
+		} 
 		return null;
 	}
 

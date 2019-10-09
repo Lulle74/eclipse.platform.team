@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,8 +44,8 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 	protected boolean sendQuestionable;
 	protected boolean sendModifiedContents;
 	private boolean sendBinary;
-    
-    private boolean recurse = true;
+	
+	private boolean recurse = true;
 
 	public AbstractStructureVisitor(Session session, LocalOption[] localOptions, boolean sendQuestionable, boolean sendModifiedContents) {
 		this(session, localOptions, sendQuestionable, sendModifiedContents, true);
@@ -53,8 +56,8 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 		this.sendQuestionable = sendQuestionable;
 		this.sendModifiedContents = sendModifiedContents;
 		this.sendBinary = sendBinary;
-        if (Command.DO_NOT_RECURSE.isElementOf(localOptions))
-            recurse = false;
+		if (Command.DO_NOT_RECURSE.isElementOf(localOptions))
+			recurse = false;
 	}
 		
 	/** 
@@ -104,7 +107,7 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 		if (isLastSent(mFolder)) return;
 		
 		// Do not send virtual directories
-        if (isCVSFolder && info.isVirtualDirectory()) {
+		if (isCVSFolder && info.isVirtualDirectory()) {
 			return;
 		}
 
@@ -168,7 +171,7 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 		boolean isManaged = syncBytes != null;
 		
 		if (isManaged) {
-		    sendPendingNotification(mFile);
+			sendPendingNotification(mFile);
 		} else {
 			// If the file is not managed, send a questionable to the server if the file exists locally
 			// A unmanaged, locally non-existant file results from the explicit use of the file name as a command argument
@@ -187,15 +190,15 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 		boolean sendContents = mFile.exists() && mFile.isModified(monitor)
 			&& !mFile.getSyncInfo().isNeedsMerge(mFile.getTimeStamp());
 		if (ResourceSyncInfo.isDeletion(syncBytes)) {
-		    sendEntryLineToServer(mFile, syncBytes);
+			sendEntryLineToServer(mFile, syncBytes);
 		} else if (sendContents) {
-		    // Perform the send of modified contents in a sheduling rule to ensure that
-		    // the contents are not modified while we are sending them
-		    final IResource resource = mFile.getIResource();
-            try {
-                if (resource != null)
-                    Job.getJobManager().beginRule(resource, monitor);
-		        
+			// Perform the send of modified contents in a sheduling rule to ensure that
+			// the contents are not modified while we are sending them
+			final IResource resource = mFile.getIResource();
+			try {
+				if (resource != null)
+					Job.getJobManager().beginRule(resource, monitor);
+				
 				sendEntryLineToServer(mFile, syncBytes);
 				if (mFile.exists() && mFile.isModified(null)) {
 					boolean binary = ResourceSyncInfo.isBinary(syncBytes);
@@ -207,26 +210,26 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 				} else {
 					session.sendUnchanged(mFile);
 				}
-		    } finally {
-		        if (resource != null)
-		            Job.getJobManager().endRule(resource);
-		    }
+			} finally {
+				if (resource != null)
+					Job.getJobManager().endRule(resource);
+			}
 		} else {
-		    sendEntryLineToServer(mFile, syncBytes);
+			sendEntryLineToServer(mFile, syncBytes);
 			session.sendUnchanged(mFile);
 		}
 		
 		monitor.worked(1);
 	}
 
-    private void sendEntryLineToServer(ICVSFile mFile, byte[] syncBytes) throws CVSException {
-        if (syncBytes != null) {
-            String syncBytesToServer = ResourceSyncInfo.getTimestampToServer(syncBytes, mFile.getTimeStamp());
-            session.sendEntry(syncBytes, syncBytesToServer);
-        }
-    }
+	private void sendEntryLineToServer(ICVSFile mFile, byte[] syncBytes) throws CVSException {
+		if (syncBytes != null) {
+			String syncBytesToServer = ResourceSyncInfo.getTimestampToServer(syncBytes, mFile.getTimeStamp());
+			session.sendEntry(syncBytes, syncBytesToServer);
+		}
+	}
 
-    protected void sendPendingNotification(ICVSFile mFile) throws CVSException {
+	protected void sendPendingNotification(ICVSFile mFile) throws CVSException {
 		NotifyInfo notify = mFile.getPendingNotification();
 		if (notify != null) {
 			sendFolder(mFile.getParent());
@@ -241,31 +244,27 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 	public void visit(Session session, ICVSResource[] resources, IProgressMonitor monitor) throws CVSException {
 		
 		// Sort the resources to avoid sending the same directory multiple times
-		List resourceList = new ArrayList(resources.length);
+		List<ICVSResource> resourceList = new ArrayList<>(resources.length);
 		resourceList.addAll(Arrays.asList(resources));
 		final ICVSFolder localRoot = session.getLocalRoot();
-		Collections.sort(resourceList, new Comparator() {
-			public int compare(Object object1, Object object2) {
-				ICVSResource resource1 = (ICVSResource)object1;
-				ICVSResource resource2 = (ICVSResource)object2;
-				try {
-					String path1 = resource1.getParent().getRelativePath(localRoot);
-					String path2 = resource2.getParent().getRelativePath(localRoot);
-					int pathCompare = path1.compareTo(path2);
-					if (pathCompare == 0) {
-						if (resource1.isFolder() == resource2.isFolder()) {
-							return resource1.getName().compareTo(resource2.getName());
-						} else if (resource1.isFolder()) {
-							return 1;
-						} else {
-							return -1;
-						}
+		Collections.sort(resourceList, (resource1, resource2) -> {
+			try {
+				String path1 = resource1.getParent().getRelativePath(localRoot);
+				String path2 = resource2.getParent().getRelativePath(localRoot);
+				int pathCompare = path1.compareTo(path2);
+				if (pathCompare == 0) {
+					if (resource1.isFolder() == resource2.isFolder()) {
+						return resource1.getName().compareTo(resource2.getName());
+					} else if (resource1.isFolder()) {
+						return 1;
 					} else {
-						return pathCompare;
+						return -1;
 					}
-				} catch (CVSException e) {
-					return resource1.getName().compareTo(resource2.getName());
+				} else {
+					return pathCompare;
 				}
+			} catch (CVSException e) {
+				return resource1.getName().compareTo(resource2.getName());
 			}
 		});
 
@@ -278,23 +277,23 @@ abstract class AbstractStructureVisitor implements ICVSResourceVisitor {
 			this.monitor.beginTask(null, resourceHint);
 			session.setSendFileTitleKey(getSendFileMessage());
 			for (int i = 0; i < resourceList.size(); i++) {
-				((ICVSResource)resourceList.get(i)).accept(this);
+				resourceList.get(i).accept(this);
 			}
 		} finally {
 			monitor.done();
 		}
 	}
 	
-    /**
-     * Return a send file message that contains one argument slot
-     * for the file name.
-     * @return a send file message that contains one argument slot
-     * for the file name
-     */
+	/**
+	 * Return a send file message that contains one argument slot
+	 * for the file name.
+	 * @return a send file message that contains one argument slot
+	 * for the file name
+	 */
 	protected String getSendFileMessage() {
 		return CVSMessages.AbstractStructureVisitor_sendingFile;
 	}
-    public boolean isRecurse() {
-        return recurse;
-    }
+	public boolean isRecurse() {
+		return recurse;
+	}
 }

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,9 +37,7 @@ public class DisconnectOperation extends RepositoryProviderOperation {
 		this.unmanage = unmanage;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#execute(org.eclipse.team.internal.ccvs.core.CVSTeamProvider, org.eclipse.core.resources.IResource[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void execute(
 		CVSTeamProvider provider,
 		IResource[] resources,
@@ -44,7 +45,7 @@ public class DisconnectOperation extends RepositoryProviderOperation {
 		throws CVSException, InterruptedException {
 		
 		// This method will be invoked for each provider being disconnected
-        monitor.beginTask(null, IProgressMonitor.UNKNOWN);
+		monitor.beginTask(null, IProgressMonitor.UNKNOWN);
 		IProject project = provider.getProject();
 		try {
 			RepositoryProvider.unmap(project);
@@ -56,41 +57,31 @@ public class DisconnectOperation extends RepositoryProviderOperation {
 			cvsFolder.unmanage(monitor);
 			EclipseSynchronizer.getInstance().deconfigure(project, Policy.subMonitorFor(monitor, IProgressMonitor.UNKNOWN));
 		}
-        monitor.done();
+		monitor.done();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#getTaskName()
-	 */
+	@Override
 	protected String getTaskName() {
 		return CVSUIMessages.DisconnectOperation_0; 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#getTaskName(org.eclipse.team.internal.ccvs.core.CVSTeamProvider)
-	 */
+	@Override
 	protected String getTaskName(CVSTeamProvider provider) {
 		return NLS.bind(CVSUIMessages.DisconnectOperation_1, new String[] { provider.getProject().getName() }); 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#canRunAsJob()
-	 */
+	@Override
 	public boolean canRunAsJob() {
 		// Do not run in the background
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#consultModelsForMappings()
-	 */
+	@Override
 	public boolean consultModelsForMappings() {
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#getSchedulingRule(org.eclipse.team.internal.ccvs.core.CVSTeamProvider)
-	 */
+	@Override
 	protected ISchedulingRule getSchedulingRule(CVSTeamProvider provider) {
 		return ResourcesPlugin.getWorkspace().getRuleFactory().modifyRule(provider.getProject());
 	}

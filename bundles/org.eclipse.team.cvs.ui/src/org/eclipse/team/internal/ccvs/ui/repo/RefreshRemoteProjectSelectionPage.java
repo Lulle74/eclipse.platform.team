@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,7 +39,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
  * refreshed.
  */
 public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
-    
+	
 	private ICVSRemoteResource[] rootFolders;
 	private ListSelectionArea listArea;
 	private WorkingSetSelectionArea workingSetArea;
@@ -47,18 +50,23 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 	 * Custom input provider which returns the list of root folders
 	 */
 	private class InputElement implements IWorkbenchAdapter, IAdaptable {
+		@Override
 		public Object[] getChildren(Object o) {
 			return rootFolders;
 		}
+		@Override
 		public ImageDescriptor getImageDescriptor(Object object) {
 			return null;
 		}
+		@Override
 		public String getLabel(Object o) {
 			return null;
 		}
+		@Override
 		public Object getParent(Object o) {
 			return null;
 		}
+		@Override
 		public <T> T getAdapter(Class<T> adapter) {
 			if (adapter == IWorkbenchAdapter.class) return adapter.cast(this);
 			return null;
@@ -85,9 +93,7 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 		this.rootFolders = rootFolders;
 	}
 
-	/**
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		
 		final Composite composite = new Composite(parent, SWT.NONE);
@@ -96,7 +102,7 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 		setControl(composite);
 		
 		// set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.REFRESH_REMOTE_PROJECT_SELECTION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.REFRESH_REMOTE_PROJECT_SELECTION_PAGE);
 		
 		listArea = new ListSelectionArea( 
 			new InputElement(), 
@@ -106,6 +112,7 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 		listArea.createArea(composite);
 
 		listArea.addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				updateEnablement();
 			}
@@ -115,13 +122,14 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 		workingSetArea = new WorkingSetSelectionArea(getShell(), CVSUIMessages.RefreshRemoteProjectSelectionPage_noWorkingSet, CVSUIMessages.RefreshRemoteProjectSelectionPage_workingSet, settings); // 
 		setWorkingSet(workingSet);
 		workingSetArea.addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				workingSet = (IWorkingSet)event.getNewValue();
 				handleWorkingSetChange();
 			}
 		});
 		workingSetArea.createArea(composite);
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 
 	/**
@@ -147,8 +155,7 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 			listArea.getViewer().setAllChecked(false);
 			RepositoryManager manager = CVSUIPlugin.getPlugin().getRepositoryManager();
 			ICVSRemoteResource[] resources = manager.filterResources(workingSet, rootFolders);
-			for (int i = 0; i < resources.length; i++) {
-				ICVSRemoteResource resource = resources[i];
+			for (ICVSRemoteResource resource : resources) {
 				listArea.getViewer().setChecked(resource, true);
 			}
 		}
@@ -165,6 +172,6 @@ public class RefreshRemoteProjectSelectionPage extends CVSWizardPage {
 	 */
 	public ICVSRemoteResource[] getSelectedRemoteProject() {
 		Object[] checked = listArea.getViewer().getCheckedElements();
-		return (ICVSRemoteResource[]) Arrays.asList(checked).toArray(new ICVSRemoteResource[checked.length]);
+		return Arrays.asList(checked).toArray(new ICVSRemoteResource[checked.length]);
 	}
 }

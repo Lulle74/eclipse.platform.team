@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,6 +37,7 @@ import org.eclipse.ui.model.*;
 public class RepositorySelectionPage extends CVSWizardPage {
 	
 	private class DecoratingRepoLabelProvider extends WorkbenchLabelProvider {
+		@Override
 		protected String decorateText(String input, Object element) {
 			//Used to process RTL locales only
 			return TextProcessor.process(input, ":@/"); //$NON-NLS-1$
@@ -78,10 +82,11 @@ public class RepositorySelectionPage extends CVSWizardPage {
 	 * 
 	 * @param parent  the parent of the created widgets
 	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite = createComposite(parent, 1, false);
 		// set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_SELECT_REPOSITORY_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_SELECT_REPOSITORY_PAGE);
 		if (extendedDescription == null) {
 			extendedDescription = CVSUIMessages.RepositorySelectionPage_description; 
 		}
@@ -91,53 +96,47 @@ public class RepositorySelectionPage extends CVSWizardPage {
 		
 		useExistingRepo = createRadioButton(composite, CVSUIMessages.RepositorySelectionPage_useExisting, 1); 
 		useExistingRepo.addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				if (table.getTable().getItemCount() > 0) {
 					table.getTable().setFocus();
 					traverseRepositories(e.character);
 				}
 			}
-        });
+		});
 		
 		table = createTable(composite, 1);
 		table.setContentProvider(new WorkbenchContentProvider());
 		table.setLabelProvider(new DecoratingRepoLabelProvider()/*WorkbenchLabelProvider()*/);
 		table.setComparator(new RepositoryComparator());
-        table.addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
-                getContainer().showPage(getNextPage());
-            }
-        });
-        table.getTable().addKeyListener(new KeyAdapter() {
+		table.addDoubleClickListener(event -> getContainer().showPage(getNextPage()));
+		table.getTable().addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				traverseRepositories(e.character);
 			}
-        });
+		});
 
 		setControl(composite);
 
 		initializeValues();
-        Dialog.applyDialogFont(parent);
-        
-        table.addSelectionChangedListener(new ISelectionChangedListener() {
-            public void selectionChanged(SelectionChangedEvent event) {
-                result = (ICVSRepositoryLocation)((IStructuredSelection)table.getSelection()).getFirstElement();
-                setPageComplete(true);
-            }
-        });
-        
-        useExistingRepo.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                if (useNewRepo.getSelection()) {
-                    table.getTable().setEnabled(false);
-                    result = null;
-                } else {
-                    table.getTable().setEnabled(true);
-                    result = (ICVSRepositoryLocation)((IStructuredSelection)table.getSelection()).getFirstElement();
-                }
-                setPageComplete(true);
-            }
-        });
+		Dialog.applyDialogFont(parent);
+		
+		table.addSelectionChangedListener(event -> {
+			result = (ICVSRepositoryLocation)table.getStructuredSelection().getFirstElement();
+			setPageComplete(true);
+		});
+		
+		useExistingRepo.addListener(SWT.Selection, event -> {
+			if (useNewRepo.getSelection()) {
+				table.getTable().setEnabled(false);
+				result = null;
+			} else {
+				table.getTable().setEnabled(true);
+				result = (ICVSRepositoryLocation)table.getStructuredSelection().getFirstElement();
+			}
+			setPageComplete(true);
+		});
 	}
 	/**
 	 * Initializes states of the controls.
@@ -148,21 +147,22 @@ public class RepositorySelectionPage extends CVSWizardPage {
 		table.setInput(input);
 		if (locations.length == 0) {
 			useNewRepo.setSelection(true);
-            useExistingRepo.setSelection(false);
-            table.getTable().setEnabled(false);
+			useExistingRepo.setSelection(false);
+			table.getTable().setEnabled(false);
 		} else {
-            useNewRepo.setSelection(false);
+			useNewRepo.setSelection(false);
 			useExistingRepo.setSelection(true);
-            table.getTable().setEnabled(true);
-            result = locations[0];
+			table.getTable().setEnabled(true);
+			result = locations[0];
 			table.setSelection(new StructuredSelection(result));
 		}
-        setPageComplete(true);
+		setPageComplete(true);
 	}
 	
 	public ICVSRepositoryLocation getLocation() {
 		return result;
 	}
+	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (visible) {

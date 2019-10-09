@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +14,8 @@
 package org.eclipse.team.internal.ccvs.ui.actions;
 
 import org.eclipse.jface.window.Window;
-import org.eclipse.team.internal.ccvs.core.*;
+import org.eclipse.team.internal.ccvs.core.CVSTag;
+import org.eclipse.team.internal.ccvs.core.ICVSResource;
 import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
 import org.eclipse.team.internal.ccvs.ui.IHelpContextIds;
 import org.eclipse.team.internal.ccvs.ui.operations.ITagOperation;
@@ -19,9 +23,7 @@ import org.eclipse.team.internal.ccvs.ui.tags.TagSelectionDialog;
 
 public class MoveRemoteTagAction extends TagInRepositoryAction {
 
-	/**
-	 * @see TagRemoteAction#promptForTag(ICVSFolder[])
-	 */
+	@Override
 	protected ITagOperation configureOperation() {
 		// Allow the user to select a tag
 		ITagOperation operation = createTagOperation();
@@ -46,13 +48,12 @@ public class MoveRemoteTagAction extends TagInRepositoryAction {
 		return operation;
 	}
 
-    private boolean isFolderSelected() {
-        ICVSResource[] resources = getSelectedCVSResources();
-        for (int i = 0; i < resources.length; i++) {
-            ICVSResource resource = resources[i];
-            if (resource.isFolder()) 
-                return true;
-        }
-        return false;
-    }
+	private boolean isFolderSelected() {
+		ICVSResource[] resources = getSelectedCVSResources();
+		for (ICVSResource resource : resources) {
+			if (resource.isFolder()) 
+				return true;
+		}
+		return false;
+	}
 }

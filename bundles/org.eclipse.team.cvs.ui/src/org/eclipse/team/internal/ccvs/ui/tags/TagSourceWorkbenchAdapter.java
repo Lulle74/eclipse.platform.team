@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,8 @@ import java.util.ArrayList;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.team.internal.ccvs.core.CVSTag;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
@@ -26,9 +30,9 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
  */
 public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter {
 
-    /**
-     * Constants for configuring which types of tags should be displayed.
-     */
+	/**
+	 * Constants for configuring which types of tags should be displayed.
+	 */
 	public static final int INCLUDE_HEAD_TAG = 1;
 	public static final int INCLUDE_BASE_TAG = 2;
 	public static final int INCLUDE_BRANCHES = 4;
@@ -46,6 +50,7 @@ public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter 
 		/*
 		 * The order in the diaog should be HEAD, Branches, Versions, Dates, BASE
 		 */
+		@Override
 		public int category(Object element) {
 			if (element instanceof TagElement) {
 				CVSTag tag = ((TagElement)element).getTag();
@@ -61,6 +66,7 @@ public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter 
 			}
 			return 0;
 		}
+		@Override
 		public int compare(Viewer viewer, Object e1, Object e2) {
 			int cat1 = category(e1);
 			int cat2 = category(e2);
@@ -80,26 +86,26 @@ public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter 
 	}
 
 	
-    /**
-     * Create a viewer input for the tag source
-     * @param tagSource the tag source
-     * @param includeFlags the types of tags to include
-     * @return a tree viewer input
-     */
-    public static Object createInput(TagSource tagSource, int includeFlags) {
-        if (includeFlags == INCLUDE_VERSIONS) {
-            // Versions only is requested by the merge start page.
-            // Only need to show version tags
-            return new TagRootElement(null, tagSource, CVSTag.VERSION);
-        }
-        return new TagSourceWorkbenchAdapter(tagSource, includeFlags);
-    }
-    
+	/**
+	 * Create a viewer input for the tag source
+	 * @param tagSource the tag source
+	 * @param includeFlags the types of tags to include
+	 * @return a tree viewer input
+	 */
+	public static Object createInput(TagSource tagSource, int includeFlags) {
+		if (includeFlags == INCLUDE_VERSIONS) {
+			// Versions only is requested by the merge start page.
+			// Only need to show version tags
+			return new TagRootElement(null, tagSource, CVSTag.VERSION);
+		}
+		return new TagSourceWorkbenchAdapter(tagSource, includeFlags);
+	}
+	
 	public TagSourceWorkbenchAdapter(TagSource tagSource, int includeFlags) {
 		this.includeFlags = includeFlags;
 		if (this.includeFlags == 0) this.includeFlags = INCLUDE_ALL_TAGS;
 		if ((includeFlags & INCLUDE_BRANCHES) > 0) {	
-            branches = new TagRootElement(this, tagSource, CVSTag.BRANCH);
+			branches = new TagRootElement(this, tagSource, CVSTag.BRANCH);
 		}
 		if ((includeFlags & INCLUDE_VERSIONS) > 0) {
 			versions = new TagRootElement(this, tagSource, CVSTag.VERSION);
@@ -109,8 +115,9 @@ public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter 
 		}
 	}
 	
+	@Override
 	public Object[] getChildren(Object o) {
-		ArrayList children = new ArrayList(4);
+		ArrayList<IAdaptable> children = new ArrayList<>(4);
 		if ((includeFlags & INCLUDE_HEAD_TAG) > 0) {
 			children.add(new TagElement(this, CVSTag.DEFAULT));
 		}
@@ -128,16 +135,20 @@ public class TagSourceWorkbenchAdapter implements IAdaptable, IWorkbenchAdapter 
 		}
 		return children.toArray(new Object[children.size()]);
 	}
+	@Override
 	public <T> T getAdapter(Class<T> adapter) {
 		if (adapter == IWorkbenchAdapter.class) return adapter.cast(this);
 		return null;
 	}
+	@Override
 	public ImageDescriptor getImageDescriptor(Object object) {
 		return null;
 	}
+	@Override
 	public String getLabel(Object o) {
 		return null;
 	}
+	@Override
 	public Object getParent(Object o) {
 		return null;
 	}

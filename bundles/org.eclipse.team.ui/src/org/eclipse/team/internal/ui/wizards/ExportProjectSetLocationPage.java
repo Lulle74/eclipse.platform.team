@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,17 +16,36 @@ package org.eclipse.team.internal.ui.wizards;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.dialogs.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
@@ -113,7 +135,7 @@ public class ExportProjectSetLocationPage extends TeamWizardPage {
 			d.setFileName(TeamUIMessages.ExportProjectSetMainPage_default);
 			String fileName = getFileName();
 			if (fileName != null) {
-				int separator = fileName.lastIndexOf(System.getProperty("file.separator").charAt(0)); //$NON-NLS-1$
+				int separator = fileName.lastIndexOf(File.separatorChar);
 				if (separator != -1) {
 					fileName = fileName.substring(0, separator);
 				}
@@ -314,7 +336,7 @@ public class ExportProjectSetLocationPage extends TeamWizardPage {
 		}
 
 		private void getSelectedContainer() {
-			Object obj = ((IStructuredSelection) wsTreeViewer.getSelection()).getFirstElement();
+			Object obj = wsTreeViewer.getStructuredSelection().getFirstElement();
 
 			if (obj instanceof IContainer)
 				wsContainer = (IContainer) obj;
@@ -339,7 +361,7 @@ public class ExportProjectSetLocationPage extends TeamWizardPage {
 
 		void setupListeners() {
 			wsTreeViewer.addSelectionChangedListener(event -> {
-				IStructuredSelection s = (IStructuredSelection) event.getSelection();
+				IStructuredSelection s = event.getStructuredSelection();
 				Object obj = s.getFirstElement();
 				if (obj != null) {
 
@@ -395,9 +417,9 @@ public class ExportProjectSetLocationPage extends TeamWizardPage {
 					return allProjects;
 
 				ArrayList accessibleProjects = new ArrayList();
-				for (int i = 0; i < allProjects.length; i++) {
-					if (allProjects[i].isOpen()) {
-						accessibleProjects.add(allProjects[i]);
+				for (IProject project : allProjects) {
+					if (project.isOpen()) {
+						accessibleProjects.add(project);
 					}
 				}
 				return accessibleProjects.toArray();

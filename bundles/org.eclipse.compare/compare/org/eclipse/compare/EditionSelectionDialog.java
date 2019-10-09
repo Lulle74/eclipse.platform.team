@@ -1,19 +1,44 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare;
 
-import com.ibm.icu.text.DateFormat;
-import com.ibm.icu.text.MessageFormat;
-import com.ibm.icu.util.Calendar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ResourceBundle;
 
+import org.eclipse.compare.internal.CompareContainer;
+import org.eclipse.compare.internal.CompareUIPlugin;
+import org.eclipse.compare.internal.ResizableDialog;
+import org.eclipse.compare.internal.StructureCreatorDescriptor;
+import org.eclipse.compare.internal.Utilities;
+import org.eclipse.compare.structuremergeviewer.DiffNode;
+import org.eclipse.compare.structuremergeviewer.ICompareInput;
+import org.eclipse.compare.structuremergeviewer.IStructureComparator;
+import org.eclipse.compare.structuremergeviewer.IStructureCreator;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -32,24 +57,9 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
-
-import java.util.*;
-
-import org.eclipse.compare.internal.CompareContainer;
-import org.eclipse.compare.internal.CompareUIPlugin;
-import org.eclipse.compare.internal.ResizableDialog;
-import org.eclipse.compare.internal.StructureCreatorDescriptor;
-import org.eclipse.compare.internal.Utilities;
-import org.eclipse.compare.structuremergeviewer.DiffNode;
-import org.eclipse.compare.structuremergeviewer.ICompareInput;
-import org.eclipse.compare.structuremergeviewer.IStructureComparator;
-import org.eclipse.compare.structuremergeviewer.IStructureCreator;
+import com.ibm.icu.text.DateFormat;
+import com.ibm.icu.text.MessageFormat;
+import com.ibm.icu.util.Calendar;
 
 
 /**
@@ -457,8 +467,7 @@ public class EditionSelectionDialog extends ResizableDialog {
 			if (sco != null) {
 				Object[] children= sco.getChildren();
 				if (children != null)
-					for (int i= 0; i < children.length; i++)
-						current.add(children[i]);
+					Collections.addAll(current, children);
 			}
 
 			final IStructureCreator sc= structureCreator;
@@ -480,8 +489,8 @@ public class EditionSelectionDialog extends ResizableDialog {
 						if (sco2 != null) {
 							Object[] children= sco2.getChildren();
 							if (children != null) {
-								for (int i2= 0; i2 < children.length; i2++) {
-									ITypedElement child= (ITypedElement) children[i2];
+								for (Object c : children) {
+									ITypedElement child = (ITypedElement) c;
 									if (!current.contains(child))
 										sendPair(new Pair(sc, edition, child));
 								}
@@ -594,20 +603,20 @@ public class EditionSelectionDialog extends ResizableDialog {
 		return result.toArray(new ITypedElement[result.size()]);
 	}
 
- 	/**
- 	 * Returns a label for identifying the target side of a compare viewer.
- 	 * This implementation extracts the value for the key "targetLabel" from the resource bundle
- 	 * and passes it as the format argument to <code>MessageFormat.format</code>.
- 	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
- 	 * is the name of the given input element.
+	/**
+	 * Returns a label for identifying the target side of a compare viewer.
+	 * This implementation extracts the value for the key "targetLabel" from the resource bundle
+	 * and passes it as the format argument to <code>MessageFormat.format</code>.
+	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
+	 * is the name of the given input element.
 	 * <p>
 	 * Subclasses may override to create their own label.
 	 * </p>
- 	 *
- 	 * @param target the target element for which a label must be returned
- 	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given target; otherwise the same as target
- 	 * @return a label the target side of a compare viewer
-  	 */
+	 *
+	 * @param target the target element for which a label must be returned
+	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given target; otherwise the same as target
+	 * @return a label the target side of a compare viewer
+	 */
 	protected String getTargetLabel(ITypedElement target, ITypedElement item) {
 		String format= null;
 		if (target instanceof ResourceNode)
@@ -627,28 +636,28 @@ public class EditionSelectionDialog extends ResizableDialog {
 		return string;
 	}
 
- 	private boolean hasDoubleQuotes(String string) {
-		return string.indexOf("''") != -1; //$NON-NLS-1$
+	private boolean hasDoubleQuotes(String string) {
+		return string.contains("''"); //$NON-NLS-1$
 	}
 
 	private boolean hasVariable(String string) {
-		return string.indexOf("{0}") != -1; //$NON-NLS-1$
+		return string.contains("{0}"); //$NON-NLS-1$
 	}
 
 	/**
- 	 * Returns a label for identifying the edition side of a compare viewer.
- 	 * This implementation extracts the value for the key "editionLabel" from the resource bundle
- 	 * and passes it as the format argument to <code>MessageFormat.format</code>.
- 	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
- 	 * is the formatted modification date of the given input element.
- 	 * <p>
+	 * Returns a label for identifying the edition side of a compare viewer.
+	 * This implementation extracts the value for the key "editionLabel" from the resource bundle
+	 * and passes it as the format argument to <code>MessageFormat.format</code>.
+	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
+	 * is the formatted modification date of the given input element.
+	 * <p>
 	 * Subclasses may override to create their own label.
 	 * </p>
 	 *
 	 * @param selectedEdition the selected edition for which a label must be returned
- 	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given selectedEdition; otherwise the same as selectedEdition
- 	 * @return a label for the edition side of a compare viewer
-  	 */
+	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given selectedEdition; otherwise the same as selectedEdition
+	 * @return a label for the edition side of a compare viewer
+	 */
 	protected String getEditionLabel(ITypedElement selectedEdition, ITypedElement item) {
 		String format= null;
 		if (selectedEdition instanceof ResourceNode)
@@ -670,21 +679,21 @@ public class EditionSelectionDialog extends ResizableDialog {
 		return formatString(format, date);
 	}
 
- 	/**
- 	 * Returns a label for identifying a node in the edition tree viewer.
- 	 * This implementation extracts the value for the key "workspaceTreeFormat" or
- 	 * "treeFormat" (in that order) from the resource bundle
- 	 * and passes it as the format argument to <code>MessageFormat.format</code>.
- 	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
- 	 * is the formatted modification date of the given input element.
- 	 * <p>
+	/**
+	 * Returns a label for identifying a node in the edition tree viewer.
+	 * This implementation extracts the value for the key "workspaceTreeFormat" or
+	 * "treeFormat" (in that order) from the resource bundle
+	 * and passes it as the format argument to <code>MessageFormat.format</code>.
+	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
+	 * is the formatted modification date of the given input element.
+	 * <p>
 	 * Subclasses may override to create their own label.
 	 * </p>
 	 *
 	 * @param edition the edition for which a label must be returned
- 	 * @param item if a path has been specified in <code>edition</code> a sub element of the given edition; otherwise the same as edition
- 	 * @param date this date will be returned as part of the formatted string
- 	 * @return a label of a node in the edition tree viewer
+	 * @param item if a path has been specified in <code>edition</code> a sub element of the given edition; otherwise the same as edition
+	 * @param date this date will be returned as part of the formatted string
+	 * @return a label of a node in the edition tree viewer
 	 * @since 2.0
 	 */
 	protected String getShortEditionLabel(ITypedElement edition, ITypedElement item, Date date) {
@@ -700,21 +709,21 @@ public class EditionSelectionDialog extends ResizableDialog {
 		return formatString(format, ds);
 	}
 
- 	/**
- 	 * Returns an image for identifying the edition side of a compare viewer.
- 	 * This implementation extracts the value for the key "editionLabel" from the resource bundle
- 	 * and passes it as the format argument to <code>MessageFormat.format</code>.
- 	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
- 	 * is the formatted modification date of the given input element.
- 	 * <p>
+	/**
+	 * Returns an image for identifying the edition side of a compare viewer.
+	 * This implementation extracts the value for the key "editionLabel" from the resource bundle
+	 * and passes it as the format argument to <code>MessageFormat.format</code>.
+	 * The single format argument for <code>MessageFormat.format</code> ("{0}" in the format string)
+	 * is the formatted modification date of the given input element.
+	 * <p>
 	 * Subclasses may override to create their own label.
 	 * </p>
 	 *
 	 * @param selectedEdition the selected edition for which a label must be returned
- 	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given selectedEdition; otherwise the same as selectedEdition
- 	 * @return a label the edition side of a compare viewer
-  	 * @since 2.0
- 	 */
+	 * @param item if a path has been specified in <code>selectEdition</code> a sub element of the given selectedEdition; otherwise the same as selectedEdition
+	 * @return a label the edition side of a compare viewer
+	 * @since 2.0
+	 */
 	protected Image getEditionImage(ITypedElement selectedEdition, ITypedElement item) {
 		if (selectedEdition instanceof ResourceNode)
 			return selectedEdition.getImage();

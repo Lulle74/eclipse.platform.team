@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Atsuhiko Yamanaka, JCraft,Inc. - initial API and implementation.
@@ -46,9 +49,9 @@ public class JSchCorePlugin extends Plugin{
   public static final String PT_IDENTITYREPOSITORY="identityrepository"; //$NON-NLS-1$
 
   private static JSchCorePlugin plugin;
-  private ServiceTracker tracker;
+  private ServiceTracker<?, ?> tracker;
 
-  private ServiceRegistration jschService;
+  private ServiceRegistration<?> jschService;
 
   public JSchCorePlugin(){
     plugin=this;
@@ -118,11 +121,9 @@ public class JSchCorePlugin extends Plugin{
     String[] selected = Utils.getSelectedSSHAgent().split(","); //$NON-NLS-1$
     IdentityRepository irepo = null;
 
-    for(int i=0; i<selected.length; i++){
-      for(int j=0; j<repositories.length; j++){
-        IdentityRepository _irepo = repositories[j];
-        if(selected[i].equals(_irepo.getName()) &&
-           _irepo.getStatus()==IdentityRepository.RUNNING){
+    for(String s : selected) {
+      for(IdentityRepository _irepo : repositories) {
+        if(s.equals(_irepo.getName()) && _irepo.getStatus()==IdentityRepository.RUNNING) {
           irepo = _irepo;
           break;
         }
@@ -149,9 +150,8 @@ public class JSchCorePlugin extends Plugin{
     if(extensions.length==0)
       return new IdentityRepository[0];
 
-    ArrayList tmp = new ArrayList();
-    for(int i=0; i<extensions.length; i++){
-      IExtension extension=extensions[i];
+    ArrayList<IdentityRepository> tmp = new ArrayList<>();
+    for(IExtension extension : extensions) {
       IConfigurationElement[] configs=extension.getConfigurationElements();
       if(configs.length==0){
         JSchCorePlugin
@@ -180,7 +180,7 @@ public class JSchCorePlugin extends Plugin{
 
     IdentityRepository[] repositories = new IdentityRepository[tmp.size()];
     for(int i=0; i<tmp.size(); i++){
-      repositories[i]=(IdentityRepository)tmp.get(i);
+      repositories[i]=tmp.get(i);
     }
     return repositories;
   }
@@ -237,16 +237,18 @@ public class JSchCorePlugin extends Plugin{
     return (IProxyService)tracker.getService();
   }
 
+  @Override
   public void start(BundleContext context) throws Exception{
     super.start(context);
-    tracker=new ServiceTracker(getBundle().getBundleContext(),
+    tracker=new ServiceTracker<Object, Object>(getBundle().getBundleContext(),
         IProxyService.class.getName(), null);
     tracker.open();
     jschService=getBundle().getBundleContext().registerService(
         IJSchService.class.getName(), JSchProvider.getInstance(),
-        new Hashtable());
+        new Hashtable<String, Object>());
   }
 
+  @Override
   public void stop(BundleContext context) throws Exception{
     super.stop(context);
     tracker.close();

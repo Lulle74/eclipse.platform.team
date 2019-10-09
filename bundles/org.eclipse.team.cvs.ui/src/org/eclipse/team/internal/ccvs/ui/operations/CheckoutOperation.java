@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,9 +27,7 @@ public abstract class CheckoutOperation extends RemoteOperation {
 		super(part, remoteFolders);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#execute(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void execute(IProgressMonitor monitor) throws CVSException, InterruptedException {
 		ICVSRemoteFolder[] folders = getRemoteFolders();
 		checkout(folders, monitor);
@@ -42,8 +43,7 @@ public abstract class CheckoutOperation extends RemoteOperation {
 	 */
 	protected void checkout(ICVSRemoteFolder[] folders, IProgressMonitor monitor) throws CVSException {
 		monitor.beginTask(null, folders.length * 100);
-		for (int i = 0; i < folders.length; i++) {
-			ICVSRemoteFolder folder = folders[i];
+		for (ICVSRemoteFolder folder : folders) {
 			IStatus result = checkout(folder, Policy.subMonitorFor(monitor, 100));
 			collectStatus(result);
 			Policy.checkCanceled(monitor);
@@ -62,25 +62,19 @@ public abstract class CheckoutOperation extends RemoteOperation {
 	 */
 	protected abstract IStatus checkout(ICVSRemoteFolder folder, IProgressMonitor monitor)  throws CVSException;
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#canRunAsJob()
-	 */
+	@Override
 	public boolean canRunAsJob() {
 		return true;
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.ui.TeamOperation#isKeepOneProgressServiceEntry()
-     */
-    public boolean isKeepOneProgressServiceEntry() {
-        // Keep the last repository provider operation in the progress service
-        return true;
-    }
-    
-    /* (non-Javadoc)
-     * @see org.eclipse.team.ui.TeamOperation#getGotoAction()
-     */
-    protected IAction getGotoAction() {
-        return getShowConsoleAction();
-    }
+	@Override
+	public boolean isKeepOneProgressServiceEntry() {
+		// Keep the last repository provider operation in the progress service
+		return true;
+	}
+	
+	@Override
+	protected IAction getGotoAction() {
+		return getShowConsoleAction();
+	}
 }

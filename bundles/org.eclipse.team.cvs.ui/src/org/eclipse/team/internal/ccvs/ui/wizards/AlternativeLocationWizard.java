@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,10 +16,8 @@ package org.eclipse.team.internal.ccvs.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.TeamException;
@@ -29,6 +30,7 @@ public class AlternativeLocationWizard extends NewLocationWizard {
 
 	private ICVSRepositoryLocation location;
 	
+	@Override
 	public boolean performFinish() {
 		final ICVSRepositoryLocation[] location = new ICVSRepositoryLocation[] { null };
 		boolean useLocation = true;
@@ -40,13 +42,11 @@ public class AlternativeLocationWizard extends NewLocationWizard {
 			
 			if (mainPage.getValidate()) {
 				try {
-					getContainer().run(true, true, new IRunnableWithProgress() {
-						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							try {
-								location[0].validateConnection(monitor);
-							} catch (TeamException e) {
-								throw new InvocationTargetException(e);
-							}
+					getContainer().run(true, true, monitor -> {
+						try {
+							location[0].validateConnection(monitor);
+						} catch (TeamException e) {
+							throw new InvocationTargetException(e);
 						}
 					});
 				} catch (InterruptedException e) {
@@ -101,10 +101,12 @@ public class AlternativeLocationWizard extends NewLocationWizard {
 	/**
 	 * Creates the wizard pages
 	 */
+	@Override
 	public void addPages() {
 		super.addPages();
 	}
 	
+	@Override
 	protected ConfigurationWizardMainPage createMainPage() {
 		return new AlternativeConfigurationWizardMainPage("repositoryPage1", CVSUIMessages.AlternativeLocationWizard_heading, CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_WIZBAN_NEW_LOCATION)); //$NON-NLS-1$
 	}
@@ -134,11 +136,7 @@ public class AlternativeLocationWizard extends NewLocationWizard {
 			super(pageName, title, titleImage);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.team.internal.ccvs.ui.wizards.ConfigurationWizardMainPage#validateFields()
-		 */
+		@Override
 		protected void validateFields() {
 			super.validateFields();
 			if (!isPageComplete()

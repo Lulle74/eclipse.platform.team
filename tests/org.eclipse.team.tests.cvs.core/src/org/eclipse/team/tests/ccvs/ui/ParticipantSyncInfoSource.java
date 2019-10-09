@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -30,13 +33,13 @@ import org.eclipse.ui.part.IPage;
 
 public class ParticipantSyncInfoSource extends SyncInfoSource {
 
-    public static ISynchronizePage getSyncViewPage(ISynchronizeParticipant participant) throws PartInitException {
+	public static ISynchronizePage getSyncViewPage(ISynchronizeParticipant participant) throws PartInitException {
 		IWorkbenchPage activePage = TeamUIPlugin.getActivePage();
 		ISynchronizeView view = (ISynchronizeView)activePage.showView(ISynchronizeView.VIEW_ID);
 		IPage page = ((SynchronizeView)view).getPage(participant);
 		return (ISynchronizePage)page;
 	}
-    
+	
 	public ParticipantSyncInfoSource() {
 		IWorkbenchPage activePage = TeamUIPlugin.getActivePage();
 		try {
@@ -53,11 +56,11 @@ public class ParticipantSyncInfoSource extends SyncInfoSource {
 		return converter;
 	}
 	
+	@Override
 	public void tearDown() {
 		ISynchronizeParticipantReference[] participants = TeamUI.getSynchronizeManager().getSynchronizeParticipants();
-		for (int i = 0; i < participants.length; i++) {
+		for (ISynchronizeParticipantReference ref : participants) {
 			try {
-				ISynchronizeParticipantReference ref = participants[i];
 				if(ref.getParticipant().getId().equals(CVSMergeSubscriber.ID)) {
 					TeamUI.getSynchronizeManager().removeSynchronizeParticipants(new ISynchronizeParticipant[] {ref.getParticipant()});
 				}
@@ -88,13 +91,14 @@ public class ParticipantSyncInfoSource extends SyncInfoSource {
 	 * @param subscriber the subscriber
 	 */
 	public void assertViewMatchesModel(Subscriber subscriber) {
-	    // Default is to do nothing. Subclasses may override
+		// Default is to do nothing. Subclasses may override
 	}
 	
-    public void refresh(Subscriber subscriber, IResource[] resources)
-            throws TeamException {
-        super.refresh(subscriber, resources);
+	@Override
+	public void refresh(Subscriber subscriber, IResource[] resources)
+			throws TeamException {
+		super.refresh(subscriber, resources);
 		assertViewMatchesModel(subscriber);
-    }
+	}
 
 }

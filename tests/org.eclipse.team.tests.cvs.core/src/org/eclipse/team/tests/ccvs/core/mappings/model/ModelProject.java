@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,6 +14,7 @@
 package org.eclipse.team.tests.ccvs.core.mappings.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IContainer;
@@ -34,12 +38,10 @@ public class ModelProject extends ModelObject {
 			throws CoreException {
 		IProjectDescription description = project.getDescription();
 		String[] natureIds = description.getNatureIds();
-		List result = new ArrayList();
-		for (int i = 0; i < natureIds.length; i++) {
-			result.add(natureIds[i]);
-		}
+		List<String> result = new ArrayList<>();
+		Collections.addAll(result, natureIds);
 		result.add(ModelNature.NATURE_ID);
-		description.setNatureIds((String[]) result.toArray(new String[result
+		description.setNatureIds(result.toArray(new String[result
 				.size()]));
 		project.setDescription(description, monitor);
 	}
@@ -52,11 +54,11 @@ public class ModelProject extends ModelObject {
 		return (IContainer) getResource();
 	}
 
+	@Override
 	public ModelObject[] getChildren() throws CoreException {
 		IResource[] members = getContainer().members();
-		List result = new ArrayList();
-		for (int i = 0; i < members.length; i++) {
-			IResource resource = members[i];
+		List<ModelObject> result = new ArrayList<>();
+		for (IResource resource : members) {
 			if (ModelFile.isModFile(resource)) {
 				result.add(new ModelFile((IFile) resource));
 			} else if (resource instanceof IProject
@@ -64,7 +66,7 @@ public class ModelProject extends ModelObject {
 				result.add(new ModelProject((IProject) resource));
 			}
 		}
-		return (ModelObject[]) result.toArray(new ModelObject[result.size()]);
+		return result.toArray(new ModelObject[result.size()]);
 	}
 
 }

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,10 +29,24 @@ import org.eclipse.team.core.subscribers.Subscriber;
 import org.eclipse.team.core.synchronize.SyncInfoFilter;
 import org.eclipse.team.core.synchronize.SyncInfoTree;
 import org.eclipse.team.internal.core.subscribers.SubscriberSyncInfoCollector;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.synchronize.IRefreshSubscriberListener;
+import org.eclipse.team.internal.ui.synchronize.IRefreshable;
+import org.eclipse.team.internal.ui.synchronize.RefreshParticipantJob;
+import org.eclipse.team.internal.ui.synchronize.RefreshSubscriberParticipantJob;
+import org.eclipse.team.internal.ui.synchronize.RefreshUserNotificationPolicy;
+import org.eclipse.team.internal.ui.synchronize.RefreshUserNotificationPolicyInModalDialog;
+import org.eclipse.team.internal.ui.synchronize.SubscriberParticipantPage;
+import org.eclipse.team.internal.ui.synchronize.SubscriberRefreshSchedule;
+import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.progress.IProgressConstants2;
 
@@ -42,13 +59,13 @@ import org.eclipse.ui.progress.IProgressConstants2;
  * The subscriber can be configured to be synchronized in the background based on a schedule. This
  * effectively refreshes the subscriber and updates the dynamic sync set.
  * </p><p>
- * Subclasses will typically want to override the following methods:
+ * Subclasses will typically want to override the following methods:</p>
  * <ul>
  * <li>initializeConfiguration: participants can add toolbar actions, configure the context menu, decorator.
  * <li>saveState and init: persist settings between sessions.
  * </ul>
  * This class is intended to be subclassed.
- * </p>
+ * <br><br>
  * @since 3.0
  */
 public abstract class SubscriberParticipant extends AbstractSynchronizeParticipant implements IPropertyChangeListener {
@@ -154,11 +171,11 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 	 * Refresh this participants synchronization state and displays the result in a model dialog.
 	 * @param shell
 	 *
-	 * @param resources
+	 * @param resources the resources to be refreshed.
 	 * @param jobName
-	 * @param taskName
+	 * @param taskName the task name to be shown to the user
 	 * @param configuration
-	 * @param site
+	 * @param site the site in which to run the refresh
 	 */
 	public final void refreshInDialog(Shell shell, IResource[] resources, String jobName, String taskName, ISynchronizePageConfiguration configuration, IWorkbenchSite site) {
 		IRefreshSubscriberListener listener =  new RefreshUserNotificationPolicyInModalDialog(shell, taskName, configuration, this);
@@ -186,12 +203,12 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 		internalRefresh(resources, shortTaskName, longTaskName, site, listener);
 	}
 
-    /**
+	/**
 	 * Refresh a participant. The returned status describes the result of the refresh.
-     * @param resources
-     * @param taskName
-     * @param monitor
-     * @return a status
+	 * @param resources
+	 * @param taskName
+	 * @param monitor
+	 * @return a status
 	 */
 	public final IStatus refreshNow(IResource[] resources, String taskName, IProgressMonitor monitor) {
 		Job.getJobManager().cancel(this);
@@ -222,7 +239,7 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 	 * @since 3.1
 	 */
 	protected final String getShortName() {
-	    return super.getName();
+		return super.getName();
 	}
 
 	/**
@@ -257,21 +274,20 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 	 */
 	public static SubscriberParticipant getMatchingParticipant(String ID, IResource[] resources) {
 		ISynchronizeParticipantReference[] refs = TeamUI.getSynchronizeManager().getSynchronizeParticipants();
-			for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			if(reference.getId().equals(ID)) {
-					SubscriberParticipant p;
-					try {
-						p = (SubscriberParticipant)reference.getParticipant();
-					} catch (TeamException e) {
-						continue;
-					}
-					IResource[] roots = p.getResources();
-					Arrays.sort(resources, Utils.resourceComparator);
-					Arrays.sort(roots, Utils.resourceComparator);
-					if (Arrays.equals(resources, roots)) {
-						return p;
-					}
+				SubscriberParticipant p;
+				try {
+					p = (SubscriberParticipant)reference.getParticipant();
+				} catch (TeamException e) {
+					continue;
+				}
+				IResource[] roots = p.getResources();
+				Arrays.sort(resources, Utils.resourceComparator);
+				Arrays.sort(roots, Utils.resourceComparator);
+				if (Arrays.equals(resources, roots)) {
+					return p;
+				}
 			}
 		}
 		return null;
@@ -344,10 +360,10 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 			if (refreshSchedule != null) {
 				refreshSchedule.dispose();
 			}
-	        this.refreshSchedule = schedule;
+			this.refreshSchedule = schedule;
 		}
 		// Always fir the event since the schedule may have been changed
-        firePropertyChange(this, AbstractSynchronizeParticipant.P_SCHEDULED, schedule, schedule);
+		firePropertyChange(this, AbstractSynchronizeParticipant.P_SCHEDULED, schedule, schedule);
 	}
 
 	/**
@@ -396,32 +412,32 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 	 * Returns the long task name to describe the behavior of the
 	 * refresh operation to the user. This is typically shown in the status line when this subscriber is refreshed
 	 * in the background.
-     * @param resources
-     * @return the long task name
-     * @since 3.1
-     */
-    protected String getLongTaskName(IResource[] resources) {
-        int resourceCount = 0;
-        if (getResources().length == resources.length) {
-            // Assume that the resources are the same as the roots.
-            // If we are wrong, the message may no mention the specific resources which is OK
-            ISynchronizeScope scope = getScope();
-	        if (scope instanceof ResourceScope) {
-	            resourceCount = scope.getRoots().length;
-	        }
-        } else {
-            resourceCount = resources.length;
-        }
-        if (resourceCount == 1) {
-            return NLS.bind(TeamUIMessages.Participant_synchronizingMoreDetails, new String[] { getShortName(), resources[0].getFullPath().toString() });
-        } else if (resourceCount > 1) {
-            return NLS.bind(TeamUIMessages.Participant_synchronizingResources, new String[] { getShortName(), Integer.toString(resourceCount) });
-        }
-        // A resource count of zero means that it is a non-resource scope so we can print the scope name
-        return NLS.bind(TeamUIMessages.Participant_synchronizingDetails, new String[] { getName() });
-    }
+	 * @param resources
+	 * @return the long task name
+	 * @since 3.1
+	 */
+	protected String getLongTaskName(IResource[] resources) {
+		int resourceCount = 0;
+		if (getResources().length == resources.length) {
+			// Assume that the resources are the same as the roots.
+			// If we are wrong, the message may no mention the specific resources which is OK
+			ISynchronizeScope scope = getScope();
+			if (scope instanceof ResourceScope) {
+				resourceCount = scope.getRoots().length;
+			}
+		} else {
+			resourceCount = resources.length;
+		}
+		if (resourceCount == 1) {
+			return NLS.bind(TeamUIMessages.Participant_synchronizingMoreDetails, new String[] { getShortName(), resources[0].getFullPath().toString() });
+		} else if (resourceCount > 1) {
+			return NLS.bind(TeamUIMessages.Participant_synchronizingResources, new String[] { getShortName(), Integer.toString(resourceCount) });
+		}
+		// A resource count of zero means that it is a non-resource scope so we can print the scope name
+		return NLS.bind(TeamUIMessages.Participant_synchronizingDetails, new String[] { getName() });
+	}
 
-    /**
+	/**
 	 * This method is invoked before the given configuration is used to
 	 * create the page (see <code>createPage(ISynchronizePageConfiguration)</code>).
 	 * The configuration would have been initialized by
@@ -484,9 +500,9 @@ public abstract class SubscriberParticipant extends AbstractSynchronizeParticipa
 	 */
 	private void internalRefresh(IResource[] resources, String jobName, String taskName, IWorkbenchSite site, IRefreshSubscriberListener listener) {
 		if (jobName == null)
-		    jobName = getShortTaskName();
+			jobName = getShortTaskName();
 		if (taskName == null)
-		    taskName = getLongTaskName(resources);
+			taskName = getLongTaskName(resources);
 		Job.getJobManager().cancel(this);
 		RefreshParticipantJob job = new RefreshSubscriberParticipantJob(this, jobName, taskName, resources, listener);
 		job.setUser(true);

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -56,8 +59,7 @@ public class SystemProxyTest extends TestCase {
 		setProxiesEnabled(isProxiesDefault);
 		setSystemProxiesEnabled(isSystemProxiesDefault);
 		IProxyData[] data = getProxyManager().getProxyData();
-		for (int i = 0; i < data.length; i++) {
-			IProxyData proxyData = data[i];
+		for (IProxyData proxyData : data) {
 			proxyData.disable();
 		}
 		getProxyManager().setProxyData(data);
@@ -115,10 +117,9 @@ public class SystemProxyTest extends TestCase {
 		assertNotNull(proxiesData);
 
 		Map<String, String> typeMap = new HashMap<>();
-		for (int i = 0; i < proxiesData.length; i++) {
-			assertProxyDataEqual(proxiesData[i], (IProxyData) proxyDataMap
-					.get(proxiesData[i].getType()));
-			typeMap.put(proxiesData[i].getType(), proxiesData[i].getType());
+		for (IProxyData p : proxiesData) {
+			assertProxyDataEqual(p, (IProxyData) proxyDataMap.get(p.getType()));
+			typeMap.put(p.getType(), p.getType());
 		}
 
 		assertEquals(3, typeMap.size());
@@ -129,10 +130,9 @@ public class SystemProxyTest extends TestCase {
 		assertNotNull(proxiesData);
 
 		Map<String, String> typeMap = new HashMap<>();
-		for (int i = 0; i < proxiesData.length; i++) {
-			assertProxyDataEqual(proxiesData[i], (IProxyData) proxyDataMap
-					.get(proxiesData[i].getType()));
-			typeMap.put(proxiesData[i].getType(), proxiesData[i].getType());
+		for (IProxyData p : proxiesData) {
+			assertProxyDataEqual(p, (IProxyData) proxyDataMap.get(p.getType()));
+			typeMap.put(p.getType(), p.getType());
 		}
 
 		assertEquals(3, typeMap.size());

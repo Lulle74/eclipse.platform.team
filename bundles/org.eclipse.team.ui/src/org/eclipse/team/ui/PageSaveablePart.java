@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,21 +15,36 @@ package org.eclipse.team.ui;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.CompareViewerPane;
+import org.eclipse.compare.CompareViewerSwitchingPane;
+import org.eclipse.compare.IContentChangeListener;
+import org.eclipse.compare.IContentChangeNotifier;
+import org.eclipse.compare.IPropertyChangeNotifier;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.Splitter;
 import org.eclipse.compare.contentmergeviewer.IFlushable;
 import org.eclipse.compare.internal.CompareEditor;
 import org.eclipse.compare.internal.CompareEditorInputNavigator;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.LocalResourceTypedElement;
@@ -250,8 +268,8 @@ public abstract class PageSaveablePart extends SaveablePartAdapter implements IC
 		try {
 			// TODO: we need a better progress story here (i.e. support for cancellation) bug 127075
 			manager.busyCursorWhile(monitor -> {
-			    prepareInput(input, getCompareConfiguration(), monitor);
-			    hookContentChangeListener(input);
+				prepareInput(input, getCompareConfiguration(), monitor);
+				hookContentChangeListener(input);
 			});
 		} catch (InvocationTargetException e) {
 			Utils.handle(e);
@@ -353,12 +371,12 @@ public abstract class PageSaveablePart extends SaveablePartAdapter implements IC
 		return null;
 	}
 
-    /**
-     * Set whether the file contents panes should be shown. If they are not,
-     * only the page will be shown.
-     *
-     * @param showContentPanes whether to show contents pane
-     */
+	/**
+	 * Set whether the file contents panes should be shown. If they are not,
+	 * only the page will be shown.
+	 *
+	 * @param showContentPanes whether to show contents pane
+	 */
 	public void setShowContentPanes(boolean showContentPanes) {
 		this.showContentPanes = showContentPanes;
 	}
@@ -394,10 +412,7 @@ public abstract class PageSaveablePart extends SaveablePartAdapter implements IC
 	}
 
 	private void flushViewers(IProgressMonitor monitor) {
-		Iterator iter = fDirtyViewers.iterator();
-
-		for (int i=0; i<fDirtyViewers.size(); i++){
-			Object element = iter.next();
+		for (Object element : fDirtyViewers) {
 			IFlushable flushable = Adapters.adapt(element, IFlushable.class);
 			if (flushable != null)
 				flushable.flush(monitor);

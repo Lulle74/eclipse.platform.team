@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,9 +30,7 @@ import org.eclipse.team.internal.ccvs.core.resources.EclipseSynchronizer;
  */
 public class MoveDeleteHook implements IMoveDeleteHook {
 	
-	/**
-	 * @see IMoveDeleteHook#deleteFile(IResourceTree, IFile, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean deleteFile(
 		final IResourceTree tree,
 		final IFile file,
@@ -54,15 +55,13 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 			}
 
 			// Otherwise, we need to prepare properly for the delete
-			EclipseSynchronizer.getInstance().performMoveDelete(new ICVSRunnable() {
-				public void run(IProgressMonitor monitor) throws CVSException {
-					try {
-						monitor.beginTask(null, 100);		
-						EclipseSynchronizer.getInstance().prepareForDeletion(file, Policy.subMonitorFor(monitor, 40));
-						tree.standardDeleteFile(file, updateFlags, Policy.subMonitorFor(monitor, 60));
-					} finally {
-						monitor.done();
-					}
+			EclipseSynchronizer.getInstance().performMoveDelete(monitor1 -> {
+				try {
+					monitor1.beginTask(null, 100);		
+					EclipseSynchronizer.getInstance().prepareForDeletion(file, Policy.subMonitorFor(monitor1, 40));
+					tree.standardDeleteFile(file, updateFlags, Policy.subMonitorFor(monitor1, 60));
+				} finally {
+					monitor1.done();
 				}
 			}, Policy.subMonitorFor(monitor, 70));
 		} catch (CVSException e) {
@@ -73,9 +72,7 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		return true;
 	}
 	
-	/**
-	 * @see IMoveDeleteHook#deleteFolder(IResourceTree, IFolder, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean deleteFolder(
 		final IResourceTree tree,
 		final IFolder folder,
@@ -88,15 +85,13 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		try {
 			final ICVSFolder cvsFolder = CVSWorkspaceRoot.getCVSFolderFor(folder);
 			if (cvsFolder.isCVSFolder() && ensureCheckedOut(new IFolder[] {folder}, tree, Policy.subMonitorFor(monitor, 30))) {
-				EclipseSynchronizer.getInstance().performMoveDelete(new ICVSRunnable() {
-					public void run(IProgressMonitor monitor) throws CVSException {
-						try {
-							monitor.beginTask(null, 100);
-							EclipseSynchronizer.getInstance().prepareForDeletion(folder, Policy.subMonitorFor(monitor, 20));
-							tree.standardDeleteFolder(folder, updateFlags, Policy.subMonitorFor(monitor, 50));
-						} finally {
-							monitor.done();
-						}
+				EclipseSynchronizer.getInstance().performMoveDelete(monitor1 -> {
+					try {
+						monitor1.beginTask(null, 100);
+						EclipseSynchronizer.getInstance().prepareForDeletion(folder, Policy.subMonitorFor(monitor1, 20));
+						tree.standardDeleteFolder(folder, updateFlags, Policy.subMonitorFor(monitor1, 50));
+					} finally {
+						monitor1.done();
 					}
 				}, Policy.subMonitorFor(monitor, 70));
 				return true;
@@ -111,9 +106,7 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		return false;
 	}
 
-	/**
-	 * @see IMoveDeleteHook#deleteProject(IResourceTree, IProject, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean deleteProject(
 		IResourceTree tree,
 		IProject project,
@@ -132,9 +125,7 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		return false;
 	}
 
-	/**
-	 * @see IMoveDeleteHook#moveFile(IResourceTree, IFile, IFile, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean moveFile(
 			final IResourceTree tree,
 			final IFile source,
@@ -159,19 +150,17 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 			}
 
 			// Perform the move
-			EclipseSynchronizer.getInstance().performMoveDelete(new ICVSRunnable() {
-				public void run(IProgressMonitor monitor) throws CVSException {
-					try {
-						monitor.beginTask(null, 100);
-						EclipseSynchronizer.getInstance().prepareForDeletion(source, Policy.subMonitorFor(monitor, 40));
-						if (destination.exists()) {
-							EclipseSynchronizer.getInstance().prepareForDeletion(destination, Policy.subMonitorFor(monitor, 20));
-						}
-						tree.standardMoveFile(source, destination, updateFlags, Policy.subMonitorFor(monitor, 40));
-						EclipseSynchronizer.getInstance().postMove(destination);
-					} finally {
-						monitor.done();
+			EclipseSynchronizer.getInstance().performMoveDelete(monitor1 -> {
+				try {
+					monitor1.beginTask(null, 100);
+					EclipseSynchronizer.getInstance().prepareForDeletion(source, Policy.subMonitorFor(monitor1, 40));
+					if (destination.exists()) {
+						EclipseSynchronizer.getInstance().prepareForDeletion(destination, Policy.subMonitorFor(monitor1, 20));
 					}
+					tree.standardMoveFile(source, destination, updateFlags, Policy.subMonitorFor(monitor1, 40));
+					EclipseSynchronizer.getInstance().postMove(destination);
+				} finally {
+					monitor1.done();
 				}
 			}, Policy.subMonitorFor(monitor, 70));
 		} catch (CVSException e) {
@@ -182,9 +171,7 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		return true;
 	}
 
-	/**
-	 * @see IMoveDeleteHook#moveFolder(IResourceTree, IFolder, IFolder, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean moveFolder(
 		final IResourceTree tree,
 		final IFolder source,
@@ -210,14 +197,12 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 					private void purgeCVSFolders(IFolder destination, final IProgressMonitor monitor) throws CVSException {
 						// Delete any CVS folders
 						try {
-							destination.accept(new IResourceVisitor() {
-								public boolean visit(IResource resource) throws CoreException {
-									if (resource.getType() == IResource.FOLDER && resource.getName().equals(SyncFileWriter.CVS_DIRNAME)) {
-										tree.standardDeleteFolder((IFolder)resource, updateFlags, monitor);
-										return false;
-									}
-									return true;
+							destination.accept((IResourceVisitor) resource -> {
+								if (resource.getType() == IResource.FOLDER && resource.getName().equals(SyncFileWriter.CVS_DIRNAME)) {
+									tree.standardDeleteFolder((IFolder)resource, updateFlags, monitor);
+									return false;
 								}
+								return true;
 							}, IResource.DEPTH_INFINITE, IContainer.INCLUDE_TEAM_PRIVATE_MEMBERS);
 						} catch (CoreException e) {
 							throw CVSException.wrapException(e);
@@ -238,9 +223,7 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		return false;
 	}
 
-	/**
-	 * @see IMoveDeleteHook#moveProject(IResourceTree, IProject, IProjectDescription, int, IProgressMonitor)
-	 */
+	@Override
 	public boolean moveProject(
 		IResourceTree tree,
 		IProject source,
@@ -287,19 +270,16 @@ public class MoveDeleteHook implements IMoveDeleteHook {
 		final List readOnlyFiles = new ArrayList();
 		try {
 			// Find any read-only files
-			for (int i = 0; i < folders.length; i++) {
-				IFolder folder = folders[i];
+			for (IFolder folder : folders) {
 				if (folder.exists()) {
-					folder.accept(new IResourceVisitor() {
-						public boolean visit(IResource resource) throws CoreException {
-							if (resource.getType() == IResource.FILE) {
-								IFile file = (IFile) resource;
-								if (file.isReadOnly()) {
-									readOnlyFiles.add(file);
-								}
+					folder.accept(resource -> {
+						if (resource.getType() == IResource.FILE) {
+							IFile file = (IFile) resource;
+							if (file.isReadOnly()) {
+								readOnlyFiles.add(file);
 							}
-							return true;
 						}
+						return true;
 					});
 				}
 			}

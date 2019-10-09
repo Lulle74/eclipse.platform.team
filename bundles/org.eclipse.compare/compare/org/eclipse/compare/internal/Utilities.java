@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -132,8 +135,9 @@ public class Utilities {
 
 	public static void setEnableComposite(Composite composite, boolean enable) {
 		Control[] children= composite.getChildren();
-		for (int i= 0; i < children.length; i++)
-			children[i].setEnabled(enable);
+		for (Control c : children) {
+			c.setEnabled(enable);
+		}
 	}
 
 	public static boolean getBoolean(CompareConfiguration cc, String key, boolean dflt) {
@@ -193,20 +197,20 @@ public class Utilities {
 		if (selection instanceof IStructuredSelection) {
 			Object[] s= ((IStructuredSelection) selection).toArray();
 
-			for (int i= 0; i < s.length; i++) {
+			for (Object o : s) {
 				IResource resource= null;
-				Object o= s[i];
 				if (type.isInstance(o)) {
 					resource= (IResource) o;
 				} else if (o instanceof ResourceMapping) {
 					try {
 						ResourceTraversal[] travs= ((ResourceMapping)o).getTraversals(ResourceMappingContext.LOCAL_CONTEXT, null);
 						if (travs != null) {
-							for (int k= 0; k < travs.length; k++) {
-								IResource[] resources= travs[k].getResources();
-								for (int j= 0; j < resources.length; j++) {
-									if (type.isInstance(resources[j]) && resources[j].isAccessible())
-										tmp.add(resources[j]);
+							for (ResourceTraversal trav : travs) {
+								IResource[] resources = trav.getResources();
+								for (IResource r : resources) {
+									if (type.isInstance(r) && r.isAccessible()) {
+										tmp.add(r);
+									}
 								}
 							}
 						}
@@ -299,7 +303,7 @@ public class Utilities {
 			String dPath;
 			String ePath;
 
-			if (relPath.indexOf("/") >= 0) { //$NON-NLS-1$
+			if (relPath.contains("/")) { //$NON-NLS-1$
 				String path= relPath.substring(1);
 				dPath= 'd' + path;
 				ePath= 'e' + path;
@@ -434,7 +438,7 @@ public class Utilities {
 					for (Iterator it = validPaths.iterator(); it.hasNext();) {
 						IPath path = (IPath) it.next();
 						if(path.isPrefixOf(resourceFullPath) ||
-					       resourceFullPath.isPrefixOf(path)) {
+							resourceFullPath.isPrefixOf(path)) {
 							return false;
 						}
 					}
@@ -522,7 +526,7 @@ public class Utilities {
 	public static boolean validateResources(IResource[] resources, Shell shell, String title) {
 		// get all readonly files
 		List<IResource> readOnlyFiles= getReadonlyFiles(resources);
-		if (readOnlyFiles.size() == 0)
+		if (readOnlyFiles.isEmpty())
 			return true;
 
 		// get timestamps of readonly files before validateEdit
@@ -814,10 +818,10 @@ public class Utilities {
 	 */
 	public static boolean setReadTimeout(URLConnection connection, int timeout) {
 		Method[] methods = connection.getClass().getMethods();
-		for (int i = 0; i < methods.length; i++) {
-			if (methods[i].getName().equals("setReadTimeout")) { //$NON-NLS-1$
+		for (Method method : methods) {
+			if (method.getName().equals("setReadTimeout")) { //$NON-NLS-1$
 				try {
-					methods[i].invoke(connection, new Object[] {Integer.valueOf(timeout)});
+					method.invoke(connection, new Object[] {Integer.valueOf(timeout)});
 					return true;
 				} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 					// ignore
@@ -896,12 +900,12 @@ public class Utilities {
 		}
 
 		boolean[] ignored = new boolean[thisLine.length()];
-		for (int j = 0; j < ignoredRegions.length; j++) {
-			if (ignoredRegions[j] != null) {
-				for (int k = 0; k < ignoredRegions[j].length; k++) {
-					if (ignoredRegions[j][k] != null) {
-						for (int l = 0; l < ignoredRegions[j][k].getLength(); l++) {
-							ignored[ignoredRegions[j][k].getOffset() + l] = true;
+		for (IRegion[] regions : ignoredRegions) {
+			if (regions != null) {
+				for (IRegion region : regions) {
+					if (region != null) {
+						for (int l = 0; l < region.getLength(); l++) {
+							ignored[region.getOffset() + l] = true;
 						}
 					}
 				}

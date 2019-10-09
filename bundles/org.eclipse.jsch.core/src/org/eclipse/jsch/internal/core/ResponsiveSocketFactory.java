@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2007, 2019 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,16 +37,19 @@ public class ResponsiveSocketFactory implements SocketFactory {
     this.monitor = monitor;
     this.timeout=timeout;
   }
+  @Override
   public InputStream getInputStream(Socket socket) throws IOException {
     if (in == null)
       in = socket.getInputStream();
     return in;
   }
+  @Override
   public OutputStream getOutputStream(Socket socket) throws IOException {
     if (out == null)
       out = socket.getOutputStream();
     return out;
   }
+  @Override
   public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
     Socket socket = null;
     socket = createSocket(host, port, timeout / 1000, monitor);
@@ -66,23 +72,21 @@ public class ResponsiveSocketFactory implements SocketFactory {
     // Start a thread to open a socket
     final Socket[] socket = new Socket[] { null };
     final Exception[] exception = new Exception[] {null };
-    final Thread thread = new Thread(new Runnable() {
-      public void run() {
-        try {
-          Socket newSocket = internalCreateSocket(host, port);
-          synchronized (socket) {
-            if (Thread.interrupted()) {
-              // we we're either canceled or timed out so just close the socket
-              newSocket.close();
-            } else {
-              socket[0] = newSocket;
-            }
+    final Thread thread = new Thread(() -> {
+      try {
+        Socket newSocket = internalCreateSocket(host, port);
+        synchronized (socket) {
+          if (Thread.interrupted()) {
+            // we we're either canceled or timed out so just close the socket
+            newSocket.close();
+          } else {
+            socket[0] = newSocket;
           }
-        } catch (UnknownHostException e) {
-          exception[0] = e;
-        } catch (IOException e) {
-          exception[0] = e;
         }
+      } catch (UnknownHostException e1) {
+        exception[0] = e1;
+      } catch (IOException e2) {
+        exception[0] = e2;
       }
     });
     thread.start();

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,7 +55,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.text.TextUtilities;
@@ -87,7 +90,7 @@ public class Patcher implements IHunkFilter {
 	private FilePatch2[] fDiffs;
 	private IResource fTarget;
 	// patch options
-	private Set disabledElements = new HashSet();
+	private Set<Object> disabledElements = new HashSet<>();
 	private Map<FilePatch2, FileDiffResult> diffResults = new HashMap<>();
 	private final Map<FilePatch2, byte[]> contentCache = new HashMap<>();
 	private Set<Hunk> mergedHunks = new HashSet<>();
@@ -200,15 +203,14 @@ public class Patcher implements IHunkFilter {
 
 	public void countLines() {
 		FilePatch2[] fileDiffs = getDiffs();
-		for (int i = 0; i < fileDiffs.length; i++) {
+		for (FilePatch2 fileDiff : fileDiffs) {
 			int addedLines = 0;
 			int removedLines = 0;
-			FilePatch2 fileDiff = fileDiffs[i];
 			for (int j = 0; j < fileDiff.getHunkCount(); j++) {
 				IHunk hunk = fileDiff.getHunks()[j];
 				String[] lines = ((Hunk) hunk).getLines();
-				for (int k = 0; k < lines.length; k++) {
-					char c = lines[k].charAt(0);
+				for (String line : lines) {
+					char c = line.charAt(0);
 					switch (c) {
 					case '+':
 						addedLines++;
@@ -290,18 +292,18 @@ public class Patcher implements IHunkFilter {
 					// patch it and collect rejected hunks
 					List<String> result= apply(diff, file, true, failed);
 					if (result != null)
-						store(LineReader.createString(isPreserveLineDelimeters(), result), file, new SubProgressMonitor(pm, workTicks));
+						store(LineReader.createString(isPreserveLineDelimeters(), result), file, SubMonitor.convert(pm, workTicks));
 					workTicks-= WORK_UNIT;
 					break;
 				case FilePatch2.DELETION:
-					file.delete(true, true, new SubProgressMonitor(pm, workTicks));
+					file.delete(true, true, SubMonitor.convert(pm, workTicks));
 					workTicks-= WORK_UNIT;
 					break;
 				case FilePatch2.CHANGE:
 					// patch it and collect rejected hunks
 					result= apply(diff, file, false, failed);
 					if (result != null)
-						store(LineReader.createString(isPreserveLineDelimeters(), result), file, new SubProgressMonitor(pm, workTicks));
+						store(LineReader.createString(isPreserveLineDelimeters(), result), file, SubMonitor.convert(pm, workTicks));
 					workTicks-= WORK_UNIT;
 					break;
 				}
@@ -514,8 +516,7 @@ public class Patcher implements IHunkFilter {
 		//path segment contained in all diffs.
 		int length= 99;
 		if (fDiffs!=null) {
-			for (int i= 0; i<fDiffs.length; i++) {
-				FilePatch2 diff= fDiffs[i];
+			for (FilePatch2 diff : fDiffs) {
 				length= Math.min(length, diff.segmentCount());
 			}
 			if (ResourcesPlugin.getWorkspace().getRoot().equals(fTarget))
@@ -534,9 +535,9 @@ public class Patcher implements IHunkFilter {
 	public void removeDiff(FilePatch2 diffToRemove){
 		FilePatch2[] temp = new FilePatch2[fDiffs.length - 1];
 		int counter = 0;
-		for (int i = 0; i < fDiffs.length; i++) {
-			if (fDiffs[i] != diffToRemove){
-				temp[counter++] = fDiffs[i];
+		for (FilePatch2 diff : fDiffs) {
+			if (diff != diffToRemove) {
+				temp[counter++] = diff;
 			}
 		}
 		fDiffs = temp;
@@ -553,15 +554,15 @@ public class Patcher implements IHunkFilter {
 
 	private void setEnabledProject(DiffProject projectDiff, boolean enabled) {
 		FilePatch2[] diffFiles = projectDiff.getFileDiffs();
-		for (int i = 0; i < diffFiles.length; i++) {
-			setEnabledFile(diffFiles[i], enabled);
+		for (FilePatch2 diffFile : diffFiles) {
+			setEnabledFile(diffFile, enabled);
 		}
 	}
 
 	private void setEnabledFile(FilePatch2 fileDiff, boolean enabled) {
 		IHunk[] hunks = fileDiff.getHunks();
-		for (int i = 0; i < hunks.length; i++) {
-			setEnabledHunk((Hunk) hunks[i], enabled);
+		for (IHunk hunk : hunks) {
+			setEnabledHunk((Hunk) hunk, enabled);
 		}
 	}
 
@@ -616,8 +617,7 @@ public class Patcher implements IHunkFilter {
 			if (diffs==null||diffs.length<=0)
 				return -1;
 			int fuzz= -1;
-			for (int i= 0; i<diffs.length; i++) {
-				FilePatch2 d= diffs[i];
+			for (FilePatch2 d : diffs) {
 				IFile file= getTargetFile(d);
 				if (file != null && file.exists()) {
 					List<String> lines= LineReader.load(file, false);
@@ -639,8 +639,7 @@ public class Patcher implements IHunkFilter {
 	}
 
 	public void refresh(FilePatch2[] diffs) {
-		for (int i = 0; i < diffs.length; i++) {
-			FilePatch2 diff = diffs[i];
+		for (FilePatch2 diff : diffs) {
 			FileDiffResult result = getDiffResult(diff);
 			((WorkspaceFileDiffResult)result).refresh();
 		}

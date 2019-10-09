@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,9 +33,7 @@ public class CacheRemoteContentsOperation extends CacheTreeContentsOperation {
 		super(part, mappers, tree);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#getRemoteFileState(org.eclipse.team.core.diff.IThreeWayDiff)
-	 */
+	@Override
 	protected IFileRevision getRemoteFileState(IThreeWayDiff twd) {
 		IResourceDiff diff = (IResourceDiff)twd.getRemoteChange();
 		if (diff == null)
@@ -40,16 +41,13 @@ public class CacheRemoteContentsOperation extends CacheTreeContentsOperation {
 		return diff.getAfterState();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#isEnabledForDirection(int)
-	 */
+	@Override
 	protected boolean isEnabledForDirection(int direction) {
 		return direction == IThreeWayDiff.CONFLICTING || 
 			direction == IThreeWayDiff.INCOMING;
 	}
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#buildTree(org.eclipse.team.internal.ccvs.core.CVSTeamProvider)
-	 */
+
+	@Override
 	protected ICVSRemoteResource buildTree(CVSTeamProvider provider) throws TeamException {
 		return CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber().buildRemoteTree(provider.getProject(), true, new NullProgressMonitor());
 	}

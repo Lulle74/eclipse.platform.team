@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,10 +15,17 @@ package org.eclipse.team.examples.model.ui;
 
 import java.net.URL;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.team.examples.filesystem.FileSystemPlugin;
-import org.eclipse.team.examples.model.*;
+import org.eclipse.team.examples.model.ModelFolder;
+import org.eclipse.team.examples.model.ModelObject;
+import org.eclipse.team.examples.model.ModelObjectDefinitionFile;
+import org.eclipse.team.examples.model.ModelObjectElementFile;
+import org.eclipse.team.examples.model.ModelProject;
+import org.eclipse.team.examples.model.ModelWorkspace;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
 /**
@@ -26,9 +36,7 @@ public class ModelWorkbenchAdapter implements IWorkbenchAdapter {
 	// image path
 	private static final String ICON_PATH = "$nl$/icons/full/"; //$NON-NLS-1$
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getChildren(java.lang.Object)
-	 */
+	@Override
 	public Object[] getChildren(Object o) {
 		if (o instanceof ModelObject) {
 			ModelObject mo = (ModelObject) o;
@@ -41,9 +49,7 @@ public class ModelWorkbenchAdapter implements IWorkbenchAdapter {
 		return new Object[0];
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getImageDescriptor(java.lang.Object)
-	 */
+	@Override
 	public ImageDescriptor getImageDescriptor(Object object) {
 		if (object instanceof ModelProject) {
 			return createImageDescriptor("obj/prj_obj.gif");
@@ -63,9 +69,7 @@ public class ModelWorkbenchAdapter implements IWorkbenchAdapter {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getLabel(java.lang.Object)
-	 */
+	@Override
 	public String getLabel(Object o) {
 		if (o instanceof ModelObject) {
 			ModelObject mo = (ModelObject) o;
@@ -74,9 +78,7 @@ public class ModelWorkbenchAdapter implements IWorkbenchAdapter {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getParent(java.lang.Object)
-	 */
+	@Override
 	public Object getParent(Object o) {
 		if (o instanceof ModelObject) {
 			ModelObject mo = (ModelObject) o;

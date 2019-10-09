@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2007, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,6 +44,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 			return 2;
 		}
 
+		@Override
 		public int compare(Viewer viewer, Object e1, Object e2) {
 			final int compare = getCategory(e1) - getCategory(e2);
 			if (compare != 0)
@@ -61,11 +65,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 			this.selected = 0;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Comparable#compareTo(java.lang.Object)
-		 */
+		@Override
 		public int compareTo(Object o) {
 			return location.getLocation(false).compareTo(
 					((Item) o).location.getLocation(false));
@@ -120,12 +120,10 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		// table.setLayoutData(SWTUtils.createHVFillGridData());
 		table.setLinesVisible(true);
 		table.setHeaderVisible(true);
-		table.addListener(SWT.MeasureItem, new Listener() {
-			public void handleEvent(Event event) {
-				// int clientWidth = table.getClientArea().width;
-				event.height = event.gc.getFontMetrics().getHeight() + 5;
-				// event.width = clientWidth * 2;
-			}
+		table.addListener(SWT.MeasureItem, event -> {
+			// int clientWidth = table.getClientArea().width;
+			event.height = event.gc.getFontMetrics().getHeight() + 5;
+			// event.width = clientWidth * 2;
 		});
 
 		/**
@@ -145,6 +143,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 				.setText(CVSUIMessages.ConfigureRepositoryLocationsWizard_column1);
 
 		composite.addControlListener(new ControlAdapter() {
+			@Override
 			public void controlResized(ControlEvent e) {
 				Rectangle area = composite.getClientArea();
 				Point size = table.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -193,6 +192,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 				fTableViewer, new FocusCellOwnerDrawHighlighter(fTableViewer));
 		ColumnViewerEditorActivationStrategy editorActivationStrategy = new ColumnViewerEditorActivationStrategy(
 				fTableViewer) {
+			@Override
 			protected boolean isEditorActivationEvent(
 					ColumnViewerEditorActivationEvent event) {
 				return event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION
@@ -239,6 +239,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		return table;
 	}
 
+	@Override
 	public Object getValue(Object element, String property) {
 
 		final Item item = (Item) element;
@@ -249,6 +250,7 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		return null;
 	}
 
+	@Override
 	public boolean canModify(Object element, String property) {
 		// set the correct cell editor for this element
 		cellEditors[1] = getCellEditor(element);
@@ -268,10 +270,10 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		return dummyAlternativeRepositoryEditor;
 	}
 
+	@Override
 	public void modify(Object element, String property, Object value) {
 
-		final IStructuredSelection selection = (IStructuredSelection) fTableViewer
-				.getSelection();
+		final IStructuredSelection selection = fTableViewer.getStructuredSelection();
 		final Item item = (Item) selection.getFirstElement();
 		if (item == null)
 			return;
@@ -284,10 +286,12 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		fTableViewer.refresh(item);
 	}
 
+	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
 		return null;
 	}
 
+	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		final Item item = (Item) element;
 
@@ -301,28 +305,34 @@ public class ConfigureRepositoryLocationsTable implements ICellModifier,
 		}
 	}
 
+	@Override
 	public void addListener(ILabelProviderListener listener) {
 	}
 
+	@Override
 	public void dispose() {
 	}
 
+	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		return false;
 	}
 
+	@Override
 	public void removeListener(ILabelProviderListener listener) {
 	}
 
+	@Override
 	public Object[] getElements(Object inputElement) {
 		return ((Collection) inputElement).toArray();
 	}
 
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 	}
 
 	public IStructuredSelection getSelection() {
-		return (IStructuredSelection) fTableViewer.getSelection();
+		return fTableViewer.getStructuredSelection();
 	}
 
 	public TableViewer getViewer() {

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,25 +38,22 @@ public class OverrideAndUpdateOperation extends ReplaceOperation {
 		this.conflictingAdditions = conflictingAdditions;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.ReplaceOperation#getResourcesToUpdate(org.eclipse.team.internal.ccvs.core.ICVSResource[])
-	 */
+	@Override
 	protected ICVSResource[] getResourcesToUpdate(ICVSResource[] resources, IProgressMonitor monitor) throws CVSException {
 		// Add the conflicting additions to the list of resources to update
-		Set update = new HashSet();
+		Set<ICVSResource> update = new HashSet<>();
 		ICVSResource[] conflicts = getCVSArguments(conflictingAdditions);
 		update.addAll(Arrays.asList(conflicts));
 		update.addAll(Arrays.asList(super.getResourcesToUpdate(resources, monitor)));
-		return (ICVSResource[]) update.toArray(new ICVSResource[update.size()]);
+		return update.toArray(new ICVSResource[update.size()]);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.UpdateOperation#getResourceMappingContext()
-	 */
+	@Override
 	protected ResourceMappingContext getResourceMappingContext() {
 		return new SingleProjectSubscriberContext(CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber(), false, project);
 	}
 	
+	@Override
 	protected SynchronizationScopeManager createScopeManager(boolean consultModels) {
 		return new SingleProjectScopeManager(getJobName(), getSelectedMappings(), getResourceMappingContext(), consultModels, project);
 	}

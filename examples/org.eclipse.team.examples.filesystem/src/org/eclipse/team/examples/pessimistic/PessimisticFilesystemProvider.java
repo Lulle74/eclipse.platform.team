@@ -1,32 +1,57 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.examples.pessimistic;
- 
-import java.io.*;
-import java.util.*;
 
-import org.eclipse.core.resources.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFileModificationValidator;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.team.FileModificationValidator;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.team.core.RepositoryProvider;
 
 /**
  * The <code>PessimisticFilesystemProvider</code> is a repository provider.
- * 
+ *
  * The provider manages a file named ".pessimistic" in each container it
  * controls.  This is where it stores metadata on which files it controls
  * in that container.  This file is considered to be controlled by the
  * provider and may be deleted.
- * 
+ *
  * The provider provides very simple checkin/checkout facilities by marking
  * files read-only to check them in and read-write to check them out.  It
  * also supports ignoring derived files.
@@ -35,7 +60,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	/**
 	 * The name of the file used to store metadata on which
 	 * files are controlled by this provider.
-	 */	
+	 */
 	private static final String CONTROL_FILE_NAME= ".pessimistic";
 	/**
 	 * The file modification validator for this provider.
@@ -45,16 +70,16 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	 * The cache of resources that are currently controlled.
 	 * The cache is a map of parent resource -> set of controlled children.
 	 */
-	Map fControlledResources;
-	
+	Map<IContainer, Set<IResource>> fControlledResources;
+
 	/**
 	 * Creates a new provider, required for team repository extension.
 	 */
 	public PessimisticFilesystemProvider() {
 		validator = new PessimisticModificationValidator(this);
-		fControlledResources= new HashMap(1);
-	}		
-	
+		fControlledResources = new HashMap<>(1);
+	}
+
 	/**
 	 * Adds the resources to the control of this provider.
 	 */
@@ -62,8 +87,8 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Add to control:");
 			if (resources != null) {
-				for (int i= 0; i < resources.length; i++) {
-					System.out.println("\t" + resources[i]);
+				for (IResource resource : resources) {
+					System.out.println("\t" + resource);
 				}
 			} else {
 				System.out.println("null resources");
@@ -72,30 +97,27 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (resources == null || resources.length == 0) {
 			return;
 		}
-		final Set toAdd= new HashSet(resources.length);
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				for (int i = 0; i < resources.length; i++) {
-					IResource resource= resources[i];
-					if (!isControlled(resource)) {
-						toAdd.add(resource);
-					}
+		final Set<IResource> toAdd = new HashSet<>(resources.length);
+		IWorkspaceRunnable runnable= monitor1 -> {
+			for (IResource resource : resources) {
+				if (!isControlled(resource)) {
+					toAdd.add(resource);
 				}
-				Map byParent= sortByParent(toAdd);
-
-				monitor.beginTask("Adding to control", 1000);
-				for (Iterator i= byParent.keySet().iterator(); i.hasNext();) {
-					IContainer parent= (IContainer) i.next();
-					Set controlledResources= (Set)fControlledResources.get(parent);
-					if (controlledResources == null) {
-						controlledResources= new HashSet(1);
-						fControlledResources.put(parent, controlledResources);
-					}
-					controlledResources.addAll((Set)byParent.get(parent));
-					writeControlFile(parent, monitor);
-				}
-				monitor.done();				
 			}
+			Map<IContainer, Set<IResource>> byParent = sortByParent(toAdd);
+
+			monitor1.beginTask("Adding to control", 1000);
+			for (Object element : byParent.keySet()) {
+				IContainer parent= (IContainer) element;
+				Set<IResource> controlledResources = fControlledResources.get(parent);
+				if (controlledResources == null) {
+					controlledResources = new HashSet<>(1);
+					fControlledResources.put(parent, controlledResources);
+				}
+				controlledResources.addAll(byParent.get(parent));
+				writeControlFile(parent, monitor1);
+			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 		fireStateChanged(toAdd, false);
@@ -108,8 +130,8 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Remove from control:");
 			if (resources != null) {
-				for (int i= 0; i < resources.length; i++) {
-					System.out.println("\t" + resources[i]);
+				for (IResource resource : resources) {
+					System.out.println("\t" + resource);
 				}
 			} else {
 				System.out.println("null resources");
@@ -118,42 +140,39 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (resources == null || resources.length == 0) {
 			return;
 		}
-		final Set toRemove= new HashSet(resources.length);
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				for (int i = 0; i < resources.length; i++) {
-					IResource resource= resources[i];
-					if (isControlled(resource)) {	
-						toRemove.add(resource);
-					}
+		final Set<IResource> toRemove = new HashSet<>(resources.length);
+		IWorkspaceRunnable runnable= monitor1 -> {
+			for (IResource resource1 : resources) {
+				if (isControlled(resource1)) {
+					toRemove.add(resource1);
 				}
-				Map byParent= sortByParent(toRemove);
-
-				monitor.beginTask("Removing from control", 1000);
-				for (Iterator i= byParent.keySet().iterator(); i.hasNext();) {
-					IContainer parent= (IContainer) i.next();
-					Set controlledResources= (Set)fControlledResources.get(parent);
-					if (controlledResources == null) {
-						deleteControlFile(parent, monitor);
-					} else {
-						Set toRemove= (Set)byParent.get(parent);
-						controlledResources.removeAll(toRemove);
-						if (controlledResources.isEmpty()) {
-							fControlledResources.remove(parent);
-							deleteControlFile(parent, monitor);
-						} else {
-							writeControlFile(parent, monitor);
-						}
-						for (Iterator j= controlledResources.iterator(); j.hasNext();) {
-							IResource resource= (IResource) j.next();
-							if (!resource.exists()) {
-								j.remove();
-							}
-						}
-					}
-				}
-				monitor.done();
 			}
+			Map<IContainer, Set<IResource>> byParent = sortByParent(toRemove);
+
+			monitor1.beginTask("Removing from control", 1000);
+			for (Object element : byParent.keySet()) {
+				IContainer parent= (IContainer) element;
+				Set<IResource> controlledResources = fControlledResources.get(parent);
+				if (controlledResources == null) {
+					deleteControlFile(parent, monitor1);
+				} else {
+					Set<IResource> toRemove1 = byParent.get(parent);
+					controlledResources.removeAll(toRemove1);
+					if (controlledResources.isEmpty()) {
+						fControlledResources.remove(parent);
+						deleteControlFile(parent, monitor1);
+					} else {
+						writeControlFile(parent, monitor1);
+					}
+					for (Iterator j= controlledResources.iterator(); j.hasNext();) {
+						IResource resource2= (IResource) j.next();
+						if (!resource2.exists()) {
+							j.remove();
+						}
+					}
+				}
+			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 		fireStateChanged(toRemove, false);
@@ -162,34 +181,31 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	/*
 	 * Returns a map of IContainer -> Set of IResource.
 	 */
-	private Map sortByParent(Set resources) {
-		Map byParent= new HashMap(1);
-		for (Iterator i = resources.iterator(); i.hasNext();) {
-			IResource resource= (IResource) i.next();
+	private Map<IContainer, Set<IResource>> sortByParent(Set<IResource> resources) {
+		Map<IContainer, Set<IResource>> byParent = new HashMap<>(1);
+		for (IResource resource : resources) {
 			IContainer parent= resource.getParent();
-			Set set= (Set)byParent.get(parent);
+			Set<IResource> set = byParent.get(parent);
 			if (set == null) {
-				set= new HashSet(1);
+				set = new HashSet<>(1);
 				byParent.put(parent, set);
 			}
 			set.add(resource);
 		}
 		return byParent;
-	}	
+	}
 
 	/*
 	 * Deletes the control file for the given container.
 	 */
 	private void deleteControlFile(final IContainer container, IProgressMonitor monitor) {
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				IFile controlFile= getControlFile(container, monitor);
-				monitor.beginTask("Deleting control file " + controlFile, 1);
-				if (controlFile.exists()) {
-					controlFile.delete(true, false, monitor);
-				}
-				monitor.done();
+		IWorkspaceRunnable runnable= monitor1 -> {
+			IFile controlFile= getControlFile(container, monitor1);
+			monitor1.beginTask("Deleting control file " + controlFile, 1);
+			if (controlFile.exists()) {
+				controlFile.delete(true, false, monitor1);
 			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 	}
@@ -218,9 +234,9 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	/*
 	 * Reads the contents of a control file, answering the set of
 	 * resources that was specified in the file.
-	 */	
-	Set readControlFile(IFile controlFile) {
-		Set controlledResources= new HashSet(1);
+	 */
+	Set<IResource> readControlFile(IFile controlFile) {
+		Set<IResource> controlledResources = new HashSet<>(1);
 		if (controlFile.exists()) {
 			InputStream in= null;
 			try {
@@ -263,7 +279,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 					}
 				}
 			}
-		}		
+		}
 		return controlledResources;
 	}
 
@@ -272,7 +288,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	 */
 	private void writeControlFile(IContainer container, IProgressMonitor monitor) throws CoreException {
 		IFile controlFile= getControlFile(container, monitor);
-		Set controlledResources= (Set)fControlledResources.get(container);
+		Set controlledResources= fControlledResources.get(container);
 		InputStream contents= generateControlFileContents(controlledResources);
 		monitor.beginTask("Writing control file " + controlFile, 1000);
 		if (contents == null) {
@@ -284,7 +300,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	}
 
 	/*
-	 * Generates an InputStream on a byte array which specifies 
+	 * Generates an InputStream on a byte array which specifies
 	 * the resources given in controlledResources.
 	 */
 	private InputStream generateControlFileContents(Set controlledResources) {
@@ -306,55 +322,46 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		return new ByteArrayInputStream(byteOut.toByteArray());
 	}
 
-	/*
-	 * @see IProjectNature#setProject(IProject)
-	 */
+	@Override
 	public void setProject(IProject project) {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Set project to " + project);
 		}
 		super.setProject(project);
-		configureProject();		
+		configureProject();
 	}
-	
-	/*
-	 * @see IRepositoryProvider#getID()
-	 */
+
+	@Override
 	public String getID() {
 		return PessimisticFilesystemProviderPlugin.NATURE_ID;
 	}
 
-	/*
-	 * @see IRepositoryProvider#getFileModificationValidator()
-	 */
+	@Override
 	public IFileModificationValidator getFileModificationValidator() {
 		return getFileModificationValidator();
 	}
-	
+
+	@Override
 	public FileModificationValidator getFileModificationValidator2() {
 		return validator;
 	}
-	
-	/*
-	 * @see IRepositoryProvider#deconfigure()
-	 */
+
+	@Override
 	public void deconfigure() {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Deconfigure " + getProject());
 		}
-		
+
 		fControlledResources.clear();
 		fireStateChanged(getSubtreeMembers(getProject()), true);
 	}
 
-	/*
-	 * @see IRepositoryProvider#configure()
-	 */
+	@Override
 	public void configureProject() {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Configure " + getProject());
 		}
-		
+
 		readControlFiles();
 		fireStateChanged(getSubtreeMembers(getProject()), true);
 	}
@@ -364,21 +371,19 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 	 */
 	private void readControlFiles() {
 		IProject project= getProject();
-		Set set= new HashSet(1);
+		Set<IResource> set = new HashSet<>(1);
 		set.add(project);
 		fControlledResources.put(project.getParent(), set);
 		try {
-			getProject().accept(new IResourceVisitor() {
-				public boolean visit(IResource resource) {
-					if (resource.getType() == IResource.FILE) {
-						if (CONTROL_FILE_NAME.equals(resource.getName())) {
-							Set controlledResources= readControlFile((IFile)resource);
-							fControlledResources.put(resource.getParent(), controlledResources);
-						}
-						return false;
+			getProject().accept(resource -> {
+				if (resource.getType() == IResource.FILE) {
+					if (CONTROL_FILE_NAME.equals(resource.getName())) {
+						Set<IResource> controlledResources = readControlFile((IFile) resource);
+						fControlledResources.put(resource.getParent(), controlledResources);
 					}
-					return true;
+					return false;
 				}
+				return true;
 			});
 		} catch (CoreException e) {
 			PessimisticFilesystemProviderPlugin.getInstance().logError(e, "Problems traversing resource tree");
@@ -387,13 +392,13 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 
 	/**
 	 * Checks the resources in by marking them read-only.
-	 */	
+	 */
 	public void checkin(final IResource[] resources, IProgressMonitor monitor) {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Check in:");
 			if (resources != null) {
-				for (int i= 0; i < resources.length; i++) {
-					System.out.println("\t" + resources[i]);
+				for (IResource resource : resources) {
+					System.out.println("\t" + resource);
 				}
 			} else {
 				System.out.println("null resources");
@@ -402,38 +407,35 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (resources == null || resources.length == 0) {
 			return;
 		}
-		final Set modified= new HashSet(1);
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) {
-				monitor.beginTask("Checking in resources", 1000);
-				for(int i= 0; i < resources.length; i++) {
-					IResource resource= resources[i];
-					if (isControlled(resource)) { 
-						if (resource.exists()) {
-							resource.setReadOnly(true);
-							modified.add(resource);
-						}
+		final Set<IResource> modified = new HashSet<>(1);
+		IWorkspaceRunnable runnable= monitor1 -> {
+			monitor1.beginTask("Checking in resources", 1000);
+			for (IResource resource : resources) {
+				if (isControlled(resource)) {
+					if (resource.exists()) {
+						resource.setReadOnly(true);
+						modified.add(resource);
 					}
 				}
-				monitor.done();
 			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 		fireStateChanged(modified, false);
 	}
-	
+
 	/**
-	 * Unchecks the resources out.  In this provider this operation is 
+	 * Unchecks the resources out.  In this provider this operation is
 	 * equivalent to checkin.
-	 * 
+	 *
 	 * @see PessimisticFilesystemProvider#checkin(IResource[], IProgressMonitor)
 	 */
 	public void uncheckout(final IResource[] resources, IProgressMonitor monitor) {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Uncheckout:");
 			if (resources != null) {
-				for (int i= 0; i < resources.length; i++) {
-					System.out.println("\t" + resources[i]);
+				for (IResource resource : resources) {
+					System.out.println("\t" + resource);
 				}
 			} else {
 				System.out.println("null resources");
@@ -442,21 +444,18 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (resources == null || resources.length == 0) {
 			return;
 		}
-		final Set modified= new HashSet(1);
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) {
-				monitor.beginTask("Unchecking in resources", 1000);
-				for(int i= 0; i < resources.length; i++) {
-					IResource resource= resources[i];
-					if (isControlled(resource)) {
-						if (resource.exists()) {
-							resource.setReadOnly(true);
-							modified.add(resource);
-						}
+		final Set<IResource> modified = new HashSet<>(1);
+		IWorkspaceRunnable runnable= monitor1 -> {
+			monitor1.beginTask("Unchecking in resources", 1000);
+			for (IResource resource : resources) {
+				if (isControlled(resource)) {
+					if (resource.exists()) {
+						resource.setReadOnly(true);
+						modified.add(resource);
 					}
 				}
-				monitor.done();
 			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 		fireStateChanged(modified, false);
@@ -469,8 +468,8 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (PessimisticFilesystemProviderPlugin.getInstance().isDebugging()) {
 			System.out.println("Check out:");
 			if (resources != null) {
-				for (int i= 0; i < resources.length; i++) {
-					System.out.println("\t" + resources[i]);
+				for (IResource resource : resources) {
+					System.out.println("\t" + resource);
 				}
 			} else {
 				System.out.println("null resources");
@@ -479,28 +478,25 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (resources == null || resources.length == 0) {
 			return;
 		}
-		final Set modified= new HashSet(1);
-		IWorkspaceRunnable runnable= new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) {
-				monitor.beginTask("Checking out resources", 1000);
-				for(int i= 0; i < resources.length; i++) {
-					IResource resource= resources[i];
-					if (isControlled(resource)) {
-						if(resource.exists()) {
-							resource.setReadOnly(false);								
-							modified.add(resource);
-						}
+		final Set<IResource> modified = new HashSet<>(1);
+		IWorkspaceRunnable runnable= monitor1 -> {
+			monitor1.beginTask("Checking out resources", 1000);
+			for (IResource resource : resources) {
+				if (isControlled(resource)) {
+					if(resource.exists()) {
+						resource.setReadOnly(false);
+						modified.add(resource);
 					}
 				}
-				monitor.done();
 			}
+			monitor1.done();
 		};
 		run(runnable, monitor);
 		fireStateChanged(modified, false);
-	}	
+	}
 
 	/**
-	 * Answers <code>true</code> if and only if the resource is 
+	 * Answers <code>true</code> if and only if the resource is
 	 * not <code>null</code>, controlled, not ignored, and checked out.
 	 * Otherwise this method answers <code>false</code>.
 	 */
@@ -518,7 +514,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 			return false;
 		}
 		return !resource.isReadOnly();
-	}	
+	}
 
 	/**
 	 * Answers <code>true</code> if the resource is not <code>null</code>,
@@ -535,13 +531,13 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		if (!project.equals(resource.getProject())) {
 			return false;
 		}
-		Set controlled= (Set)fControlledResources.get(resource.getParent());
+		Set controlled= fControlledResources.get(resource.getParent());
 		if (controlled == null) {
 			return false;
 		}
 		return controlled.contains(resource);
 	}
-	
+
 	/**
 	 * Answers <code>true</code> if the resource is ignored.
 	 * Resources are ignored if they are derived.
@@ -560,7 +556,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Answers <code>true</code> if the preference to change the content
 	 * of the file has been set to <code>true</code>, <code>false</code>
@@ -593,7 +589,7 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 
 	public void appendText(IFile file, String text, boolean prepend) throws CoreException, IOException {
 		String contents = getFileContents(file);
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		if (prepend) {
 			buffer.append(text);
 		}
@@ -603,99 +599,90 @@ public class PessimisticFilesystemProvider extends RepositoryProvider  {
 		}
 		file.setContents(new ByteArrayInputStream(buffer.toString().getBytes()), false, false, null);
 	}
-	
+
 	public static String getFileContents(IFile file) throws IOException, CoreException {
-		StringBuffer buf = new StringBuffer();
-		Reader reader = new InputStreamReader(new BufferedInputStream(file.getContents()));
-		try {
+		StringBuilder buf = new StringBuilder();
+		try (Reader reader = new InputStreamReader(new BufferedInputStream(file.getContents()))) {
 			int c;
 			while ((c = reader.read()) != -1) buf.append((char)c);
-		} finally {
-			reader.close();
 		}
-		return buf.toString();		
+		return buf.toString();
 	}
-	
+
 	public static String getRandomSnippet() {
 		switch ((int) Math.round(Math.random() * 10)) {
-			case 0 :
-				return "este e' o meu conteudo (portuguese)";
-			case 1 :
-				return "Dann brauchen wir aber auch einen deutschen Satz!";
-			case 2 :
-				return "I'll be back";
-			case 3 :
-				return "don't worry, be happy";
-			case 4 :
-				return "there is no imagination for more sentences";
-			case 5 :
-				return "customize yours";
-			case 6 :
-				return "foo";
-			case 7 :
-				return "bar";
-			case 8 :
-				return "foobar";
-			case 9 :
-				return "case 9";
-			default :
-				return "these are my contents";
+		case 0 :
+			return "este e' o meu conteudo (portuguese)";
+		case 1 :
+			return "Dann brauchen wir aber auch einen deutschen Satz!";
+		case 2 :
+			return "I'll be back";
+		case 3 :
+			return "don't worry, be happy";
+		case 4 :
+			return "there is no imagination for more sentences";
+		case 5 :
+			return "customize yours";
+		case 6 :
+			return "foo";
+		case 7 :
+			return "bar";
+		case 8 :
+			return "foobar";
+		case 9 :
+			return "case 9";
+		default :
+			return "these are my contents";
 		}
 	}
 
 	/*
 	 * Notifies listeners that the state of the resources has changed.
-	 * 
+	 *
 	 * @param resources	A collection of resources whose state has changed.
-	 * @param queueAfterWorkspaceOperation	If <code>true</code>, indicates that the 
+	 * @param queueAfterWorkspaceOperation	If <code>true</code>, indicates that the
 	 * 						notification should occur after the current workspace runnable
 	 * 						has completed.
 	 */
-	private void fireStateChanged(final Collection resources, boolean queueAfterWorkspaceOperation) {
+	private void fireStateChanged(final Collection<IResource> resources, boolean queueAfterWorkspaceOperation) {
 		if (resources == null || resources.isEmpty()) {
 			return;
 		}
 
 		if (queueAfterWorkspaceOperation) {
-			Thread t= new Thread(new Runnable() {
-				public void run() {
-					try {
-						ResourcesPlugin.getWorkspace().run(
-							new IWorkspaceRunnable() {
-								public void run(IProgressMonitor monitor) {
-								}
-							}, 
+			Thread t= new Thread(() -> {
+				try {
+					ResourcesPlugin.getWorkspace().run(
+							(IWorkspaceRunnable) monitor -> {
+							},
 							null);
-					} catch (CoreException e) {
-						PessimisticFilesystemProviderPlugin.getInstance().logError(e, "Problem during empty runnable");
-					}
-					fireStateChanged(resources, false);
+				} catch (CoreException e) {
+					PessimisticFilesystemProviderPlugin.getInstance().logError(e, "Problem during empty runnable");
 				}
+				fireStateChanged(resources, false);
 			});
 			t.start();
 		} else {
 			PessimisticFilesystemProviderPlugin.getInstance().fireResourcesChanged(
-				(IResource[])resources.toArray(new IResource[resources.size()]));
-		}			
+					resources.toArray(new IResource[resources.size()]));
+		}
 	}
-	
+
 	/*
 	 * Answers a collection of all of the resources contained below
 	 * the given resource and the resource itself.
 	 */
 	private Collection getSubtreeMembers(IResource resource) {
-		final Set resources= new HashSet(1);
-		IResourceVisitor visitor= new IResourceVisitor() {
-			public boolean visit(IResource resource) {
-				switch (resource.getType()) {
-					case IResource.PROJECT:
-					case IResource.FOLDER:
-					case IResource.FILE:
-						resources.add(resource);
-						return true;
-				}
+		final Set<IResource> resources = new HashSet<>(1);
+		IResourceVisitor visitor= resource1 -> {
+			switch (resource1.getType()) {
+			case IResource.PROJECT:
+			case IResource.FOLDER:
+			case IResource.FILE:
+				resources.add(resource1);
 				return true;
 			}
+			return true;
 		};
 		try {
 			resource.accept(visitor);

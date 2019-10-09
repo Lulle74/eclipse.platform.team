@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -15,8 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -48,6 +49,7 @@ public class OutgoingChangesDialog extends DetailsDialog {
 		this.detailsMessage = detailsMessage;
 	}
 
+	@Override
 	protected void createMainDialogArea(Composite parent) {
 		Composite composite = SWTUtils.createHVFillComposite(parent, SWTUtils.MARGINS_NONE);
 		composite.setLayout(new GridLayout());
@@ -56,6 +58,7 @@ public class OutgoingChangesDialog extends DetailsDialog {
 		Dialog.applyDialogFont(parent);
 	}
 
+	@Override
 	protected Label createWrappingLabel(Composite parent, String text) {
 		Label label = new Label(parent, SWT.LEFT | SWT.WRAP);
 		label.setText(text);
@@ -70,19 +73,18 @@ public class OutgoingChangesDialog extends DetailsDialog {
 		return label;
 	}
 	
+	@Override
 	protected Composite createDropDownDialogArea(Composite parent) {
 		Composite composite = SWTUtils.createHVFillComposite(parent, SWTUtils.MARGINS_DIALOG);
 		GridData data = new GridData(GridData.FILL_BOTH);
 		data.heightHint = 200;
 		data.widthHint = 200;
 		composite.setLayoutData(data);
-		composite.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (pane != null)
-					pane.dispose();
-				if (participant != null)
-					participant.dispose();
-			}
+		composite.addDisposeListener(e -> {
+			if (pane != null)
+				pane.dispose();
+			if (participant != null)
+				participant.dispose();
 		});
 		
 		createWrappingLabel(composite, detailsMessage);
@@ -119,32 +121,27 @@ public class OutgoingChangesDialog extends DetailsDialog {
 		return context[0];
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#isMainGrabVertical()
-	 */
+	@Override
 	protected boolean isMainGrabVertical() {
 		return false;
 	}
 	
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#updateEnablements()
-     */
-    protected void updateEnablements() {
-        // Can always finish
-        setPageComplete(true);
-    }
-    
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#includeErrorMessage()
-     */
-    protected boolean includeErrorMessage() {
-        return false;
-    }
+	@Override
+	protected void updateEnablements() {
+		// Can always finish
+		setPageComplete(true);
+	}
+	
+	@Override
+	protected boolean includeErrorMessage() {
+		return false;
+	}
 
 	public void setHelpContextId(String helpContextId) {
 		this.helpContextId = helpContextId;	
 	}
 	
+	@Override
 	protected String getHelpContextId() {
 		return helpContextId;
 	}

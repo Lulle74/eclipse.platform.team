@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,12 +15,14 @@ package org.eclipse.team.ui.mapping;
 
 import org.eclipse.core.resources.mapping.RemoteResourceMappingContext;
 import org.eclipse.core.resources.mapping.ResourceMappingContext;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdapterManager;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.RepositoryProviderType;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.diff.IThreeWayDiff;
-import org.eclipse.team.ui.synchronize.TeamStateProvider;
 import org.eclipse.team.ui.synchronize.SubscriberTeamStateProvider;
+import org.eclipse.team.ui.synchronize.TeamStateProvider;
 
 /**
  * A team state provider is used by the {@link SynchronizationStateTester}

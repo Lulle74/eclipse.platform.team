@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,17 +15,30 @@ package org.eclipse.team.ui.synchronize;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareNavigator;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.ICompareNavigator;
+import org.eclipse.compare.INavigatable;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.compare.structuremergeviewer.IDiffContainer;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.synchronize.SyncInfo;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.ui.progress.UIJob;
@@ -48,7 +64,7 @@ public final class SyncInfoCompareInput extends SaveableCompareEditorInput imple
 	private MyDiffNode node;
 	private String description;
 	private IResource resource;
-    private ISynchronizeParticipant participant;
+	private ISynchronizeParticipant participant;
 	private ISynchronizePageConfiguration synchronizeConfiguration;
 
 	/*
@@ -91,37 +107,37 @@ public final class SyncInfoCompareInput extends SaveableCompareEditorInput imple
 	 * @param participant the participant from which the sync info was obtained. The
 	 * name of the participant is used as the description which is displayed to the user.
 	 * @param sync the <code>SyncInfo</code> used as the base for the compare input.
-     *
-     * @since 3.1
-     */
-    public SyncInfoCompareInput(ISynchronizeParticipant participant, SyncInfo sync) {
-        this(participant.getName(), sync);
-        this.participant = participant;
-    }
+	 *
+	 * @since 3.1
+	 */
+	public SyncInfoCompareInput(ISynchronizeParticipant participant, SyncInfo sync) {
+		this(participant.getName(), sync);
+		this.participant = participant;
+	}
 
-    public SyncInfoCompareInput(ISynchronizePageConfiguration configuration,
+	public SyncInfoCompareInput(ISynchronizePageConfiguration configuration,
 			SyncInfo info) {
 		this(configuration.getParticipant(), info);
 		this.synchronizeConfiguration = configuration;
 	}
 
-    @Override
+	@Override
 	protected void handleDispose() {
-    	super.handleDispose();
-    	if (synchronizeConfiguration != null) {
-	    	ICompareNavigator navigator = (ICompareNavigator)synchronizeConfiguration.getProperty(SynchronizePageConfiguration.P_INPUT_NAVIGATOR);
-	    	if (navigator != null && navigator == super.getNavigator()) {
-	    		synchronizeConfiguration.setProperty(SynchronizePageConfiguration.P_INPUT_NAVIGATOR, new CompareNavigator() {
+		super.handleDispose();
+		if (synchronizeConfiguration != null) {
+			ICompareNavigator navigator = (ICompareNavigator)synchronizeConfiguration.getProperty(SynchronizePageConfiguration.P_INPUT_NAVIGATOR);
+			if (navigator != null && navigator == super.getNavigator()) {
+				synchronizeConfiguration.setProperty(SynchronizePageConfiguration.P_INPUT_NAVIGATOR, new CompareNavigator() {
 					@Override
 					protected INavigatable[] getNavigatables() {
 						return new INavigatable[0];
 					}
 				});
-	    	}
-    	}
-    }
+			}
+		}
+	}
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getAdapter(Class<T> adapter) {
 		if (IFile.class.equals(adapter) && resource.getType() == IResource.FILE) {
@@ -167,20 +183,20 @@ public final class SyncInfoCompareInput extends SaveableCompareEditorInput imple
 		// update the title now that the remote revision number as been fetched
 		// from the server
 		setTitle(getTitle());
-        monitor.beginTask(TeamUIMessages.SyncInfoCompareInput_3, 100);
-        monitor.setTaskName(TeamUIMessages.SyncInfoCompareInput_3);
+		monitor.beginTask(TeamUIMessages.SyncInfoCompareInput_3, 100);
+		monitor.setTaskName(TeamUIMessages.SyncInfoCompareInput_3);
 		try {
 			if (participant != null) {
-			    participant.prepareCompareInput(node, getCompareConfiguration(), Policy.subMonitorFor(monitor, 100));
+				participant.prepareCompareInput(node, getCompareConfiguration(), Policy.subMonitorFor(monitor, 100));
 			} else {
-			    Utils.updateLabels(node.getSyncInfo(), getCompareConfiguration(), monitor);
+				Utils.updateLabels(node.getSyncInfo(), getCompareConfiguration(), monitor);
 				node.cacheContents(Policy.subMonitorFor(monitor, 100));
 			}
 		} catch (TeamException e) {
 			throw new InvocationTargetException(e);
 		} finally {
-            monitor.done();
-        }
+			monitor.done();
+		}
 		return node;
 	}
 

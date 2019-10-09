@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +14,7 @@
 package org.eclipse.team.tests.ui.synchronize;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -97,11 +101,8 @@ public class ResourceContentTests extends TeamTest {
 
 	private void assertContentsMatch(IResource[] resources) {
 		Set paths = getPaths(ResourcesPlugin.getWorkspace().getRoot());
-		Set resourceSet = new HashSet();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
-			resourceSet.add(resource);
-		}
+		Set<Object> resourceSet = new HashSet<>();
+		Collections.addAll(resourceSet, resources);
 		for (Iterator iterator = paths.iterator(); iterator.hasNext();) {
 			TreePath path = (TreePath) iterator.next();
 			Object o = path.getLastSegment();
@@ -119,10 +120,9 @@ public class ResourceContentTests extends TeamTest {
 	}
 
 	private Set getPaths(Object root) {
-		Set result = new HashSet();
+		Set<Object> result = new HashSet<>();
 		Object[] elements = provider.getElements(root);
-		for (int i = 0; i < elements.length; i++) {
-			Object object = elements[i];
+		for (Object object : elements) {
 			TreePath path = new TreePath(new Object[] { object });
 			Set childPaths = getPaths(provider, path);
 			result.addAll(childPaths);
@@ -132,11 +132,10 @@ public class ResourceContentTests extends TeamTest {
 
 	private Set getPaths(ResourceModelContentProvider provider, TreePath path) {
 		Object[] children = provider.getChildren(path);
-		Set result = new HashSet();
+		Set<TreePath> result = new HashSet<>();
 		if (children.length == 0)
 			result.add(path);
-		for (int i = 0; i < children.length; i++) {
-			Object object = children[i];
+		for (Object object : children) {
 			TreePath childPath = path.createChildPath(object);
 			Set childPaths = getPaths(provider, childPath);
 			result.addAll(childPaths);
@@ -145,7 +144,7 @@ public class ResourceContentTests extends TeamTest {
 	}
 
 	private String toString(Set set) {
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		boolean addComma = false;
 		for (Iterator iterator = set.iterator(); iterator.hasNext();) {
 			Object resource = iterator.next();
@@ -168,9 +167,8 @@ public class ResourceContentTests extends TeamTest {
 	}
 
 	private IResource[] asResources(IProject project, String[] resourcePaths) {
-		List resources = new ArrayList();
-		for (int i = 0; i < resourcePaths.length; i++) {
-			String path = resourcePaths[i];
+		List<IResource> resources = new ArrayList<>();
+		for (String path : resourcePaths) {
 			if (path.endsWith("/")) {
 				resources.add(project.getFolder(path));
 			} else {

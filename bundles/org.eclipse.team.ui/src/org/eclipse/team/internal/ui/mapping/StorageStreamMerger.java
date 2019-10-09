@@ -1,21 +1,30 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.eclipse.compare.IStreamMerger;
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.team.core.mapping.IStorageMerger;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 
@@ -51,26 +60,26 @@ public class StorageStreamMerger implements IStorageMerger {
 			if (status.getCode() == IStreamMerger.CONFLICT)
 				return new Status(status.getSeverity(), status.getPlugin(), CONFLICT, status.getMessage(), status.getException());
 			return status;
-        } finally {
-            try {
-                if (ancestorStream != null)
-                    ancestorStream.close();
-            } catch (IOException e) {
-                // Ignore
-            }
-            try {
-                if (remoteStream != null)
-                    remoteStream.close();
-            } catch (IOException e) {
-                // Ignore
-            }
-            try {
-                if (targetStream != null)
-                    targetStream.close();
-            } catch (IOException e) {
-                // Ignore
-            }
-        }
+		} finally {
+			try {
+				if (ancestorStream != null)
+					ancestorStream.close();
+			} catch (IOException e) {
+				// Ignore
+			}
+			try {
+				if (remoteStream != null)
+					remoteStream.close();
+			} catch (IOException e) {
+				// Ignore
+			}
+			try {
+				if (targetStream != null)
+					targetStream.close();
+			} catch (IOException e) {
+				// Ignore
+			}
+		}
 	}
 
 	private String getEncoding(IStorage ancestorStorage, String outputEncoding) {
@@ -87,9 +96,6 @@ public class StorageStreamMerger implements IStorageMerger {
 		return outputEncoding;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.mapping.IStorageMerger#canMergeWithoutAncestor()
-	 */
 	@Override
 	public boolean canMergeWithoutAncestor() {
 		return false;

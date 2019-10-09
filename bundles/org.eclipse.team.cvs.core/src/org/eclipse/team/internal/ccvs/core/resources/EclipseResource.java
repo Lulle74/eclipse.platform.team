@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,8 +33,8 @@ import org.eclipse.team.internal.ccvs.core.util.Util;
  */
 abstract class EclipseResource implements ICVSResource, Comparable {
 
-	 // The separator that must be used when creating CVS resource paths. Never use
-	 // the platform default separator since it is not compatible with CVS resources.
+	// The separator that must be used when creating CVS resource paths. Never use
+	// the platform default separator since it is not compatible with CVS resources.
 	protected static final String SEPARATOR = Session.SERVER_SEPARATOR;
 	protected static final String CURRENT_LOCAL_FOLDER = Session.CURRENT_LOCAL_FOLDER;
 		
@@ -67,9 +70,7 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		}
 	}
 
-	/*
-	 * @see ICVSResource#exists()
-	 */
+	@Override
 	public boolean exists() {
 		return resource.exists();
 	}
@@ -88,16 +89,12 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		return new EclipseFolder(parent);
 	}
 
-	/*
-	 * @see ICVSResource#getName()
-	 */
+	@Override
 	public String getName() {
 		return resource.getName();
 	}
 
-	/*
-	 * @see ICVSResource#isIgnored()
-	 */
+	@Override
 	public boolean isIgnored() throws CVSException {
 		// a managed resource is never ignored
 		if(isManaged() || resource.getType()==IResource.ROOT || resource.getType()==IResource.PROJECT) {
@@ -131,20 +128,12 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		return info.isVirtualDirectory();
 	}
 	
-	/*
-	 * @see ICVSResource#setIgnoredAs(String)
-	 */
+	@Override
 	public void setIgnoredAs(final String pattern) throws CVSException {
-		run(new ICVSRunnable() {
-			public void run(IProgressMonitor monitor) throws CVSException {
-				EclipseSynchronizer.getInstance().addIgnored(resource.getParent(), pattern);
-			}
-		}, null);
+		run(monitor -> EclipseSynchronizer.getInstance().addIgnored(resource.getParent(), pattern), null);
 	}
 
-	/*
-	 * @see ICVSResource#isManaged()
-	 */
+	@Override
 	public boolean isManaged() throws CVSException {
 		return isManaged(getSyncBytes());
 	}
@@ -176,9 +165,7 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		return resource.getFullPath().toString();
 	}	
 	
-	/*
-	 * @see ICVSResource#isFolder()
-	 */
+	@Override
 	public boolean isFolder() {
 		return false;
 	}
@@ -199,9 +186,7 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		}
 	}
 	
-	/*
-	 * @see ICVSResource#getSyncInfo()
-	 */
+	@Override
 	public ResourceSyncInfo getSyncInfo() throws CVSException {
 		return EclipseSynchronizer.getInstance().getResourceSync(resource);
 	}
@@ -220,24 +205,18 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		return getPath();
 	}
 	
-	/*
-	 * @see ICVSResource#unmanage()
-	 */
+	@Override
 	public void unmanage(IProgressMonitor monitor) throws CVSException {
 		EclipseSynchronizer.getInstance().deleteResourceSync(resource);
 	}
 	
-	/*
-	 * @see Comparable#compareTo(Object)
-	 */
+	@Override
 	public int compareTo(Object arg0) {
 		EclipseResource other = (EclipseResource)arg0;
 		return resource.getFullPath().toString().compareTo(other.resource.getFullPath().toString());
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSResource#getIResource()
-	 */
+	@Override
 	public IResource getIResource() {
 		return resource;
 	}
@@ -256,13 +235,11 @@ abstract class EclipseResource implements ICVSResource, Comparable {
 		try {
 			// Do not use a scheduling rule in the workspace run since one
 			// will be obtained by the EclipseSynchronizer
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					try {
-						EclipseSynchronizer.getInstance().run(getIResource(), job, monitor);
-					} catch(CVSException e) {
-						error[0] = e; 
-					}
+			ResourcesPlugin.getWorkspace().run((IWorkspaceRunnable) monitor1 -> {
+				try {
+					EclipseSynchronizer.getInstance().run(getIResource(), job, monitor1);
+				} catch(CVSException e) {
+					error[0] = e; 
 				}
 			}, null /* no rule */, 0, monitor);
 		} catch(CoreException e) {

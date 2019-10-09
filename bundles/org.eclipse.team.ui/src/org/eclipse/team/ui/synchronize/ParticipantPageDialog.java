@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,9 +17,14 @@ import org.eclipse.compare.CompareUI;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.internal.ui.TeamUIMessages;
-import org.eclipse.team.ui.*;
+import org.eclipse.team.ui.SaveablePartAdapter;
+import org.eclipse.team.ui.SaveablePartDialog;
+import org.eclipse.team.ui.TeamUI;
 
 /**
  * A dialog that displays the option of adding the participant to the {@link org.eclipse.team.ui.synchronize.ISynchronizeManager}
@@ -48,9 +56,6 @@ public class ParticipantPageDialog extends SaveablePartDialog {
 		this.participant = participant;
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
 	@Override
 	protected Control createDialogArea(Composite parent2) {
 		Composite parent = (Composite) super.createDialogArea(parent2);
@@ -62,9 +67,6 @@ public class ParticipantPageDialog extends SaveablePartDialog {
 		return parent;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
-	 */
 	@Override
 	protected void buttonPressed(int buttonId) {
 		if(buttonId == IDialogConstants.OK_ID && isRememberParticipant()) {

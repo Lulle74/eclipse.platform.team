@@ -1,26 +1,43 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.variants;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.jobs.ILock;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.core.Policy;
 import org.eclipse.team.internal.core.subscribers.BatchingLock;
-import org.eclipse.team.internal.core.subscribers.SyncByteConverter;
 import org.eclipse.team.internal.core.subscribers.BatchingLock.IFlushOperation;
 import org.eclipse.team.internal.core.subscribers.BatchingLock.ThreadInfo;
+import org.eclipse.team.internal.core.subscribers.SyncByteConverter;
 
 /**
  * This class manages the synchronization between local resources and their
@@ -401,8 +418,7 @@ public class ThreeWaySynchronizer {
 			allListeners = listeners.toArray(new ISynchronizerChangeListener[listeners.size()]);
 		}
 		// Notify the listeners safely so all will receive notification
-		for (int i = 0; i < allListeners.length; i++) {
-			final ISynchronizerChangeListener listener = allListeners[i];
+		for (ISynchronizerChangeListener listener : allListeners) {
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {

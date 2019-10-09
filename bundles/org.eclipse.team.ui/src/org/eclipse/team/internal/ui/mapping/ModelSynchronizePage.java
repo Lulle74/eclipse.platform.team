@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,11 +20,18 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.synchronize.AbstractSynchronizePage;
+import org.eclipse.team.internal.ui.synchronize.AbstractViewerAdvisor;
+import org.eclipse.team.internal.ui.synchronize.ChangesSection;
+import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
 import org.eclipse.team.internal.ui.synchronize.actions.RefreshActionContribution;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
 
 /**
  * A synchronize page for displaying a {@link ModelSynchronizeParticipant}.

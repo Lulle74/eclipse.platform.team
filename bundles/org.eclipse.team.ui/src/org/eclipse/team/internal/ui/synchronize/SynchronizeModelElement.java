@@ -1,18 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import org.eclipse.compare.structuremergeviewer.*;
+import org.eclipse.compare.structuremergeviewer.DiffNode;
+import org.eclipse.compare.structuremergeviewer.IDiffContainer;
+import org.eclipse.compare.structuremergeviewer.IDiffElement;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -150,8 +159,7 @@ public abstract class SynchronizeModelElement extends DiffNode implements IAdapt
 		}
 		boolean set = getProperty(propertyName);
 		final PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, Boolean.valueOf(!set), Boolean.valueOf(set));
-		for (int i = 0; i < allListeners.length; i++) {
-			Object object = allListeners[i];
+		for (Object object : allListeners) {
 			if (object instanceof IPropertyChangeListener) {
 				final IPropertyChangeListener listener = (IPropertyChangeListener)object;
 				SafeRunner.run(new ISafeRunnable() {
@@ -187,8 +195,7 @@ public abstract class SynchronizeModelElement extends DiffNode implements IAdapt
 
 	private boolean hasChildWithFlag(String flag) {
 		IDiffElement[] childen = getChildren();
-		for (int i = 0; i < childen.length; i++) {
-			IDiffElement element = childen[i];
+		for (IDiffElement element : childen) {
 			if (((SynchronizeModelElement)element).getProperty(flag)) {
 				return true;
 			}

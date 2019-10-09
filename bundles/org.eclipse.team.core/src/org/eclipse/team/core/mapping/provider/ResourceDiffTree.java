@@ -1,22 +1,32 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.mapping.provider;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffVisitor;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.diff.provider.DiffTree;
 import org.eclipse.team.core.mapping.IResourceDiff;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
@@ -73,11 +83,9 @@ public class ResourceDiffTree extends DiffTree implements IResourceDiffTree {
 
 	@Override
 	public void accept(ResourceTraversal[] traversals, IDiffVisitor visitor) {
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
-			for (int j = 0; j < resources.length; j++) {
-				IResource resource = resources[j];
+			for (IResource resource : resources) {
 				accept(resource.getFullPath(), visitor, traversal.getDepth());
 			}
 		}
@@ -86,11 +94,9 @@ public class ResourceDiffTree extends DiffTree implements IResourceDiffTree {
 	@Override
 	public IDiff[] getDiffs(final ResourceTraversal[] traversals) {
 		final Set<IDiff> result = new HashSet<>();
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
-			for (int j = 0; j < resources.length; j++) {
-				IResource resource = resources[j];
+			for (IResource resource : resources) {
 				internalGetDiffs(resource, traversal.getDepth(), result);
 			}
 		}
@@ -121,8 +127,7 @@ public class ResourceDiffTree extends DiffTree implements IResourceDiffTree {
 	public IResource[] members(IResource resource) {
 		List<IResource> result = new ArrayList<>();
 		IPath[] paths = getChildren(resource.getFullPath());
-		for (int i = 0; i < paths.length; i++) {
-			IPath path = paths[i];
+		for (IPath path : paths) {
 			IDiff node = getDiff(path);
 			if (node == null) {
 				result.add(internalGetResource(path, true));
@@ -137,8 +142,7 @@ public class ResourceDiffTree extends DiffTree implements IResourceDiffTree {
 	public IResource[] getAffectedResources() {
 		List<IResource> result = new ArrayList<>();
 		IDiff[] nodes = getDiffs();
-		for (int i = 0; i < nodes.length; i++) {
-			IDiff node = nodes[i];
+		for (IDiff node : nodes) {
 			result.add(getResource(node));
 		}
 		return result.toArray(new IResource[result.size()]);

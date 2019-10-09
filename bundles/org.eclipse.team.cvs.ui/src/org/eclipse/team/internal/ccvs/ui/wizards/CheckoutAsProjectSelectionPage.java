@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -79,34 +82,26 @@ public class CheckoutAsProjectSelectionPage extends CVSWizardPage {
 		return remoteFolders[0].getFolderSyncInfo().getRoot();
 	}
 	
-	/**
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite= createComposite(parent, 2, false);
 		setControl(composite);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_PROJECT_SELECTION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_PROJECT_SELECTION_PAGE);
 		
 		if (isSingleFolder()) {
 			createLabel(composite, CVSUIMessages.CheckoutAsProjectSelectionPage_name); 
 			nameField = createTextField(composite);
-			nameField.addListener(SWT.Modify, new Listener() {
-				public void handleEvent(Event event) {
-					folderName = nameField.getText();
-					updateWidgetEnablements();
-				}
+			nameField.addListener(SWT.Modify, event -> {
+				folderName = nameField.getText();
+				updateWidgetEnablements();
 			});
 		}
 		
 		createWrappingLabel(composite, CVSUIMessages.CheckoutAsProjectSelectionPage_treeLabel, 0, 2); 
 		
 		tree = createResourceSelectionTree(composite, IResource.PROJECT | IResource.FOLDER, 2 /* horizontal span */);
-		tree.addSelectionChangedListener(new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				handleResourceSelection(event);
-			}
-		});
+		tree.addSelectionChangedListener(event -> handleResourceSelection(event));
 
 		Composite filterComposite = createComposite(composite, 2, false);
 		GridData data = new GridData();
@@ -117,6 +112,7 @@ public class CheckoutAsProjectSelectionPage extends CVSWizardPage {
 		createLabel(filterComposite, CVSUIMessages.CheckoutAsProjectSelectionPage_showLabel); 
 		filterList = createCombo(filterComposite);
 		filterList.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				handleFilterSelection();
 			}
@@ -127,7 +123,7 @@ public class CheckoutAsProjectSelectionPage extends CVSWizardPage {
 		initializeValues();
 		updateWidgetEnablements();
 		tree.getControl().setFocus();
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 
 	/**
@@ -197,11 +193,10 @@ public class CheckoutAsProjectSelectionPage extends CVSWizardPage {
 	 * @return IResource
 	 */
 	private IProject[] getProjects(String root, boolean unshared) throws CVSException {
-		List validTargets = new ArrayList();
+		List<IProject> validTargets = new ArrayList<>();
 		try {
 			IResource[] projects = ResourcesPlugin.getWorkspace().getRoot().members();
-			for (int i = 0; i < projects.length; i++) {
-				IResource resource = projects[i];
+			for (IResource resource : projects) {
 				if (resource instanceof IProject) {
 					IProject project = (IProject) resource;
 					if (project.isAccessible()) {
@@ -221,7 +216,7 @@ public class CheckoutAsProjectSelectionPage extends CVSWizardPage {
 		} catch (CoreException e) {
 			throw CVSException.wrapException(e);
 		}
-		return (IProject[]) validTargets.toArray(new IProject[validTargets.size()]);
+		return validTargets.toArray(new IProject[validTargets.size()]);
 	}
 	
 	public IContainer getLocalFolder() {

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -37,7 +40,7 @@ import org.eclipse.ui.views.navigator.ResourceComparator;
  * for widget creation.
  */
 public abstract class CVSWizardPage extends WizardPage {
-    
+	
 	protected static final int LABEL_WIDTH_HINT = 400;
 	protected static final int LABEL_INDENT_WIDTH = 32;
 	protected static final int LIST_HEIGHT_HINT = 100;
@@ -246,6 +249,7 @@ public abstract class CVSWizardPage extends WizardPage {
 	 */
 	protected ITreeContentProvider getResourceProvider(final int resourceType) {
 		return new WorkbenchContentProvider() {
+			@Override
 			public Object[] getChildren(Object o) {
 				if (o instanceof IContainer) {
 					IResource[] members = null;
@@ -257,11 +261,11 @@ public abstract class CVSWizardPage extends WizardPage {
 					}
 	
 					//filter out the desired resource types
-					ArrayList results = new ArrayList();
-					for (int i = 0; i < members.length; i++) {
+					ArrayList<IResource> results = new ArrayList<>();
+					for (IResource member : members) {
 						//And the test bits with the resource types to see if they are what we want
-						if ((members[i].getType() & resourceType) > 0) {
-							results.add(members[i]);
+						if ((member.getType() & resourceType) > 0) {
+							results.add(member);
 						}
 					}
 					return results.toArray();
@@ -289,9 +293,7 @@ public abstract class CVSWizardPage extends WizardPage {
 		this.wizard = wizard;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.WizardPage#getNextPage()
-	 */
+	@Override
 	public IWizardPage getNextPage() {
 		ICVSWizard w = getCVSWizard();
 		if (w != null) {
@@ -302,9 +304,7 @@ public abstract class CVSWizardPage extends WizardPage {
 		return super.getNextPage();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.WizardPage#canFlipToNextPage()
-	 */
+	@Override
 	public boolean canFlipToNextPage() {
 		ICVSWizard w = getCVSWizard();
 		if (w != null) {

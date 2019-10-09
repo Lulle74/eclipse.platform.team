@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,7 +15,9 @@ package org.eclipse.team.internal.ui.mapping;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Composite;
@@ -77,20 +82,18 @@ public final class MergeAllOperation extends SynchronizationOperation {
 				return (IMergeContext)getContext();
 			}
 			private boolean promptToContinue(final IStatus status) {
-		    	final boolean[] result = new boolean[] { false };
-		    	Runnable runnable = () -> {
+				final boolean[] result = new boolean[] { false };
+				Runnable runnable = () -> {
 					ErrorDialog dialog = new ErrorDialog(getShell(), TeamUIMessages.ModelMergeOperation_0, TeamUIMessages.ModelMergeOperation_1, status, IStatus.ERROR | IStatus.WARNING | IStatus.INFO) {
 						@Override
 						protected void createButtonsForButtonBar(Composite parent) {
-					        createButton(parent, IDialogConstants.YES_ID, IDialogConstants.YES_LABEL,
-					                false);
+							createButton(parent, IDialogConstants.YES_ID, IDialogConstants.YES_LABEL,
+									false);
 							createButton(parent, IDialogConstants.NO_ID, IDialogConstants.NO_LABEL,
 									true);
-					        createDetailsButton(parent);
+							createDetailsButton(parent);
 						}
-						/* (non-Javadoc)
-						 * @see org.eclipse.jface.dialogs.ErrorDialog#buttonPressed(int)
-						 */
+
 						@Override
 						protected void buttonPressed(int id) {
 							if (id == IDialogConstants.YES_ID)

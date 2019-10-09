@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +14,7 @@
 package org.eclipse.team.internal.ccvs.ui.model;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.team.internal.ccvs.core.CVSException;
-import org.eclipse.team.internal.ccvs.core.CVSTag;
-import org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation;
+import org.eclipse.team.internal.ccvs.core.*;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
 /**
@@ -26,9 +27,7 @@ public abstract class TagCategory extends CVSModelElement {
 		this.repository = repository;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.model.CVSModelElement#fetchChildren(java.lang.Object, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public Object[] fetchChildren(Object o, IProgressMonitor monitor) throws CVSException {
 		CVSTag[] tags = getTags(monitor);
 		CVSTagElement[] elements = new CVSTagElement[tags.length];
@@ -45,9 +44,7 @@ public abstract class TagCategory extends CVSModelElement {
 	 */
 	protected abstract CVSTag[] getTags(IProgressMonitor monitor) throws CVSException;
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.IWorkbenchAdapter#getParent(java.lang.Object)
-	 */
+	@Override
 	public Object getParent(Object o) {
 		return repository;
 	}
@@ -64,6 +61,7 @@ public abstract class TagCategory extends CVSModelElement {
 	 * associated with this object. Returns <code>null</code> if
 	 * no such object can be found.
 	 */
+	@Override
 	public <T> T getAdapter(Class<T> adapter) {
 		if (adapter == IWorkbenchAdapter.class) return adapter.cast(this);
 		return null;

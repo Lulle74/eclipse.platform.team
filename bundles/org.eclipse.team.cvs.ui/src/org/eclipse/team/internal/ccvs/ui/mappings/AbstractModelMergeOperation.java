@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -29,20 +32,17 @@ public abstract class AbstractModelMergeOperation extends ModelParticipantMergeO
 		this.ownsManager = ownsManager;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#canRunAsJob()
-	 */
+	@Override
 	protected boolean canRunAsJob() {
 		return true;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingMergeOperation#isPreviewInDialog()
-	 */
+	@Override
 	protected boolean isPreviewInDialog() {
 		return CVSUIPlugin.getPlugin().getPreferenceStore().getString(ICVSUIConstants.PREF_UPDATE_PREVIEW).equals(ICVSUIConstants.PREF_UPDATE_PREVIEW_IN_DIALOG);
 	}
 	
+	@Override
 	protected void endOperation(IProgressMonitor monitor) throws InvocationTargetException {
 		if (ownsManager) {
 			ISynchronizationScopeManager manager = getScopeManager();
@@ -51,6 +51,7 @@ public abstract class AbstractModelMergeOperation extends ModelParticipantMergeO
 		super.endOperation(monitor);
 	}
 	
+	@Override
 	protected ModelSynchronizeParticipant createParticipant() {
 		ModelSynchronizeParticipant participant = super.createParticipant();
 		// Transfer ownership of the manager to the participant

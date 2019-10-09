@@ -1,9 +1,12 @@
 /*******************************************************************************
- *  Copyright (c) 2000, 2008 IBM Corporation and others.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
+ *  Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
  *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *  https://www.eclipse.org/legal/epl-2.0/
+ *
+ *  SPDX-License-Identifier: EPL-2.0
  * 
  *  Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,13 +16,8 @@ package org.eclipse.team.internal.ccvs.ui;
  
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.CompareConfiguration;
-import org.eclipse.compare.CompareEditorInput;
-import org.eclipse.compare.ITypedElement;
-import org.eclipse.compare.structuremergeviewer.DiffNode;
-import org.eclipse.compare.structuremergeviewer.Differencer;
-import org.eclipse.compare.structuremergeviewer.IDiffContainer;
-import org.eclipse.compare.structuremergeviewer.IStructureComparator;
+import org.eclipse.compare.*;
+import org.eclipse.compare.structuremergeviewer.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.*;
@@ -50,7 +48,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 	private static final int NODE_UNKNOWN = 2;
 	
 	String toolTipText;
-    private String title;
+	private String title;
 	
 	/**
 	 * Creates a new CVSCompareEditorInput.
@@ -272,16 +270,12 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 		}
 	}
 	
-	/* (Non-javadoc)
-	 * Method declared on CompareEditorInput
-	 */
+	@Override
 	public boolean isSaveNeeded() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on CompareEditorInput
-	 */
+	@Override
 	protected Object prepareInput(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		final boolean threeWay = ancestor != null;
 		if (right == null || left == null) {
@@ -292,6 +286,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 		initLabels();
 	
 		final Differencer d = new Differencer() {
+			@Override
 			protected boolean contentsEqual(Object input1, Object input2) {
 				int compare = teamEqual(input1, input2);
 				if (compare == NODE_EQUAL) {
@@ -303,6 +298,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 				//revert to slow content comparison
 				return super.contentsEqual(input1, input2);
 			}
+			@Override
 			protected void updateProgress(IProgressMonitor progressMonitor, Object node) {
 				if (node instanceof ITypedElement) {
 					ITypedElement element = (ITypedElement)node;
@@ -310,6 +306,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 					progressMonitor.worked(1);
 				}
 			}
+			@Override
 			protected Object[] getChildren(Object input) {
 				if (input instanceof IStructureComparator) {
 					Object[] children= ((IStructureComparator)input).getChildren();
@@ -318,6 +315,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 				}
 				return null;
 			}
+			@Override
 			protected Object visit(Object data, int result, Object ancestor, Object left, Object right) {
 				return new DiffNode((IDiffContainer) data, result, (ITypedElement)ancestor, (ITypedElement)left, (ITypedElement)right);
 			}
@@ -327,7 +325,7 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 			// do the diff	
 			Object result = null;
 			monitor.beginTask(CVSUIMessages.CVSCompareEditorInput_comparing, 30); 
-			IProgressMonitor sub = new SubProgressMonitor(monitor, 30);
+			IProgressMonitor sub = SubMonitor.convert(monitor, 30);
 			sub.beginTask(CVSUIMessages.CVSCompareEditorInput_comparing, 100); 
 			try {
 				result = d.findDifferences(threeWay, sub, null, ancestor, left, right);
@@ -406,69 +404,62 @@ public class CVSCompareEditorInput extends CompareEditorInput {
 		return CVSUIPlugin.getPlugin().getPreferenceStore().getBoolean(ICVSUIConstants.PREF_CONSIDER_CONTENTS);
 	}
 	
+	@Override
 	public Viewer createDiffViewer(Composite parent) {
 		final Viewer viewer = super.createDiffViewer(parent);
-		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				CompareConfiguration cc = getCompareConfiguration();
-				setLabels(cc, (IStructuredSelection)event.getSelection());
+		viewer.addSelectionChangedListener(event -> {
+			CompareConfiguration cc = getCompareConfiguration();
+			setLabels(cc, event.getStructuredSelection());
+		});
+		((StructuredViewer)viewer).addOpenListener(event -> {
+			ISelection selection = event.getSelection();
+			if (! selection.isEmpty() && selection instanceof IStructuredSelection) {
+				Object o = ((IStructuredSelection)selection).getFirstElement();
+				if (o instanceof DiffNode) {
+					updateLabelsFor((DiffNode)o);
+				}
 			}
 		});
-		((StructuredViewer)viewer).addOpenListener(new IOpenListener() {
-            public void open(OpenEvent event) {
-                ISelection selection = event.getSelection();
-                if (! selection.isEmpty() && selection instanceof IStructuredSelection) {
-                    Object o = ((IStructuredSelection)selection).getFirstElement();
-                    if (o instanceof DiffNode) {
-                        updateLabelsFor((DiffNode)o);
-                    }
-                }
-            }
-        });
-        ((StructuredViewer)viewer).addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
-                ISelection selection = event.getSelection();
-                if (! selection.isEmpty() && selection instanceof IStructuredSelection) {
-                    Object o = ((IStructuredSelection)selection).getFirstElement();
-                    if (o instanceof DiffNode) {
-                        DiffNode diffNode = ((DiffNode)o);
-                        if (diffNode.hasChildren()) {
-                            AbstractTreeViewer atv = ((AbstractTreeViewer)viewer);
-                            atv.setExpandedState(o, !atv.getExpandedState(o));
-                        }
-                    }
-                }
-            }
-        });
+		((StructuredViewer)viewer).addDoubleClickListener(event -> {
+			ISelection selection = event.getSelection();
+			if (! selection.isEmpty() && selection instanceof IStructuredSelection) {
+				Object o = ((IStructuredSelection)selection).getFirstElement();
+				if (o instanceof DiffNode) {
+					DiffNode diffNode = ((DiffNode)o);
+					if (diffNode.hasChildren()) {
+						AbstractTreeViewer atv = ((AbstractTreeViewer)viewer);
+						atv.setExpandedState(o, !atv.getExpandedState(o));
+					}
+				}
+			}
+		});
 		return viewer;
 	}
 	
 	/*
 	 * Update the labels for the given DiffNode
-     */
-    protected void updateLabelsFor(DiffNode node) {
-        CompareConfiguration cc = getCompareConfiguration();
-        ITypedElement l = node.getLeft();
-        if (l == null) {
-            cc.setLeftLabel(CVSUIMessages.CVSCompareEditorInput_0); 
-            cc.setLeftImage(null);
-        } else {
-	        cc.setLeftLabel(getLabel(l));
-	        cc.setLeftImage(l.getImage());
-        }
-        ITypedElement r = node.getRight();
-        if (r == null) {
-            cc.setRightLabel(CVSUIMessages.CVSCompareEditorInput_1); 
-            cc.setRightImage(null);
-        } else {
-	        cc.setRightLabel(getLabel(r));
-	        cc.setRightImage(r.getImage());
-        }
-    }
-
-    /* (non-Javadoc)
-	 * @see org.eclipse.compare.CompareEditorInput#getToolTipText()
 	 */
+	protected void updateLabelsFor(DiffNode node) {
+		CompareConfiguration cc = getCompareConfiguration();
+		ITypedElement l = node.getLeft();
+		if (l == null) {
+			cc.setLeftLabel(CVSUIMessages.CVSCompareEditorInput_0); 
+			cc.setLeftImage(null);
+		} else {
+			cc.setLeftLabel(getLabel(l));
+			cc.setLeftImage(l.getImage());
+		}
+		ITypedElement r = node.getRight();
+		if (r == null) {
+			cc.setRightLabel(CVSUIMessages.CVSCompareEditorInput_1); 
+			cc.setRightImage(null);
+		} else {
+			cc.setRightLabel(getLabel(r));
+			cc.setRightImage(r.getImage());
+		}
+	}
+
+	@Override
 	public String getToolTipText() {
 		if (toolTipText != null) {
 			return toolTipText;

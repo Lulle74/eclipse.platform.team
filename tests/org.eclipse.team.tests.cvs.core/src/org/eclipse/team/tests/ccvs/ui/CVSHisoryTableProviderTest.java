@@ -1,16 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.tests.ccvs.ui;
 
-import java.util.Iterator;
 import java.util.List;
 
 import junit.framework.Test;
@@ -36,7 +38,7 @@ import org.eclipse.team.tests.ccvs.core.EclipseTest;
 
 public class CVSHisoryTableProviderTest extends EclipseTest {
 
-	public void testAllNegatives() throws Exception {
+	public void testAllNegatives() {
 		Display display = Display.getCurrent();
 		Shell shell = new Shell(display);
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -55,12 +57,11 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(6, items.length);
 
 		// List columns = layout.columns;
-		List/* <ColumnLayoutData> */columns = (List) ReflectionUtils.getField(
+		List<ColumnLayoutData> columns = (List<ColumnLayoutData>) ReflectionUtils.getField(
 				layout, "columns");
 		// same weight for all columns
 		int weight = ((ColumnWeightData) columns.get(0)).weight;
-		for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-			ColumnLayoutData column = (ColumnLayoutData) iterator.next();
+		for (ColumnLayoutData column : columns) {
 			assertTrue(column instanceof ColumnWeightData);
 			ColumnWeightData c = (ColumnWeightData) column;
 			assertTrue(c.weight > 0);
@@ -69,7 +70,7 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		// layout.layout(tree, false /*ignored in TableLayout*/);
 	}
 
-	public void testAllZeros() throws Exception {
+	public void testAllZeros() {
 		Display display = Display.getCurrent();
 		Shell shell = new Shell(display);
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -90,12 +91,11 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(6, items.length);
 
 		// List columns = layout.columns;
-		List/* <ColumnLayoutData> */columns = (List) ReflectionUtils.getField(
+		List <ColumnLayoutData> columns = (List<ColumnLayoutData>) ReflectionUtils.getField(
 				layout, "columns");
 		// same weight for all columns
 		int weight = ((ColumnWeightData) columns.get(0)).weight;
-		for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-			ColumnLayoutData column = (ColumnLayoutData) iterator.next();
+		for (ColumnLayoutData column : columns) {
 			assertTrue(column instanceof ColumnWeightData);
 			ColumnWeightData c = (ColumnWeightData) column;
 			assertTrue(c.weight > 0);
@@ -103,7 +103,7 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		}
 	}
 
-	public void testNewBranchColumn() throws Exception {
+	public void testNewBranchColumn() {
 		Display display = Display.getCurrent();
 		Shell shell = new Shell(display);
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -127,10 +127,9 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(6, items.length);
 
 		// List columns = layout.columns;
-		List/* <ColumnLayoutData> */columns = (List) ReflectionUtils.getField(
+		List<ColumnLayoutData> columns = (List<ColumnLayoutData>) ReflectionUtils.getField(
 				layout, "columns");
-		for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-			ColumnLayoutData column = (ColumnLayoutData) iterator.next();
+		for (ColumnLayoutData column : columns) {
 			assertTrue(column instanceof ColumnPixelData);
 			ColumnPixelData c = (ColumnPixelData) column;
 			assertTrue(c.width > 0);
@@ -142,7 +141,7 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(pixels, branchesColumnWidth);
 	}
 
-	public void testAllPositives() throws Exception {
+	public void testAllPositives() {
 		Display display = Display.getCurrent();
 		Shell shell = new Shell(display);
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -166,17 +165,16 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(6, items.length);
 
 		// List columns = layout.columns;
-		List/* <ColumnLayoutData> */columns = (List) ReflectionUtils.getField(
+		List<ColumnLayoutData> columns = (List<ColumnLayoutData>) ReflectionUtils.getField(
 				layout, "columns");
-		for (Iterator iterator = columns.iterator(); iterator.hasNext();) {
-			ColumnLayoutData column = (ColumnLayoutData) iterator.next();
+		for (ColumnLayoutData column : columns) {
 			assertTrue(column instanceof ColumnPixelData);
 			ColumnPixelData c = (ColumnPixelData) column;
 			assertEquals(100, c.width);
 		}
 	}
 
-	public void testHiddenColumn() throws Exception {
+	public void testHiddenColumn() {
 		Display display = Display.getCurrent();
 		Shell shell = new Shell(display);
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -200,9 +198,9 @@ public class CVSHisoryTableProviderTest extends EclipseTest {
 		assertEquals(6, items.length);
 
 		// List columns = layout.columns;
-		List/* <ColumnLayoutData> */columns = (List) ReflectionUtils.getField(
+		List<ColumnPixelData> columns = (List<ColumnPixelData>) ReflectionUtils.getField(
 				layout, "columns");
-		ColumnPixelData[] columnsArray = (ColumnPixelData[]) columns.toArray(new ColumnPixelData[0]);
+		ColumnPixelData[] columnsArray = columns.toArray(new ColumnPixelData[0]);
 		assertEquals(100, columnsArray[0].width);
 		assertEquals(0, columnsArray[1].width); // keep user settings
 		assertEquals(100, columnsArray[2].width);

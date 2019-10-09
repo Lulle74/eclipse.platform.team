@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,9 +15,6 @@ package org.eclipse.team.tests.ccvs.ui;
 
 import java.util.Arrays;
 import java.util.List;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -26,6 +26,9 @@ import org.eclipse.team.internal.ccvs.ui.actions.CommitAction;
 import org.eclipse.team.internal.ccvs.ui.actions.IgnoreAction;
 import org.eclipse.team.tests.ccvs.core.CVSTestSetup;
 import org.eclipse.ui.IActionDelegate;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 public class SelectionPropertyTesterTest extends EnablementTest {
 
@@ -73,7 +76,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new CommitAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		assertEquals(
 				false,
 				tester
@@ -89,7 +92,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new CommitAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		assertEquals(
 				false,
 				tester
@@ -107,7 +110,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new CommitAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		assertEquals(
 				false,
 				tester
@@ -125,7 +128,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new CommitAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -141,7 +144,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new IgnoreAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -157,7 +160,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new BranchAction();
 		IProject project = createTestProject(action);
-		List resources = getManagedResources(project, false, false);
+		List<IResource> resources = getManagedResources(project, false, false);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -173,7 +176,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new CommitAction();
 		IProject project = createTestProject(action);
-		List resources = getUnmanagedResources(project);
+		List<IResource> resources = getUnmanagedResources(project);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -189,7 +192,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new IgnoreAction();
 		IProject project = createTestProject(action);
-		List resources = getUnmanagedResources(project);
+		List<IResource> resources = getUnmanagedResources(project);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -205,7 +208,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		SelectionPropertyTester tester = new SelectionPropertyTester();
 		IActionDelegate action = new BranchAction();
 		IProject project = createTestProject(action);
-		List resources = getUnmanagedResources(project);
+		List<IResource> resources = getUnmanagedResources(project);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -228,7 +231,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		IProject project = getUniqueTestProject(actionName);
 		IResource[] buildResources = buildResources(project, resourcesNames,
 				true);
-		List resources = Arrays.asList(buildResources);
+		List<IResource> resources = Arrays.asList(buildResources);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -249,7 +252,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		IProject project = getUniqueTestProject(actionName);
 		IResource[] buildResources = buildResources(project, resourcesNames,
 				true);
-		List resources = Arrays.asList(buildResources);
+		List<IResource> resources = Arrays.asList(buildResources);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),
@@ -270,7 +273,7 @@ public class SelectionPropertyTesterTest extends EnablementTest {
 		IProject project = getUniqueTestProject(actionName);
 		IResource[] buildResources = buildResources(project, resourcesNames,
 				true);
-		List resources = Arrays.asList(buildResources);
+		List<IResource> resources = Arrays.asList(buildResources);
 		boolean testResult = tester
 				.test(
 						asSelection(resources),

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,22 +23,20 @@ import org.eclipse.team.internal.ccvs.ui.IHelpContextIds;
 import org.eclipse.team.internal.ccvs.ui.operations.ReplaceOperation;
 
 public class ReplaceWithRemoteAction extends WorkspaceTraversalAction {
-    
+	
+	@Override
 	public void execute(IAction action)  throws InvocationTargetException, InterruptedException {
 		
-		final ReplaceOperation replaceOperation = new ReplaceOperation(getTargetPart(), getCVSResourceMappings(), null);
+		final ReplaceOperation replaceOperation = new ReplaceOperation(getTargetPart(), getCVSResourceMappings(), resourceCommonTag);
 		if (hasOutgoingChanges(replaceOperation)) {
 			final boolean[] keepGoing = new boolean[] { true };
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					OutgoingChangesDialog dialog = new OutgoingChangesDialog(getShell(), replaceOperation.getScopeManager(), 
-							CVSUIMessages.ReplaceWithTagAction_2, 
-							CVSUIMessages.ReplaceWithTagAction_0, 
-							CVSUIMessages.ReplaceWithTagAction_1);
-					dialog.setHelpContextId(IHelpContextIds.REPLACE_OUTGOING_CHANGES_DIALOG);
-					int result = dialog.open();
-					keepGoing[0] = result == Window.OK;
-				}
+			Display.getDefault().syncExec(() -> {
+				OutgoingChangesDialog dialog = new OutgoingChangesDialog(getShell(), replaceOperation.getScopeManager(),
+						CVSUIMessages.ReplaceWithTagAction_2, CVSUIMessages.ReplaceWithTagAction_0,
+						CVSUIMessages.ReplaceWithTagAction_1);
+				dialog.setHelpContextId(IHelpContextIds.REPLACE_OUTGOING_CHANGES_DIALOG);
+				int result = dialog.open();
+				keepGoing[0] = result == Window.OK;
 			});
 			if (!keepGoing[0])
 				return;
@@ -43,23 +44,17 @@ public class ReplaceWithRemoteAction extends WorkspaceTraversalAction {
 		replaceOperation.run();
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#getErrorTitle()
-	 */
+	@Override
 	protected String getErrorTitle() {
 		return CVSUIMessages.ReplaceWithRemoteAction_problemMessage; 
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForAddedResources()
-	 */
+	@Override
 	protected boolean isEnabledForAddedResources() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForNonExistantResources()
-	 */
+	@Override
 	protected boolean isEnabledForNonExistantResources() {
 		return true;
 	}
@@ -70,6 +65,7 @@ public class ReplaceWithRemoteAction extends WorkspaceTraversalAction {
 	 * 
 	 * @see TeamAction#setActionEnablement(org.eclipse.jface.action.IAction)
 	 */
+	@Override
 	protected void setActionEnablement(IAction action) {
 		super.setActionEnablement(action);
 		

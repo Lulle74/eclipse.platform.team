@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +14,10 @@
 package org.eclipse.team.ui.synchronize;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.wizard.*;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.internal.ui.ITeamUIImages;
 import org.eclipse.team.internal.ui.TeamUIMessages;
@@ -36,17 +42,11 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		setNeedsProgressMonitor(false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#getWindowTitle()
-	 */
 	@Override
 	public String getWindowTitle() {
 		return TeamUIMessages.GlobalRefreshSubscriberPage_0;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#addPages()
-	 */
 	@Override
 	public void addPages() {
 		if (getRootResources().length == 0) {
@@ -68,9 +68,6 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#performFinish()
-	 */
 	@Override
 	public boolean performFinish() {
 		if (importWizard != null) {
@@ -81,9 +78,6 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
-	 */
 	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 		if(importWizard != null ) {
@@ -92,9 +86,6 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		return super.getNextPage(page);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#performCancel()
-	 */
 	@Override
 	public boolean performCancel() {
 		if(importWizard != null) {
@@ -103,9 +94,6 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		return super.performCancel();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#canFinish()
-	 */
 	@Override
 	public boolean canFinish() {
 		if(importWizard != null) {
@@ -114,9 +102,6 @@ public abstract class ParticipantSynchronizeWizard extends Wizard {
 		return super.canFinish();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#getStartingPage()
-	 */
 	@Override
 	public IWizardPage getStartingPage() {
 		if(importWizard != null) {

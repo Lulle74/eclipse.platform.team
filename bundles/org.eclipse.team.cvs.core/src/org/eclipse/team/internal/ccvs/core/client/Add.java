@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,8 +36,8 @@ public class Add extends Command {
 		// Check that all the arguments can give you an
 		// repo that you will need while traversing the
 		// file-structure
-		for (int i = 0; i < resources.length; i++) {
-			Assert.isNotNull(resources[i].getRemoteLocation(session.getLocalRoot()));
+		for (ICVSResource resource : resources) {
+			Assert.isNotNull(resource.getRemoteLocation(session.getLocalRoot()));
 		}
 		
 		// Get a vistor and use it on every resource we should
@@ -56,16 +59,16 @@ public class Add extends Command {
 			return status;
 		}
 				
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i].isFolder()) {
-				ICVSFolder mFolder = (ICVSFolder) resources[i];
+		for (ICVSResource resource : resources) {
+			if (resource.isFolder()) {
+				ICVSFolder mFolder = (ICVSFolder) resource;
 				FolderSyncInfo info = mFolder.getParent().getFolderSyncInfo();
 				if (info == null) {
 					status = mergeStatus(status, new CVSStatus(IStatus.ERROR, NLS.bind(CVSMessages.Add_invalidParent, new String[] { mFolder.getRelativePath(session.getLocalRoot()) }))); 
 				} else {
 					String repository = info.getRepository() + "/" + mFolder.getName();	 //$NON-NLS-1$
-                    MutableFolderSyncInfo newInfo = info.cloneMutable();
-                    newInfo.setRepository(repository);
+					MutableFolderSyncInfo newInfo = info.cloneMutable();
+					newInfo.setRepository(repository);
 					mFolder.setFolderSyncInfo(newInfo);
 				}
 			}
@@ -73,25 +76,23 @@ public class Add extends Command {
 		return status;
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.internal.ccvs.core.client.Command#getDefaultCommandOutputListener()
-     */
-    protected ICommandOutputListener getDefaultCommandOutputListener() {
-        return new CommandOutputListener() {
-            public IStatus errorLine(String line,
-                    ICVSRepositoryLocation location, ICVSFolder commandRoot,
-                    IProgressMonitor monitor) {
-                
-                String serverMessage = getServerMessage(line, location);
-                if (serverMessage != null) {
-                    if (serverMessage.indexOf("cvs commit") != -1 && serverMessage.indexOf("add") != -1 && serverMessage.indexOf("permanently") != -1) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                        return OK;
-                    if (serverMessage.startsWith("scheduling file") && serverMessage.indexOf("for addition") != -1) //$NON-NLS-1$ //$NON-NLS-2$
-                        return OK;
-                }
-                return super.errorLine(line, location, commandRoot, monitor);
-            }
-        };
-    }
+	@Override
+	protected ICommandOutputListener getDefaultCommandOutputListener() {
+		return new CommandOutputListener() {
+			public IStatus errorLine(String line,
+					ICVSRepositoryLocation location, ICVSFolder commandRoot,
+					IProgressMonitor monitor) {
+				
+				String serverMessage = getServerMessage(line, location);
+				if (serverMessage != null) {
+					if (serverMessage.contains("cvs commit") && serverMessage.contains("add") && serverMessage.contains("permanently")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						return OK;
+					if (serverMessage.startsWith("scheduling file") && serverMessage.contains("for addition")) //$NON-NLS-1$ //$NON-NLS-2$
+						return OK;
+				}
+				return super.errorLine(line, location, commandRoot, monitor);
+			}
+		};
+	}
 
 }

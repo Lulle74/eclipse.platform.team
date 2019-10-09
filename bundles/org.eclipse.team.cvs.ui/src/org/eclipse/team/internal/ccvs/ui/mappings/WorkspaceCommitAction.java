@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -38,6 +41,7 @@ public class WorkspaceCommitAction extends AbstractCommitAction implements IDiff
 		final IDiffTree tree = getDiffTree();
 		tree.addDiffChangeListener(this);
 		getSynchronizationContext().getCache().addCacheListener(new ICacheListener() {
+			@Override
 			public void cacheDisposed(ICache cache) {
 				tree.removeDiffChangeListener(WorkspaceCommitAction.this);
 			}
@@ -46,6 +50,7 @@ public class WorkspaceCommitAction extends AbstractCommitAction implements IDiff
 		
 	}
 	
+	@Override
 	protected String getBundleKeyPrefix() {
 		return "WorkspaceToolbarCommitAction."; //$NON-NLS-1$
 	}
@@ -56,38 +61,35 @@ public class WorkspaceCommitAction extends AbstractCommitAction implements IDiff
 		return tree;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.mapping.ModelProviderAction#isEnabledForSelection(org.eclipse.jface.viewers.IStructuredSelection)
-	 */
+	@Override
 	protected boolean isEnabledForSelection(IStructuredSelection selection) {
 		// Enablement has nothing to do with selection
 		return isEnabled();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.diff.IDiffChangeListener#diffChanged(org.eclipse.team.core.diff.IDiffChangeEvent, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void diffsChanged(IDiffChangeEvent event, IProgressMonitor monitor) {
 		updateEnablement();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.diff.IDiffChangeListener#propertyChanged(int, org.eclipse.core.runtime.IPath[])
-	 */
+	@Override
 	public void propertyChanged(IDiffTree tree, int property, IPath[] paths) {
 		// Do nothing
 	}
 	
+	@Override
 	public void updateEnablement() {
 		boolean enabled = (getDiffTree().countFor(IThreeWayDiff.OUTGOING, IThreeWayDiff.DIRECTION_MASK) > 0)
 			&& (getDiffTree().countFor(IThreeWayDiff.CONFLICTING, IThreeWayDiff.DIRECTION_MASK) == 0);
 		setEnabled(enabled);
 	}
 	
+	@Override
 	protected IResource[] getTargetResources() {
 		return getSynchronizationContext().getScope().getRoots();
 	}
 
+	@Override
 	protected ResourceTraversal[] getCommitTraversals(IStructuredSelection selection, IProgressMonitor monitor)
 			throws CoreException {
 		return getSynchronizationContext().getScope().getTraversals();

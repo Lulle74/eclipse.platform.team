@@ -1,22 +1,34 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
-import org.eclipse.team.core.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.team.core.ITeamStatus;
+import org.eclipse.team.core.TeamException;
+import org.eclipse.team.core.TeamStatus;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.subscribers.Subscriber;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
+import org.eclipse.team.core.synchronize.SyncInfoTree;
 import org.eclipse.team.internal.core.Messages;
 import org.eclipse.team.internal.core.TeamPlugin;
 
@@ -167,10 +179,9 @@ public class SubscriberSyncInfoEventHandler extends SubscriberEventHandler {
 	protected void dispatchEvents(SubscriberEvent[] events, IProgressMonitor monitor) {
 		// this will batch the following set changes until endInput is called.
 		SubscriberSyncInfoSet syncSet = syncSetInput.getSyncSet();
-        try {
+		try {
 			syncSet.beginInput();
-			for (int i = 0; i < events.length; i++) {
-				SubscriberEvent event = events[i];
+			for (SubscriberEvent event : events) {
 				switch (event.getType()) {
 					case SubscriberEvent.CHANGE :
 						if (event instanceof SubscriberSyncInfoEvent) {

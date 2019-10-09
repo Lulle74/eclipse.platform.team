@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,9 +41,7 @@ public class DeferredResourceChangeHandler extends BackgroundEventHandler {
 	private Set recreatedResources = new HashSet();
 	private Set conflictingDeletion = new HashSet();
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.BackgroundEventHandler#processEvent(org.eclipse.team.core.subscribers.BackgroundEventHandler.Event, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void processEvent(Event event, IProgressMonitor monitor) throws TeamException {
 		int type = event.getType();
 		switch (type) {
@@ -81,18 +82,16 @@ public class DeferredResourceChangeHandler extends BackgroundEventHandler {
 			queueEvent(new ResourceEvent(resource, RECREATED_CVS_RESOURCE, IResource.DEPTH_ZERO), false);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.BackgroundEventHandler#dispatchEvents()
-	 */
+	@Override
 	protected boolean doDispatchEvents(IProgressMonitor monitor) {
 		// Handle ignore file changes
 		boolean workDone = !changedIgnoreFiles.isEmpty() || !recreatedResources.isEmpty();
 		try {
-            EclipseSynchronizer.getInstance().ignoreFilesChanged(getParents(changedIgnoreFiles));
-        } catch (CVSException e) {
-            // Log and continue
-            CVSProviderPlugin.log(e);
-        }
+			EclipseSynchronizer.getInstance().ignoreFilesChanged(getParents(changedIgnoreFiles));
+		} catch (CVSException e) {
+			// Log and continue
+			CVSProviderPlugin.log(e);
+		}
 		changedIgnoreFiles.clear();
 		// Handle recreations by project to reduce locking granularity
 		Map recreations = getResourcesByProject((IResource[]) recreatedResources.toArray(new IResource[recreatedResources.size()]));
@@ -108,8 +107,7 @@ public class DeferredResourceChangeHandler extends BackgroundEventHandler {
 		}
 		IResource[] deletions = (IResource[]) conflictingDeletion.toArray(new IResource[conflictingDeletion.size()]);
 		conflictingDeletion.clear();
-		for (int i = 0; i < deletions.length; i++) {
-			IResource resource = deletions[i];
+		for (IResource resource : deletions) {
 			ICVSResource cvsResource = CVSWorkspaceRoot.getCVSResourceFor(resource);
 			try {
 				if(!cvsResource.isFolder() && cvsResource.isManaged()) {
@@ -125,8 +123,7 @@ public class DeferredResourceChangeHandler extends BackgroundEventHandler {
 	
 	private Map getResourcesByProject(IResource[] resources) {
 		Map result = new HashMap();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			IProject project = resource.getProject();
 			List projectResources = (List)result.get(project);
 			if (projectResources == null) {

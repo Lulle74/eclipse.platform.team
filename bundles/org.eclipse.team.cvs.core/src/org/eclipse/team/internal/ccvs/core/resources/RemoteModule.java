@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -51,11 +54,11 @@ public class RemoteModule extends RemoteFolder {
 		}
 	}
 	
-    private static ICVSFolder getRemoteRootFolder(ICVSRepositoryLocation repository) {
-        return new RemoteFolder(null, repository, "/", null); //$NON-NLS-1$
-    }
+	private static ICVSFolder getRemoteRootFolder(ICVSRepositoryLocation repository) {
+		return new RemoteFolder(null, repository, "/", null); //$NON-NLS-1$
+	}
 
-    /**
+	/**
 	 * Create a set of RemoteModules from the provided module definition strings returned from the server
 	 * 
 	 * At the moment, we are very restrictive on the types of modules we support.
@@ -67,16 +70,15 @@ public class RemoteModule extends RemoteFolder {
 		Map moduleAliases = new HashMap();
 		
 		// First pass: Create the remote module instances based on remote mapping
-		for (int i = 0; i < moduleDefinitionStrings.length; i++) {
-			
+		for (String moduleDefinitionString : moduleDefinitionStrings) {
 			// Read the module name
-			StringTokenizer tokenizer = new StringTokenizer(moduleDefinitionStrings[i]);
+			StringTokenizer tokenizer = new StringTokenizer(moduleDefinitionString);
 			String moduleName = tokenizer.nextToken();
-			List localOptionsList;
+			List<LocalOption> localOptionsList;
 			String next;
 			try {
 				// Read the options associated with the module
-				localOptionsList = new ArrayList();
+				localOptionsList = new ArrayList<>();
 				next = tokenizer.nextToken();
 				while (next.charAt(0) == '-') {
 					switch (next.charAt(1)) {
@@ -105,10 +107,10 @@ public class RemoteModule extends RemoteFolder {
 				}
 			} catch (NoSuchElementException e) {
 				// There is an invalid entry in the modules file. Log it and continue
-				CVSProviderPlugin.log(IStatus.WARNING, NLS.bind(CVSMessages.RemoteModule_invalidDefinition, new String[] { moduleDefinitionStrings[i], repository.getLocation(true) }), null); 
+				CVSProviderPlugin.log(IStatus.WARNING, NLS.bind(CVSMessages.RemoteModule_invalidDefinition, new String[]{moduleDefinitionString, repository.getLocation(true)}), null); 
 				continue;
 			}
-			LocalOption[] localOptions = (LocalOption[]) localOptionsList.toArray(new LocalOption[localOptionsList.size()]);
+			LocalOption[] localOptions = localOptionsList.toArray(new LocalOption[localOptionsList.size()]);
 			
 			if (Checkout.ALIAS.isElementOf(localOptions)) {
 				
@@ -151,7 +153,7 @@ public class RemoteModule extends RemoteFolder {
 				
 				// Record any referenced modules so that can be cross-referenced below
 				if (next.charAt(0) == '&') {
-					List children = new ArrayList(10);
+					List<String> children = new ArrayList<>(10);
 					children.add(next);
 					while (tokenizer.hasMoreTokens())
 						children.add(tokenizer.nextToken());
@@ -169,17 +171,17 @@ public class RemoteModule extends RemoteFolder {
 			String[] expansion = (String[])moduleAliases.get(moduleName);
 			List referencedFolders = new ArrayList();
 			boolean expandable = true;
-			for (int i = 0; i < expansion.length; i++) {
-				if (expansion[i].charAt(0) == '!') {
+			for (String e : expansion) {
+				if (e.charAt(0) == '!') {
 					// XXX Unsupported for now
 					expandable = false;
 				} else {
-					IPath path = new Path(null, expansion[i]);
+					IPath path = new Path(null, e);
 					if (path.segmentCount() > 1) {
 						// XXX Unsupported for now
 						expandable = false;
 					} else {
-						RemoteModule child = (RemoteModule)modules.get(expansion[i]);
+						RemoteModule child = (RemoteModule) modules.get(e);
 						if (child == null) {
 							referencedFolders.add(new RemoteFolder(null, repository, path.toString(), tag));
 						} else {
@@ -188,7 +190,7 @@ public class RemoteModule extends RemoteFolder {
 								// XXX Unsupported for now
 								expandable = false;
 							} else {
-								 referencedFolders.add(child);
+								referencedFolders.add(child);
 							}
 						}
 					}
@@ -209,10 +211,10 @@ public class RemoteModule extends RemoteFolder {
 			String[] children = (String[])referencedModulesTable.get(moduleName);
 			if (children != null) {
 				RemoteModule module = (RemoteModule)modules.get(moduleName);
-				List referencedFolders = new ArrayList();
+				List<RemoteModule> referencedFolders = new ArrayList<>();
 				boolean expandable = true;
-				for (int i = 0; i < children.length; i++) {
-					RemoteModule child = (RemoteModule)modules.get(children[i].substring(1));
+				for (String c : children) {
+					RemoteModule child = (RemoteModule) modules.get(c.substring(1));
 					if (child == null) {
 						// invalid module definition
 						expandable = false;
@@ -230,7 +232,7 @@ public class RemoteModule extends RemoteFolder {
 					}
 				}
 				if (expandable) {
-					module.setReferencedModules((ICVSRemoteResource[]) referencedFolders.toArray(new ICVSRemoteResource[referencedFolders.size()]));
+					module.setReferencedModules(referencedFolders.toArray(new ICVSRemoteResource[referencedFolders.size()]));
 				} else {
 					module.setExpandable(false);
 				}
@@ -275,12 +277,8 @@ public class RemoteModule extends RemoteFolder {
 			} else {
 				// Combine two sets of children
 				allChildren = new ICVSRemoteResource[physicalChildren.length + referencedModules.length];
-				for (int i = 0; i < physicalChildren.length; i++) {
-					allChildren[i] = physicalChildren[i];
-				}
-				for (int i = 0; i < referencedModules.length; i++) {
-					allChildren[i + physicalChildren.length] = referencedModules[i];
-				}
+				System.arraycopy(physicalChildren, 0, allChildren, 0, physicalChildren.length);
+				System.arraycopy(referencedModules, 0, allChildren, physicalChildren.length, referencedModules.length);
 			}
 		} else if (physicalChildren != null) {
 			allChildren = physicalChildren;
@@ -298,9 +296,6 @@ public class RemoteModule extends RemoteFolder {
 		return Checkout.ALIAS.isElementOf(localOptions);
 	}
 	
-	/**
-	 * @see ICVSRemoteFolder#isExpandable()
-	 */
 	public boolean isExpandable() {
 		return expandable;
 	}
@@ -309,9 +304,6 @@ public class RemoteModule extends RemoteFolder {
 		this.expandable = expandable;
 	}
 	
-	/**
-	 * @see ICVSRemoteFolder#forTag(CVSTag)
-	 */
 	public ICVSRemoteResource forTag(ICVSRemoteFolder parent, CVSTag tagName) {
 		RemoteModule r = new RemoteModule(label, (RemoteFolder)parent, getRepository(), folderInfo.getRepository(), localOptions, tagName, folderInfo.getIsStatic());
 		r.setExpandable(expandable);
@@ -319,8 +311,7 @@ public class RemoteModule extends RemoteFolder {
 			ICVSRemoteResource[] children = getChildren();
 			if (children != null) {
 				List taggedChildren = new ArrayList(children.length);
-				for (int i = 0; i < children.length; i++) {
-					ICVSRemoteResource resource = children[i];
+				for (ICVSRemoteResource resource : children) {
 					taggedChildren.add(((RemoteResource)resource).forTag(r, tagName));
 				}
 				r.setChildren((ICVSRemoteResource[]) taggedChildren.toArray(new ICVSRemoteResource[taggedChildren.size()]));
@@ -328,8 +319,8 @@ public class RemoteModule extends RemoteFolder {
 		}
 		if (referencedModules != null) {
 			List taggedModules = new ArrayList(referencedModules.length);
-			for (int i = 0; i < referencedModules.length; i++) {
-				RemoteModule module = (RemoteModule)referencedModules[i];
+			for (ICVSRemoteResource referencedModule : referencedModules) {
+				RemoteModule module = (RemoteModule) referencedModule;
 				taggedModules.add(module.forTag(r, tagName));
 			}
 			r.setReferencedModules((ICVSRemoteResource[]) taggedModules.toArray(new ICVSRemoteResource[taggedModules.size()]));
@@ -337,15 +328,9 @@ public class RemoteModule extends RemoteFolder {
 		return r;
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder#isDefinedModule()
-	 */
 	public boolean isDefinedModule() {
 		return true;
 	}
-	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	public boolean equals(Object arg0) {
 		if (arg0 instanceof RemoteModule) {
 			RemoteModule module = (RemoteModule) arg0;
@@ -354,16 +339,10 @@ public class RemoteModule extends RemoteFolder {
 		return false;
 	}
 	
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
 	public int hashCode() {
 		return super.hashCode() | getName().hashCode();
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSFolder#getChild(java.lang.String)
-	 */
 	public ICVSResource getChild(String path) throws CVSException {
 		if (path.equals(Session.CURRENT_LOCAL_FOLDER) || path.length() == 0)
 			return this;
@@ -372,10 +351,11 @@ public class RemoteModule extends RemoteFolder {
 		// path and re-invoke this method so we only need to check for one segment here
 		// and use the inherited method in the other cases
 		if (referencedModules != null) {
-			if (path.indexOf(Session.SERVER_SEPARATOR) == -1) {
-				for (int i=0;i<referencedModules.length;i++) {
-					if (referencedModules[i].getName().equals(path))
-						return referencedModules[i];
+			if (!path.contains(Session.SERVER_SEPARATOR)) {
+				for (ICVSRemoteResource referencedModule : referencedModules) {
+					if (referencedModule.getName().equals(path)) {
+						return referencedModule;
+					}
 				}
 			}
 		}

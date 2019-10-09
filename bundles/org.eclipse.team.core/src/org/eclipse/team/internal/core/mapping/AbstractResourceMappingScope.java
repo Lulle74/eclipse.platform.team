@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,9 @@ package org.eclipse.team.internal.core.mapping;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.mapping.*;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.team.internal.core.subscribers.AbstractSynchronizationScope;
 
 /**
@@ -24,8 +29,7 @@ public abstract class AbstractResourceMappingScope extends AbstractSynchronizati
 	@Override
 	public ResourceMapping getMapping(Object modelObject) {
 		ResourceMapping[] mappings = getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			if (mapping.getModelObject().equals(modelObject))
 				return mapping;
 		}
@@ -36,8 +40,7 @@ public abstract class AbstractResourceMappingScope extends AbstractSynchronizati
 	public ResourceMapping[] getMappings(String id) {
 		Set<ResourceMapping> result = new HashSet<>();
 		ResourceMapping[] mappings = getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			if (mapping.getModelProviderId().equals(id)) {
 				result.add(mapping);
 			}
@@ -50,8 +53,7 @@ public abstract class AbstractResourceMappingScope extends AbstractSynchronizati
 	public ResourceTraversal[] getTraversals(String modelProviderId) {
 		ResourceMapping[] mappings = getMappings(modelProviderId);
 		CompoundResourceTraversal traversal = new CompoundResourceTraversal();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			ResourceTraversal[] traversals = getTraversals(mapping);
 			if (traversals != null)
 				traversal.addTraversals(traversals);
@@ -63,8 +65,7 @@ public abstract class AbstractResourceMappingScope extends AbstractSynchronizati
 	public ModelProvider[] getModelProviders() {
 		Set<ModelProvider> result = new HashSet<>();
 		ResourceMapping[] mappings = getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			ModelProvider modelProvider = mapping.getModelProvider();
 			if (modelProvider != null)
 				result.add(modelProvider);

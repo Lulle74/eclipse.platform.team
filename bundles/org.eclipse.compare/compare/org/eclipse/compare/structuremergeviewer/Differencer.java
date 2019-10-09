@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -257,8 +260,7 @@ public class Differencer {
 
 			if (ancestorChildren != null) {
 				ancestorSet= new HashMap<>(10);
-				for (int i= 0; i < ancestorChildren.length; i++) {
-					Object ancestorChild= ancestorChildren[i];
+				for (Object ancestorChild : ancestorChildren) {
 					ancestorSet.put(ancestorChild, ancestorChild);
 					allSet.add(ancestorChild);
 				}
@@ -266,8 +268,7 @@ public class Differencer {
 
 			if (rightChildren != null) {
 				rightSet= new HashMap<>(10);
-				for (int i= 0; i < rightChildren.length; i++) {
-					Object rightChild= rightChildren[i];
+				for (Object rightChild : rightChildren) {
 					rightSet.put(rightChild, rightChild);
 					allSet.add(rightChild);
 				}
@@ -275,8 +276,7 @@ public class Differencer {
 
 			if (leftChildren != null) {
 				leftSet= new HashMap<>(10);
-				for (int i= 0; i < leftChildren.length; i++) {
-					Object leftChild= leftChildren[i];
+				for (Object leftChild : leftChildren) {
 					leftSet.put(leftChild, leftChild);
 					allSet.add(leftChild);
 				}

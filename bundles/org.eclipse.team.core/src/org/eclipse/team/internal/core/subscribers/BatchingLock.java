@@ -1,22 +1,38 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.internal.core.*;
+import org.eclipse.team.internal.core.Messages;
+import org.eclipse.team.internal.core.Policy;
+import org.eclipse.team.internal.core.TeamPlugin;
 
 /**
  * Provides a per-thread nested locking mechanism. A thread can acquire a
@@ -70,7 +86,7 @@ public class BatchingLock {
 				} finally {
 					if (!success) {
 						try {
-						    // The begin was canceled (or some other problem occurred).
+							// The begin was canceled (or some other problem occurred).
 							// Free the scheduling rule
 							// so the clients of ReentrantLock don't need to
 							// do an endRule when the operation is canceled.
@@ -130,8 +146,7 @@ public class BatchingLock {
 				// Create a MultiRule for all projects from the given rule
 				ISchedulingRule[] rules = ((MultiRule)resourceRule).getChildren();
 				Set<ISchedulingRule> projects = new HashSet<>();
-				for (int i = 0; i < rules.length; i++) {
-					ISchedulingRule childRule = rules[i];
+				for (ISchedulingRule childRule : rules) {
 					if (childRule instanceof IResource) {
 						projects.add(((IResource)childRule).getProject());
 					}
@@ -179,9 +194,9 @@ public class BatchingLock {
 				handleAbortedFlush(e);
 				throw e;
 			} finally {
-			    // We have to clear the resources no matter what since the next attempt
+				// We have to clear the resources no matter what since the next attempt
 				// to flush may not have an appropriate scheduling rule
-			    changedResources.clear();
+				changedResources.clear();
 			}
 		}
 		private boolean isFlushRequired() {
@@ -239,8 +254,7 @@ public class BatchingLock {
 
 	private ThreadInfo getThreadInfo(IResource resource) {
 		synchronized (infos) {
-			for (Iterator iter = infos.values().iterator(); iter.hasNext();) {
-				ThreadInfo info = (ThreadInfo) iter.next();
+			for (ThreadInfo info : infos.values()) {
 				if (info.ruleContains(resource)) {
 					return info;
 				}
@@ -279,21 +293,21 @@ public class BatchingLock {
 	 * Create the ThreadInfo instance used to cache the lock state for the
 	 * current thread. Subclass can override to provide a subclass of
 	 * ThreadInfo.
-     * @param operation the flush operation
-     * @return a ThreadInfo instance
-     */
-    protected ThreadInfo createThreadInfo(IFlushOperation operation) {
-        return new ThreadInfo(operation);
-    }
+	 * @param operation the flush operation
+	 * @return a ThreadInfo instance
+	 */
+	protected ThreadInfo createThreadInfo(IFlushOperation operation) {
+		return new ThreadInfo(operation);
+	}
 
-    /**
+	/**
 	 * Release the lock held on any resources by this thread. The provided rule must
 	 * be identical to the rule returned by the corresponding acquire(). If the rule
 	 * for the release is non-null and all remaining rules held by the lock are null,
 	 * the the flush operation provided in the acquire method will be executed.
-     * @param rule the scheduling rule
-     * @param monitor a progress monitor
-     * @throws TeamException
+	 * @param rule the scheduling rule
+	 * @param monitor a progress monitor
+	 * @throws TeamException
 	 */
 	public void release(ISchedulingRule rule, IProgressMonitor monitor) throws TeamException {
 		ThreadInfo info = getThreadInfo();

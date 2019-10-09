@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,10 +23,10 @@ import org.eclipse.team.internal.ccvs.core.*;
 
 public class CVSEntryLineTag extends CVSTag {
 	
-    /*
-     * This is the format of a date as it appears in the entry line. The date in an entry
-     * line is always in GMT.
-     */
+	/*
+	 * This is the format of a date as it appears in the entry line. The date in an entry
+	 * line is always in GMT.
+	 */
 	private static final String ENTRY_LINE_DATE_TAG_FORMAT = "yyyy.MM.dd.HH.mm.ss"; //$NON-NLS-1$
 	
 	/*
@@ -59,7 +62,7 @@ public class CVSEntryLineTag extends CVSTag {
 	
 	static synchronized public Date entryLineToDate(String text){
 		try {
-		    entryLineDateTagFormatter.setTimeZone(TimeZone.getTimeZone("GMT")); //$NON-NLS-1$
+			entryLineDateTagFormatter.setTimeZone(TimeZone.getTimeZone("GMT")); //$NON-NLS-1$
 			return entryLineDateTagFormatter.parse(text);
 		} catch (ParseException e) {
 			CVSProviderPlugin.log(new CVSStatus(IStatus.ERROR, CVSStatus.ERROR, "Tag name " + text + " is not of the expected format " + ENTRY_LINE_DATE_TAG_FORMAT, e)); //$NON-NLS-1$ //$NON-NLS-2$
@@ -120,9 +123,7 @@ public class CVSEntryLineTag extends CVSTag {
 		return toEntryLineFormat(false);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.CVSTag#asDate()
-	 */
+	@Override
 	public Date asDate() {
 		return entryLineToDate(name);
 	}

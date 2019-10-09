@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,7 +30,8 @@ import org.eclipse.team.internal.ccvs.core.client.Command.LocalOption;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.resources.EclipseSynchronizer;
 import org.eclipse.team.internal.ccvs.core.syncinfo.FolderSyncInfo;
-import org.eclipse.team.internal.ccvs.ui.*;
+import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
+import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
 import org.eclipse.team.internal.ccvs.ui.Policy;
 import org.eclipse.team.internal.ui.wizards.WorkingSetsDialog;
 import org.eclipse.ui.*;
@@ -157,25 +161,23 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 				try {
 					Job.getJobManager().beginRule(schedulingRule, pm);
 					// Still use the projects as the inner rule so we get the proper batching of sync info write
-					EclipseSynchronizer.getInstance().run(MultiRule.combine(targetProjects), new ICVSRunnable() {
-						public void run(IProgressMonitor monitor) throws CVSException {
-							result[0] = performCheckout(session, resource, targetProjects, sendModuleName, monitor);
-						}
-					}, Policy.subMonitorFor(pm, 90));
+					EclipseSynchronizer
+							.getInstance().run(
+									MultiRule.combine(targetProjects), monitor -> result[0] = performCheckout(session,
+											resource, targetProjects, sendModuleName, monitor),
+									Policy.subMonitorFor(pm, 90));
 				} finally {
 					Job.getJobManager().endRule(schedulingRule);
 				}
 			} else {
-				EclipseSynchronizer.getInstance().run(schedulingRule, new ICVSRunnable() {
-					public void run(IProgressMonitor monitor) throws CVSException {
-						result[0] = performCheckout(session, resource, targetProjects, sendModuleName, monitor);
-					}
-				}, Policy.subMonitorFor(pm, 90));
+				EclipseSynchronizer.getInstance().run(schedulingRule, monitor -> result[0] = performCheckout(session,
+						resource, targetProjects, sendModuleName, monitor), Policy.subMonitorFor(pm, 90));
 			}
 			IWorkingSet[] ws = getWorkingSets();
 			if (ws != null) {
-				for (int i = 0; i < ws.length; i++)
-					createWorkingSet(ws[i].getName(), targetProjects);
+				for (IWorkingSet w : ws) {
+					createWorkingSet(w.getName(), targetProjects);
+				}
 			}
 			return result[0];
 		} catch (CVSException e) {
@@ -193,9 +195,9 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 		if (projects.length == 1) {
 			return ResourcesPlugin.getWorkspace().getRuleFactory().modifyRule(projects[0]);
 		} else {
-			Set rules = new HashSet();
-			for (int i = 0; i < projects.length; i++) {
-				ISchedulingRule modifyRule = ResourcesPlugin.getWorkspace().getRuleFactory().modifyRule(projects[i]);
+			Set<ISchedulingRule> rules = new HashSet<>();
+			for (IProject project : projects) {
+				ISchedulingRule modifyRule = ResourcesPlugin.getWorkspace().getRuleFactory().modifyRule(project);
 				if (modifyRule instanceof IResource && ((IResource)modifyRule).getType() == IResource.ROOT) {
 					// One of the projects is mapped to a provider that locks the workspace.
 					// Just return the workspace root rule
@@ -203,7 +205,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 				}
 				rules.add(modifyRule);
 			}
-			return new MultiRule((ISchedulingRule[]) rules.toArray(new ISchedulingRule[rules.size()]));
+			return new MultiRule(rules.toArray(new ISchedulingRule[rules.size()]));
 		}
 	}
 
@@ -250,7 +252,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 			
 			try {
 				// Build the local options
-				List localOptions = new ArrayList();
+				List<LocalOption> localOptions = new ArrayList<>();
 				// Add the option to load into the target project if one was supplied
 				if (project != null) {
 					localOptions.add(Checkout.makeDirectoryNameOption(project.getName()));
@@ -271,7 +273,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 				// Perform the checkout
 				IStatus status = Command.CHECKOUT.execute(session,
 					Command.NO_GLOBAL_OPTIONS,
-					(LocalOption[])localOptions.toArray(new LocalOption[localOptions.size()]),
+					localOptions.toArray(new LocalOption[localOptions.size()]),
 					new String[]{getRemoteModuleName(resource)},
 					null,
 					Policy.subMonitorFor(pm, 90));
@@ -299,7 +301,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 	 */
 	private IProject[] determineProjects(Session session, final ICVSRemoteFolder remoteFolder, IProject project, IProgressMonitor pm) throws CVSException {
 			
-		Set targetProjectSet = new HashSet();
+		Set<IProject> targetProjectSet = new HashSet<>();
 		String moduleName = getRemoteModuleName(remoteFolder);
 		if (project == null) {
 			
@@ -325,8 +327,8 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 				} 
 				targetProjectSet.add(ResourcesPlugin.getWorkspace().getRoot().getProject(lastSegment));
 			} else {
-				for (int j = 0; j < expansions.length; j++) {
-					targetProjectSet.add(ResourcesPlugin.getWorkspace().getRoot().getProject(new Path(null, expansions[j]).segment(0)));
+				for (String expansion : expansions) {
+					targetProjectSet.add(ResourcesPlugin.getWorkspace().getRoot().getProject(new Path(null, expansion).segment(0)));
 				}
 			}
 			
@@ -335,7 +337,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 		}
 		
 		// Return the local projects affected by the checkout
-		IProject[] targetProjects = (IProject[]) targetProjectSet.toArray(new IProject[targetProjectSet.size()]);
+		IProject[] targetProjects = targetProjectSet.toArray(new IProject[targetProjectSet.size()]);
 		return targetProjects;
 	}
 
@@ -360,8 +362,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 		if (projects.length > 1) {
 			setInvolvesMultipleResources(true);
 		}
-		for (int i=0;i<projects.length;i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			Policy.checkCanceled(monitor);
 			if (needsPromptForOverwrite(project) && !promptToOverwrite(remoteFolder, project)) {
 				// User said no to this project but not no to all
@@ -370,8 +371,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 		}
 		// Create the projects and remove any previous content
 		monitor.beginTask(null, projects.length * 100); 
-		for (int i=0;i<projects.length;i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			createAndOpenProject(project, Policy.subMonitorFor(monitor, 10));
 			scrubProject(project, Policy.subMonitorFor(monitor, 90));
 		}
@@ -391,9 +391,9 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 			monitor.beginTask(null, 100 + children.length * 100);
 			monitor.subTask(NLS.bind(CVSUIMessages.CheckoutOperation_scrubbingProject, new String[] { project.getName() })); //	
 			try {
-				for (int j = 0; j < children.length; j++) {
-					if ( ! children[j].getName().equals(".project")) {//$NON-NLS-1$
-						children[j].delete(true /*force*/, Policy.subMonitorFor(monitor, 100));
+				for (IResource child : children) {
+					if (!child.getName().equals(".project")) { //$NON-NLS-1$
+						child.delete(true /*force*/, Policy.subMonitorFor(monitor, 100));
 					}
 				}
 				// Make sure there is no sync info cached for the project since
@@ -479,8 +479,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 	private void refreshProjects(IProject[] projects, IProgressMonitor monitor) throws CVSException {
 		monitor.beginTask(null, projects.length * 100);
 		try {
-			for (int i = 0; i < projects.length; i++) {
-				IProject project = projects[i];
+			for (IProject project : projects) {
 				// Register the project with Team
 				try {
 					monitor.subTask(NLS.bind(CVSUIMessages.CheckoutOperation_refreshingProject, new String[] { project.getName() })); 
@@ -501,6 +500,7 @@ public abstract class CheckoutProjectOperation extends CheckoutOperation {
 		}
 	}
 
+	@Override
 	protected String getTaskName() {
 		ICVSRemoteFolder[] remoteFolders = getRemoteFolders();
 		if (remoteFolders.length == 1) {

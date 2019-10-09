@@ -1,15 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.core.util;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -130,9 +134,7 @@ public class SyncFileChangeListener implements IResourceChangeListener {
 					if(isMetaFile(resource)) {
 						IResource[] toBeNotified = handleChangedMetaFile(resource);
 						if(toBeNotified.length>0 && isModifiedBy3rdParty(resource)) {
-							for (int i = 0; i < toBeNotified.length; i++) {
-								changedContainers.add(toBeNotified[i]);							
-							}
+							Collections.addAll(changedContainers, toBeNotified);
 							if(Policy.DEBUG_METAFILE_CHANGES) {
 								System.out.println("[cvs] metafile changed by 3rd party: " + resource.getFullPath()); //$NON-NLS-1$
 							}
@@ -242,9 +244,9 @@ public class SyncFileChangeListener implements IResourceChangeListener {
 	protected boolean isMetaFile(IResource resource) {
 		IContainer parent = resource.getParent();		
 		return resource.getType() == IResource.FILE &&
-				   parent!=null && 
-				   parent.getName().equals(SyncFileWriter.CVS_DIRNAME) &&
-				   (parent.isTeamPrivateMember() || !parent.exists());
+					parent!=null && 
+					parent.getName().equals(SyncFileWriter.CVS_DIRNAME) &&
+					(parent.isTeamPrivateMember() || !parent.exists());
 	}
 	
 	/*

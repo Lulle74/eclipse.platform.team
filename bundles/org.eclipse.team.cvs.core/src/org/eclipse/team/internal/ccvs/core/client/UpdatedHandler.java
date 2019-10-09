@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,31 +88,31 @@ public class UpdatedHandler extends ResponseHandler {
 		ICVSFile mFile = getTargetFile(mParent, fileName, entryBytes);
 		
 		boolean binary = ResourceSyncInfo.isBinary(entryBytes);
-		boolean readOnly = permissionsLine.indexOf(READ_ONLY_FLAG) == -1;
-		boolean executable = permissionsLine.indexOf(EXECUTE_FLAG) != -1;
+		boolean readOnly = !permissionsLine.contains(READ_ONLY_FLAG);
+		boolean executable = permissionsLine.contains(EXECUTE_FLAG);
 		
 		try {
-            // The file may have been set as read-only by a previous checkout/update
-            if (mFile.isReadOnly()) mFile.setReadOnly(false);
-        } catch (CVSException e) {
-            // Just log and keep going
-            CVSProviderPlugin.log(e);
-        }
+			// The file may have been set as read-only by a previous checkout/update
+			if (mFile.isReadOnly()) mFile.setReadOnly(false);
+		} catch (CVSException e) {
+			// Just log and keep going
+			CVSProviderPlugin.log(e);
+		}
 		
 		try {
-            receiveTargetFile(session, mFile, entryLine, modTime, binary, readOnly, executable, monitor);
-        } catch (CVSException e) {
-            // An error occurred while recieving the file.
-            // If it is due to an invalid file name,
-            // accumulate the error and continue.
-            // Otherwise, exit
-            if (!handleInvalidResourceName(session, mFile, e)) {
-                throw e;
-            }
-        }
+			receiveTargetFile(session, mFile, entryLine, modTime, binary, readOnly, executable, monitor);
+		} catch (CVSException e) {
+			// An error occurred while recieving the file.
+			// If it is due to an invalid file name,
+			// accumulate the error and continue.
+			// Otherwise, exit
+			if (!handleInvalidResourceName(session, mFile, e)) {
+				throw e;
+			}
+		}
 	}
 
-    protected ICVSFile getTargetFile(ICVSFolder mParent, String fileName, byte[] entryBytes) throws CVSException {
+	protected ICVSFile getTargetFile(ICVSFolder mParent, String fileName, byte[] entryBytes) throws CVSException {
 		return mParent.getFile(fileName);
 	}
 	
@@ -145,12 +148,12 @@ public class UpdatedHandler extends ResponseHandler {
 		}
 		mFile.setSyncInfo(newInfoWithTimestamp, modificationState);
 		try {
-            if (readOnly) mFile.setReadOnly(true);
+			if (readOnly) mFile.setReadOnly(true);
 			if (executable) mFile.setExecutable(true);
-        } catch (CVSException e) {
-            // Just log and keep going
-            CVSProviderPlugin.log(e);
-        }
+		} catch (CVSException e) {
+			// Just log and keep going
+			CVSProviderPlugin.log(e);
+		}
 	}
 
 	public int getHandlerType() {

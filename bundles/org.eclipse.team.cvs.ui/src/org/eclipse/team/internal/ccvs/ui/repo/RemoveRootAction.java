@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,12 +19,10 @@ import java.util.Iterator;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
@@ -75,73 +76,67 @@ public class RemoveRootAction extends SelectionListenerAction {
 		return new ICVSRepositoryLocation[0];
 	}
 
+	@Override
 	public void run() {
 		final ICVSRepositoryLocation[] roots = getSelectedRemoteRoots();
 		if (roots.length == 0) return;
 		final boolean[] proceed = new boolean[1];
-		shell.getDisplay().syncExec(new Runnable(){
-			public void run() {
-				String message;
-				if(roots.length == 1){
-					message = NLS.bind(CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogMessageSingle, roots[0].getLocation(true)); 
-				} else {
-					message = NLS.bind(CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogMessageMultiple, Integer.valueOf(roots.length));
-				}
-				proceed[0] = MessageDialog.openQuestion(shell, 
-						CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogTitle, 
-						message);
+		shell.getDisplay().syncExec(() -> {
+			String message;
+			if (roots.length == 1) {
+				message = NLS.bind(CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogMessageSingle,
+						roots[0].getLocation(true));
+			} else {
+				message = NLS.bind(CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogMessageMultiple,
+						Integer.valueOf(roots.length));
 			}
+			proceed[0] = MessageDialog.openQuestion(shell, CVSUIMessages.RemoveRootAction_RepositoryRemovalDialogTitle,
+					message);
 		});
 		if(!proceed[0]){
 			return;
 		}
-		for (int i = 0; i < roots.length; i++) {
-			final ICVSRepositoryLocation root = roots[i];
+		for (ICVSRepositoryLocation root : roots) {
 			try {	
 				// Check if any projects are shared with the repository
 				IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 				final ArrayList shared = new ArrayList();
-				for (int j = 0; j < projects.length; j++) {
-					RepositoryProvider teamProvider = RepositoryProvider.getProvider(projects[j], CVSProviderPlugin.getTypeId());
+				for (IProject project : projects) {
+					RepositoryProvider teamProvider = RepositoryProvider.getProvider(project, CVSProviderPlugin.getTypeId());
 					if (teamProvider!=null) {
 						CVSTeamProvider cvsProvider = (CVSTeamProvider)teamProvider;
-						if (cvsProvider.getCVSWorkspaceRoot().getRemoteLocation().equals(roots[i])) {
-							shared.add(projects[j]);
+						if (cvsProvider.getCVSWorkspaceRoot().getRemoteLocation().equals(root)) {
+							shared.add(project);
 						}
 					}
 				}
 			
 				// This will notify the RepositoryManager of the removal
 				if (!shared.isEmpty()) {
-					final String location = roots[i].getLocation(true);
-					shell.getDisplay().syncExec(new Runnable() {
-						public void run() {
-							DetailsDialogWithProjects dialog = new DetailsDialogWithProjects(
-								shell, 
-								CVSUIMessages.RemoteRootAction_Unable_to_Discard_Location_1, 
-								NLS.bind(CVSUIMessages.RemoteRootAction_Projects_in_the_local_workspace_are_shared_with__2, new String[] { location }), 
-								CVSUIMessages.RemoteRootAction_The_projects_that_are_shared_with_the_above_repository_are__4, 
-								(IProject[]) shared.toArray(new IProject[shared.size()]),
-								false,
-								Dialog.DLG_IMG_ERROR);
-							dialog.open();
-						}
+					final String location = root.getLocation(true);
+					shell.getDisplay().syncExec(() -> {
+						DetailsDialogWithProjects dialog = new DetailsDialogWithProjects(shell,
+								CVSUIMessages.RemoteRootAction_Unable_to_Discard_Location_1,
+								NLS.bind(
+										CVSUIMessages.RemoteRootAction_Projects_in_the_local_workspace_are_shared_with__2,
+										new String[] { location }),
+								CVSUIMessages.RemoteRootAction_The_projects_that_are_shared_with_the_above_repository_are__4,
+								(IProject[]) shared.toArray(new IProject[shared.size()]), false, Dialog.DLG_IMG_ERROR);
+						dialog.open();
 					});
 				} else {
 					IProgressService manager = PlatformUI.getWorkbench().getProgressService();
 					try {
-						manager.busyCursorWhile(new IRunnableWithProgress() {
-							public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-								final ISchedulingRule rule = new RepositoryLocationSchedulingRule(root);
-								try {
-									Job.getJobManager().beginRule(rule, monitor);
-									view.getContentProvider().cancelJobs(root);
-									KnownRepositories.getInstance().disposeRepository(root);
-								} finally {
-									Job.getJobManager().endRule(rule);
-								}
-
+						manager.busyCursorWhile(monitor -> {
+							final ISchedulingRule rule = new RepositoryLocationSchedulingRule(root);
+							try {
+								Job.getJobManager().beginRule(rule, monitor);
+								view.getContentProvider().cancelJobs(root);
+								KnownRepositories.getInstance().disposeRepository(root);
+							} finally {
+								Job.getJobManager().endRule(rule);
 							}
+
 						});
 					} catch (InvocationTargetException e) {
 						throw CVSException.wrapException(e);
@@ -156,6 +151,7 @@ public class RemoveRootAction extends SelectionListenerAction {
 		}
 	}
 
+	@Override
 	protected boolean updateSelection(IStructuredSelection selection) {
 		this.selection = selection;
 		ICVSRepositoryLocation[] roots = getSelectedRemoteRoots();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,8 +14,6 @@
 package org.eclipse.team.core.variants;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.TeamException;
 
@@ -107,12 +108,9 @@ public abstract class ThreeWayRemoteTree extends ResourceVariantTree {
 			final IResourceVariant remote, final int depth, IProgressMonitor monitor)
 			throws TeamException {
 		final IResource[][] resources = new IResource[][] { null };
-		getSubscriber().getSynchronizer().run(local, new IWorkspaceRunnable() {
-			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				resources[0] = ThreeWayRemoteTree.super.collectChanges(local, remote, depth, monitor);
-			}
-		}, monitor);
+		getSubscriber().getSynchronizer().run(local,
+				monitor1 -> resources[0] = ThreeWayRemoteTree.super.collectChanges(local, remote, depth, monitor1),
+				monitor);
 		return resources[0];
 	}
 }

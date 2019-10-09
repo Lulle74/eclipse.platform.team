@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,20 +15,39 @@ package org.eclipse.team.ui.synchronize;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.*;
-import org.eclipse.compare.structuremergeviewer.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareViewerPane;
+import org.eclipse.compare.IContentChangeNotifier;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.structuremergeviewer.DiffNode;
+import org.eclipse.compare.structuremergeviewer.ICompareInput;
+import org.eclipse.compare.structuremergeviewer.IDiffElement;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.synchronize.DialogSynchronizePageSite;
+import org.eclipse.team.internal.ui.synchronize.LocalResourceTypedElement;
+import org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement;
+import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
+import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
 import org.eclipse.team.ui.PageCompareEditorInput;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.team.ui.mapping.ISynchronizationCompareInput;
@@ -164,7 +186,7 @@ public class ParticipantPageCompareEditorInput extends PageCompareEditorInput {
 			CompareConfiguration configuration, IProgressMonitor monitor)
 			throws InvocationTargetException {
 		monitor.beginTask(TeamUIMessages.SyncInfoCompareInput_3, 100);
-        monitor.setTaskName(TeamUIMessages.SyncInfoCompareInput_3);
+		monitor.setTaskName(TeamUIMessages.SyncInfoCompareInput_3);
 		try {
 			// First, see if the active buffer is changing
 			checkForBufferChange(pageConfiguration.getSite().getShell(), input, false /* cancel not allowed */, monitor);
@@ -183,8 +205,8 @@ public class ParticipantPageCompareEditorInput extends PageCompareEditorInput {
 		} catch (CoreException e) {
 			throw new InvocationTargetException(e);
 		} finally {
-            monitor.done();
-        }
+			monitor.done();
+		}
 	}
 
 	private void checkForBufferChange(Shell shell, final ICompareInput input, boolean cancelAllowed, IProgressMonitor monitor) throws CoreException {
@@ -235,15 +257,15 @@ public class ParticipantPageCompareEditorInput extends PageCompareEditorInput {
 	private static void commit(IProgressMonitor pm, DiffNode node) throws CoreException {
 		ITypedElement left = node.getLeft();
 		if (left instanceof LocalResourceTypedElement)
-			 ((LocalResourceTypedElement) left).commit(pm);
+			((LocalResourceTypedElement) left).commit(pm);
 
 		ITypedElement right = node.getRight();
 		if (right instanceof LocalResourceTypedElement)
-			 ((LocalResourceTypedElement) right).commit(pm);
+			((LocalResourceTypedElement) right).commit(pm);
 
 		IDiffElement[] children = node.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			commit(pm, (DiffNode)children[i]);
+		for (IDiffElement c : children) {
+			commit(pm, (DiffNode) c);
 		}
 	}
 
@@ -254,7 +276,7 @@ public class ParticipantPageCompareEditorInput extends PageCompareEditorInput {
 			if (source instanceof DiffNode) {
 				commit(new NullProgressMonitor(), (DiffNode) source);
 			} else if (source instanceof LocalResourceTypedElement) {
-				 ((LocalResourceTypedElement) source).commit(new NullProgressMonitor());
+				((LocalResourceTypedElement) source).commit(new NullProgressMonitor());
 			}
 		} catch (CoreException e) {
 			Utils.handle(e);

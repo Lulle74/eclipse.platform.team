@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -53,16 +56,12 @@ public class FileSystemResourceVariant extends CachedResourceVariant {
 		this.bytes = bytes;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.CachedResourceVariant#fetchContents(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void fetchContents(IProgressMonitor monitor) throws TeamException {
 		setContents(getContents(), monitor);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.CachedResourceVariant#getCachePath()
-	 */
+	@Override
 	protected String getCachePath() {
 		// append the timestamp to the file path to give each variant a unique path
 		return getFilePath() + " " + ioFile.lastModified(); //$NON-NLS-1$
@@ -79,38 +78,28 @@ public class FileSystemResourceVariant extends CachedResourceVariant {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.CachedResourceVariant#getCacheId()
-	 */
+	@Override
 	protected String getCacheId() {
 		return FileSystemPlugin.ID;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.IResourceVariant#getName()
-	 */
+	@Override
 	public String getName() {
 		return ioFile.getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.IResourceVariant#isContainer()
-	 */
+	@Override
 	public boolean isContainer() {
 		return ioFile.isDirectory();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.IResourceVariant#getContentIdentifier()
-	 */
+	@Override
 	public String getContentIdentifier() {
 		// Use the modification timestamp as the content identifier
 		return new Date(ioFile.lastModified()).toString();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.variants.IResourceVariant#asBytes()
-	 */
+	@Override
 	public byte[] asBytes() {
 		if (bytes == null) {
 			// For simplicity, convert the timestamp to it's string representation.

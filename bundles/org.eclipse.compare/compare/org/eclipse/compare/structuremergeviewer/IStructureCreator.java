@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,6 +20,7 @@ package org.eclipse.compare.structuremergeviewer;
  * and to map a node of this structure back to the corresponding input object.
  * <p>
  * Structure creators are used in the following contexts:
+ * </p>
  * <ul>
  * <li>
  * the <code>StructureDiffViewer</code> uses an <code>IStructureCreator</code> to
@@ -29,6 +33,7 @@ package org.eclipse.compare.structuremergeviewer;
  * to map a path back to a range of characters in the textual representation.
  * </li>
  * </ul>
+ * <p>
  * A <code>IStructureCreator</code> provides methods for rewriting the tree produced by the differencing
  * engine to support "smart" structural differencing. E.g. certain patterns of pairs of "addition"
  * and "deletion" nodes can be detected as renames and merged into a single node.

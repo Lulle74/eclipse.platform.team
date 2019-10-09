@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,8 +17,6 @@ import java.text.MessageFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -80,12 +81,7 @@ public class XMLCompareAddIdMapDialog extends StatusDialog {
 		data.widthHint = convertWidthInCharsToPixels(30);
 		fIdMapText.setLayoutData(data);
 		fIdMapText.setText(fIdMap.getName());
-		fIdMapText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fIdMapText.addModifyListener(e -> doValidation());
 	
 		label= new Label(inner, SWT.NULL);
 		label.setText(XMLCompareMessages.XMLCompareAddIdMapDialog_extlabel); 
@@ -96,12 +92,7 @@ public class XMLCompareAddIdMapDialog extends StatusDialog {
 		data.widthHint = convertWidthInCharsToPixels(30);
 		fIdMapExtText.setLayoutData(data);
 		fIdMapExtText.setText(fIdMap.getExtension());
-		fIdMapExtText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fIdMapExtText.addModifyListener(e -> doValidation());
 
 		
 		fIdMapText.setFocus();
@@ -121,11 +112,11 @@ public class XMLCompareAddIdMapDialog extends StatusDialog {
 			status.setError(XMLCompareMessages.XMLCompareAddIdMapDialog_error_invalidname); 
 		else if ( (!fEdit && (fIdMaps.containsKey(newText) || fIdMapsInternal.containsKey(newText)) )
 					|| (fEdit && !newText.equals(fIdMap.getName()) && (fIdMaps.containsKey(newText) || fIdMapsInternal.containsKey(newText)) )
-				 )
+				)
 			status.setError(XMLCompareMessages.XMLCompareAddIdMapDialog_error_idmapExists); 
 		newText= fIdMapExtText.getText().toLowerCase();
 		if (newText.length() > 0) {
-			if (newText.indexOf(".") > -1) //$NON-NLS-1$
+			if (newText.contains(".")) //$NON-NLS-1$
 				status.setError(XMLCompareMessages.XMLCompareAddIdMapDialog_error_extfullstop); 
 			else if (fIdExtensionToName.containsKey(newText) && !fIdExtensionToName.get(newText).equals(fIdMap.getName()))
 				status.setError(MessageFormat.format("{0} {1}", XMLCompareMessages.XMLCompareAddIdMapDialog_error_extExists,fIdExtensionToName.get(newText)));  //$NON-NLS-1$

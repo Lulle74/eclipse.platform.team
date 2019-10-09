@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -42,32 +45,29 @@ public abstract class RemoteCommand extends Command {
 		// do nothing
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#convertArgumentsForOpenSession(org.eclipse.team.internal.ccvs.core.ICVSResource[], org.eclipse.team.internal.ccvs.core.client.Session)
-	 */
+	@Override
 	protected String[] convertArgumentsForOpenSession(
 		ICVSResource[] arguments,
 		Session openSession)
 		throws CVSException {
 		
-			// Convert arguments
-			List stringArguments = new ArrayList(arguments.length);
-			for (int i = 0; i < arguments.length; i++) {
-			    ICVSResource resource = arguments[i];
-			    String remotePath;
-                if (isDefinedModule(resource)) {
-			        remotePath = resource.getName();
-			    } else {
-			        remotePath = resource.getRepositoryRelativePath();
-                    
-			    }
-                stringArguments.add(remotePath);
+		// Convert arguments
+		List stringArguments = new ArrayList(arguments.length);
+		for (ICVSResource resource : arguments) {
+			String remotePath;
+			if (isDefinedModule(resource)) {
+				remotePath = resource.getName();
+			} else {
+				remotePath = resource.getRepositoryRelativePath();
+
 			}
+			stringArguments.add(remotePath);
+		}
 			return (String[]) stringArguments.toArray(new String[stringArguments.size()]);
 	}
 
-    private boolean isDefinedModule(ICVSResource resource) {
-        return resource instanceof ICVSRemoteFolder && ((ICVSRemoteFolder)resource).isDefinedModule();
-    }
+	private boolean isDefinedModule(ICVSResource resource) {
+		return resource instanceof ICVSRemoteFolder && ((ICVSRemoteFolder)resource).isDefinedModule();
+	}
 
 }

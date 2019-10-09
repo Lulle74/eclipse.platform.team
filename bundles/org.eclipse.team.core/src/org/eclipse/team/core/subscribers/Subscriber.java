@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,14 +19,24 @@ import java.util.List;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.team.core.*;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.ITeamStatus;
+import org.eclipse.team.core.TeamException;
+import org.eclipse.team.core.TeamStatus;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffVisitor;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.synchronize.SyncInfo;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.core.variants.IResourceVariantComparator;
-import org.eclipse.team.internal.core.*;
+import org.eclipse.team.internal.core.Messages;
+import org.eclipse.team.internal.core.Policy;
+import org.eclipse.team.internal.core.TeamPlugin;
 import org.eclipse.team.internal.core.mapping.SyncInfoToDiffConverter;
 
 /**
@@ -252,8 +265,7 @@ abstract public class Subscriber {
 	public void collectOutOfSync(IResource[] resources, int depth, SyncInfoSet set, IProgressMonitor monitor) {
 		try {
 			monitor.beginTask(null, 100 * resources.length);
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				IProgressMonitor subMonitor = Policy.subMonitorFor(monitor, 100);
 				subMonitor.beginTask(null, IProgressMonitor.UNKNOWN);
 				collect(resource, depth, set, subMonitor);
@@ -277,8 +289,7 @@ abstract public class Subscriber {
 			allListeners = listeners.toArray(new ISubscriberChangeListener[listeners.size()]);
 		}
 		// Notify the listeners safely so all will receive notification
-		for (int i = 0; i < allListeners.length; i++) {
-			final ISubscriberChangeListener listener = allListeners[i];
+		for (ISubscriberChangeListener listener : allListeners) {
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -309,14 +320,10 @@ abstract public class Subscriber {
 			&& depth != IResource.DEPTH_ZERO) {
 			try {
 				IResource[] members = members(resource);
-				for (int i = 0; i < members.length; i++) {
-					collect(
-						members[i],
-						depth == IResource.DEPTH_INFINITE
+				for (IResource member : members) {
+					collect(member, depth == IResource.DEPTH_INFINITE
 							? IResource.DEPTH_INFINITE
-							: IResource.DEPTH_ZERO,
-						set,
-						monitor);
+							: IResource.DEPTH_ZERO, set, monitor);
 				}
 			} catch (TeamException e) {
 				set.addError(new TeamStatus(IStatus.ERROR, TeamPlugin.ID, ITeamStatus.SYNC_INFO_SET_ERROR, NLS.bind(Messages.SubscriberEventHandler_8, new String[] { resource.getFullPath().toString(), e.getMessage() }), e, resource));
@@ -393,8 +400,7 @@ abstract public class Subscriber {
 	 * @since 3.2
 	 */
 	public void accept(ResourceTraversal[] traversals, IDiffVisitor visitor) throws CoreException {
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			accept(traversal.getResources(), traversal.getDepth(), visitor);
 		}
 	}
@@ -421,8 +427,7 @@ abstract public class Subscriber {
 	 * @since 3.2
 	 */
 	public void accept(IResource[] resources, int depth, IDiffVisitor visitor) throws CoreException {
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			accept(resource, depth, visitor);
 		}
 	}
@@ -436,8 +441,7 @@ abstract public class Subscriber {
 		if (depth != IResource.DEPTH_ZERO) {
 			IResource[] members = members(resource);
 			int newDepth = depth == IResource.DEPTH_INFINITE ? IResource.DEPTH_INFINITE : IResource.DEPTH_ZERO;
-			for (int i = 0; i < members.length; i++) {
-				IResource member = members[i];
+			for (IResource member : members) {
 				accept(member, newDepth, visitor);
 			}
 		}
@@ -463,8 +467,7 @@ abstract public class Subscriber {
 	 */
 	public void refresh(ResourceTraversal[] traversals, IProgressMonitor monitor) throws TeamException {
 		monitor.beginTask(null, 100 * traversals.length);
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			refresh(traversal.getResources(), traversal.getDepth(), Policy.subMonitorFor(monitor, 100));
 		}
 		monitor.done();

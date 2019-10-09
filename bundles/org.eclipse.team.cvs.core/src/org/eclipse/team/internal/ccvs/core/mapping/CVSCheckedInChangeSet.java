@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -19,29 +22,29 @@ import org.eclipse.team.internal.core.subscribers.DiffChangeSet;
 
 public class CVSCheckedInChangeSet extends DiffChangeSet {
 
-    private final ILogEntry entry;
+	private final ILogEntry entry;
 
-    public CVSCheckedInChangeSet(ILogEntry entry) {
-        this.entry = entry;
+	public CVSCheckedInChangeSet(ILogEntry entry) {
+		this.entry = entry;
 		Date date = entry.getDate();
 		String comment = LogEntry.flattenText(entry.getComment());
 		if (date == null) {
 			setName("["+entry.getAuthor()+ "] " + comment); //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
 			String dateString = DateFormat.getDateTimeInstance().format(date);
-    		setName("["+entry.getAuthor()+ "] (" + dateString +") " + comment); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+			setName("["+entry.getAuthor()+ "] (" + dateString +") " + comment); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 		}
-    }
-    
-    public String getAuthor() {
-        return entry.getAuthor();
-    }
+	}
+	
+	public String getAuthor() {
+		return entry.getAuthor();
+	}
 
-    public Date getDate() {
-        return entry.getDate();
-    }
+	public Date getDate() {
+		return entry.getDate();
+	}
 
-    public String getComment() {
-        return entry.getComment();
-    }
+	public String getComment() {
+		return entry.getComment();
+	}
 }

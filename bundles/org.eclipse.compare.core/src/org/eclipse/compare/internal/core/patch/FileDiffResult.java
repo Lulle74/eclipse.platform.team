@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +37,7 @@ public class FileDiffResult implements IFilePatchResult {
 	private boolean fMatches= false;
 	private boolean fDiffProblem;
 	private String fErrorMessage;
-	private Map<Hunk, HunkResult> fHunkResults = new HashMap<Hunk, HunkResult>();
+	private Map<Hunk, HunkResult> fHunkResults = new HashMap<>();
 	private List<String> fBeforeLines, fAfterLines;
 	private final PatchConfiguration configuration;
 	private String charset;
@@ -65,7 +67,7 @@ public class FileDiffResult implements IFilePatchResult {
 	 * @param content the contents being patched or <code>null</code> for an addition
 	 * @param monitor a progress monitor or <code>null</code> if no progress monitoring is desired
 	 */
-	 public void refresh(ReaderCreator content, IProgressMonitor monitor) {
+	public void refresh(ReaderCreator content, IProgressMonitor monitor) {
 		this.fMatches= false;
 		this.fDiffProblem= false;
 		boolean create= false;
@@ -99,8 +101,8 @@ public class FileDiffResult implements IFilePatchResult {
 			this.fBeforeLines = new ArrayList<>(getLines(content, false));
 			this.fAfterLines = this.fMatches ? new ArrayList<>() : this.fBeforeLines;
 			IHunk[] hunks = this.fDiff.getHunks();
-			for (int i = 0; i < hunks.length; i++) {
-				Hunk hunk = (Hunk) hunks[i];
+			for (IHunk h : hunks) {
+				Hunk hunk = (Hunk) h;
 				hunk.setCharset(getCharset());
 				HunkResult result = getHunkResult(hunk);
 				result.setMatches(false);
@@ -115,8 +117,8 @@ public class FileDiffResult implements IFilePatchResult {
 				// Check to see if we have at least one hunk that matches
 				this.fMatches = false;
 				IHunk[] hunks = this.fDiff.getHunks();
-				for (int i = 0; i < hunks.length; i++) {
-					Hunk hunk = (Hunk) hunks[i];
+				for (IHunk h : hunks) {
+					Hunk hunk = (Hunk) h;
 					HunkResult result = getHunkResult(hunk);
 					if (result.isOK()) {
 						this.fMatches = true;
@@ -158,8 +160,8 @@ public class FileDiffResult implements IFilePatchResult {
 		}
 		int shift= 0;
 		IHunk[] hunks = this.fDiff.getHunks();
-		for (int i = 0; i < hunks.length; i++) {
-			Hunk hunk = (Hunk) hunks[i];
+		for (IHunk h : hunks) {
+			Hunk hunk = (Hunk) h;
 			hunk.setCharset(getCharset());
 			HunkResult result = getHunkResult(hunk);
 			result.setShift(shift);
@@ -181,8 +183,7 @@ public class FileDiffResult implements IFilePatchResult {
 	public boolean containsProblems() {
 		if (this.fDiffProblem)
 			return true;
-		for (Iterator<HunkResult> iterator = this.fHunkResults.values().iterator(); iterator.hasNext();) {
-			HunkResult result = iterator.next();
+		for (HunkResult result : this.fHunkResults.values()) {
 			if (!result.isOK())
 				return true;
 		}
@@ -218,7 +219,7 @@ public class FileDiffResult implements IFilePatchResult {
 	public int calculateFuzz(List<String> lines, IProgressMonitor monitor) {
 		if (monitor == null)
 			monitor = new NullProgressMonitor();
-		this.fBeforeLines = new ArrayList<String>(lines);
+		this.fBeforeLines = new ArrayList<>(lines);
 		// TODO: What about deletions?
 		if (this.fDiff.getDiffType(getConfiguration().isReversed()) == FilePatch2.ADDITION) {
 			// Additions don't need to adjust the fuzz factor
@@ -258,10 +259,10 @@ public class FileDiffResult implements IFilePatchResult {
 	}
 
 	public List<Hunk> getFailedHunks() {
-		List<Hunk> failedHunks = new ArrayList<Hunk>();
+		List<Hunk> failedHunks = new ArrayList<>();
 		IHunk[] hunks = this.fDiff.getHunks();
-		for (int i = 0; i < hunks.length; i++) {
-			HunkResult result = this.fHunkResults.get(hunks[i]);
+		for (IHunk hunk : hunks) {
+			HunkResult result = this.fHunkResults.get(hunk);
 			if (result != null && !result.isOK())
 				failedHunks.add(result.getHunk());
 		}
@@ -282,10 +283,10 @@ public class FileDiffResult implements IFilePatchResult {
 
 	public HunkResult[] getHunkResults() {
 		// return hunk results in the same order as hunks are placed in file diff
-		List<HunkResult> results = new ArrayList<HunkResult>();
+		List<HunkResult> results = new ArrayList<>();
 		IHunk[] hunks = this.fDiff.getHunks();
-		for (int i = 0; i < hunks.length; i++) {
-			HunkResult result = this.fHunkResults.get(hunks[i]);
+		for (IHunk hunk : hunks) {
+			HunkResult result = this.fHunkResults.get(hunk);
 			if (result != null) {
 				results.add(result);
 			}

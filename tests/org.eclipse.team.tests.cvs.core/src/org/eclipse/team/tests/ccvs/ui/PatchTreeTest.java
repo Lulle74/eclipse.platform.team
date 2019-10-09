@@ -1,22 +1,23 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.tests.ccvs.ui;
 
-import junit.framework.Test;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Item;
@@ -39,12 +40,14 @@ import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import junit.framework.Test;
+
 public class PatchTreeTest extends EclipseTest {
 
 	public void testChangeSetModelSorter() throws CoreException {
 		MyTreeViewer tree = new MyTreeViewer();
 		tree.init();
-		ViewerSorter sorter = tree.getSorter();
+		ViewerComparator sorter = tree.getSorter();
 
 		UnchangedResourceModelElement elementZ = new UnchangedResourceModelElement(
 				null, getUniqueTestProject("z"));
@@ -95,16 +98,17 @@ public class PatchTreeTest extends EclipseTest {
 		Object[] expected = { nodeC, nodeB, element, nodeA, nodeD };
 		assertEquals(expected.length, treeChildren.length);
 
-		for (int i = 0; i < treeChildren.length; i++) {
-			assertEquals(1, countByData(treeChildren, treeChildren[i]));
+		for (Item treeChild : treeChildren) {
+			assertEquals(1, countByData(treeChildren, treeChild));
 		}
 	}
 
 	private int countByData(final Item[] a, Item o) {
 		int c = 0;
-		for (int i = 0; i < a.length; i++) {
-			if (a[i].getData() == o.getData())
+		for (Item a1 : a) {
+			if (a1.getData() == o.getData()) {
 				c++;
+			}
 		}
 		return c;
 	}
@@ -114,14 +118,17 @@ public class PatchTreeTest extends EclipseTest {
 				null);
 		conf.setPage(new ISynchronizePage() {
 
+			@Override
 			public void init(ISynchronizePageSite site)
 					throws PartInitException {
 			}
 
+			@Override
 			public Viewer getViewer() {
 				return viewer;
 			}
 
+			@Override
 			public boolean aboutToChangeProperty(
 					ISynchronizePageConfiguration configuration, String key,
 					Object newValue) {
@@ -134,6 +141,7 @@ public class PatchTreeTest extends EclipseTest {
 	private class MyModelProvider extends ChangeSetModelProvider implements
 			IPropertyChangeListener {
 
+		@Override
 		public ChangeSetCapability getChangeSetCapability() {
 			return new ChangeSetCapability() {
 			};
@@ -145,6 +153,7 @@ public class PatchTreeTest extends EclipseTest {
 			addPropertyChangeListener(this);
 		}
 
+		@Override
 		public void propertyChange(PropertyChangeEvent event) {
 			// nothing to do
 		}

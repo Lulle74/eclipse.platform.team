@@ -1,27 +1,37 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.ITeamStatus;
 import org.eclipse.team.core.TeamStatus;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.DiffFilter;
+import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
 import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
 import org.eclipse.team.core.mapping.provider.ResourceDiffTree;
 import org.eclipse.team.core.subscribers.Subscriber;
-import org.eclipse.team.internal.core.*;
+import org.eclipse.team.internal.core.Messages;
+import org.eclipse.team.internal.core.Policy;
+import org.eclipse.team.internal.core.TeamPlugin;
 
 /**
  * A subscriber event handler whose output is a diff tree
@@ -195,9 +205,8 @@ public class SubscriberDiffTreeEventHandler extends SubscriberEventHandler {
 	protected void dispatchEvents(SubscriberEvent[] events,
 			IProgressMonitor monitor) {
 		try {
-        	tree.beginInput();
-			for (int i = 0; i < events.length; i++) {
-				SubscriberEvent event = events[i];
+			tree.beginInput();
+			for (SubscriberEvent event : events) {
 				switch (event.getType()) {
 					case SubscriberEvent.CHANGE :
 						if (event instanceof SubscriberDiffChangedEvent) {
@@ -210,10 +219,9 @@ public class SubscriberDiffTreeEventHandler extends SubscriberEventHandler {
 							}
 						}
 						break;
-					case SubscriberEvent.REMOVAL :
+					case SubscriberEvent.REMOVAL:
 						IDiff[] nodesToRemove = tree.getDiffs(new ResourceTraversal[] { event.asTraversal() });
-						for (int j = 0; j < nodesToRemove.length; j++) {
-							IDiff node = nodesToRemove[j];
+						for (IDiff node : nodesToRemove) {
 							tree.remove(node.getPath());
 						}
 						break;

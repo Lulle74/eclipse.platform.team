@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -52,6 +55,7 @@ public class WorkingSetSelectionArea extends DialogArea {
 	 * renamed in the working set selection dialog.
 	 */
 	private IPropertyChangeListener workingSetChangeListener = new IPropertyChangeListener() {
+		@Override
 		public void propertyChange(PropertyChangeEvent event) {
 			String property = event.getProperty();
 			Object newValue = event.getNewValue();
@@ -77,23 +81,19 @@ public class WorkingSetSelectionArea extends DialogArea {
 			}
 		}
 	};
-    private final IDialogSettings settings;
-    private final Shell shell;
+	private final IDialogSettings settings;
+	private final Shell shell;
 		
 	public WorkingSetSelectionArea(Shell shell, String noWorkingSetText, String workingSetText, IDialogSettings settings) {
 		this.shell = shell;
-        this.noWorkingSetText = noWorkingSetText;
+		this.noWorkingSetText = noWorkingSetText;
 		this.workingSetText = workingSetText;
-        this.settings = settings;
+		this.settings = settings;
 	}
 	
-	/**
-	 * Overrides method in Dialog
-	 *
-	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(Composite)
-	 */
+	@Override
 	public void createArea(Composite parent) {
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 		final Composite composite = createComposite(parent, 2, false);
 		initializeDialogUnits(composite);
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -106,6 +106,7 @@ public class WorkingSetSelectionArea extends DialogArea {
 		noWorkingSetButton = createRadioButton(composite, noWorkingSetText, 2);
 		workingSetButton = createRadioButton(composite, workingSetText, 2);
 		workingSetButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				handleWorkingSetButtonSelection();
 			}
@@ -126,6 +127,7 @@ public class WorkingSetSelectionArea extends DialogArea {
 
 		selectButton = createButton(composite, CVSUIMessages.WorkingSetSelectionArea_workingSetOther, GridData.HORIZONTAL_ALIGN_FILL); 
 		selectButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent event) {
 				handleWorkingSetSelection();
 			}
@@ -135,6 +137,7 @@ public class WorkingSetSelectionArea extends DialogArea {
 		initializeWorkingSet();
 		
 		mruList.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				handleMruSelection();
 			}
@@ -185,9 +188,9 @@ public class WorkingSetSelectionArea extends DialogArea {
 			}
 			// remove deleted working sets from the mru list box
 			String[] mruNames = mruList.getItems();
-			for (int i = 0; i < mruNames.length; i++) {
-				if (workingSetManager.getWorkingSet(mruNames[i]) == null) {
-					mruList.remove(mruNames[i]);
+			for (String mruName : mruNames) {
+				if (workingSetManager.getWorkingSet(mruName) == null) {
+					mruList.remove(mruName);
 				}
 			}
 		}
@@ -229,10 +232,10 @@ public class WorkingSetSelectionArea extends DialogArea {
 	private void initializeMru() {
 		IWorkingSet[] workingSets = PlatformUI.getWorkbench().getWorkingSetManager().getRecentWorkingSets();
 
-		for (int i = 0; i < workingSets.length; i++) {
-			String workingSetName = workingSets[i].getName();
+		for (IWorkingSet w : workingSets) {
+			String workingSetName = w.getName();
 			mruList.add(workingSetName);
-			mruList.setData(workingSetName, workingSets[i]);
+			mruList.setData(workingSetName, w);
 		}
 		if (workingSets.length > 0) {
 			mruList.setText(workingSets[0].getName());

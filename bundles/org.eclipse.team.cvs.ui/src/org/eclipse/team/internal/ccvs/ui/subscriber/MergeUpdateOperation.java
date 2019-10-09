@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,10 +25,7 @@ import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.subscribers.Subscriber;
 import org.eclipse.team.core.synchronize.SyncInfo;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
-import org.eclipse.team.internal.ccvs.core.CVSException;
-import org.eclipse.team.internal.ccvs.core.CVSMergeSubscriber;
-import org.eclipse.team.internal.ccvs.core.CVSSyncInfo;
-import org.eclipse.team.internal.ccvs.core.CVSTag;
+import org.eclipse.team.internal.ccvs.core.*;
 import org.eclipse.team.internal.ccvs.core.client.Command;
 import org.eclipse.team.internal.ccvs.core.client.Update;
 import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
@@ -44,24 +44,18 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 		super(configuration, elements, promptBeforeUpdate);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberAction#getJobName(org.eclipse.team.ui.sync.SyncInfoSet)
-	 */
+	@Override
 	protected String getJobName() {
 		SyncInfoSet syncSet = getSyncInfoSet();
 		return NLS.bind(CVSUIMessages.MergeUpdateAction_jobName, new String[] { Integer.valueOf(syncSet.size()).toString() }); 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#getOverwriteLocalChanges()
-	 */
+	@Override
 	protected boolean getOverwriteLocalChanges() {
 		return true;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#updated(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	protected void updated(IResource[] resources) throws TeamException {
 		// Mark all succesfully updated resources as merged
 		if(resources.length > 0 && currentSubcriber != null) {
@@ -69,17 +63,15 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#runUpdateDeletions(org.eclipse.team.core.synchronize.SyncInfo[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void runUpdateDeletions(SyncInfo[] nodes, IProgressMonitor monitor) throws TeamException {
 		// When merging, update deletions become outgoing deletions so just delete
 		// the files locally without unmanaging (so the sync info is kept to 
 		// indicate an outgoing deletion
 		try {
 			monitor.beginTask(null, 100 * nodes.length);
-			for (int i = 0; i < nodes.length; i++) {
-				IResource resource = nodes[i].getLocal();
+			for (SyncInfo node : nodes) {
+				IResource resource = node.getLocal();
 				if (resource.getType() == IResource.FILE) {
 					((IFile)resource).delete(false /* force */, true /* keep local history */, Policy.subMonitorFor(monitor, 100));
 				}
@@ -91,9 +83,7 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#runSafeUpdate(org.eclipse.team.core.synchronize.SyncInfo[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void runSafeUpdate(IProject project, SyncInfo[] nodes, IProgressMonitor monitor) throws TeamException {
 		if(nodes.length > 0) {
 			setSubscriber(nodes[0]);
@@ -101,10 +91,9 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 			CVSTag endTag = ((CVSMergeSubscriber)currentSubcriber).getEndTag();
 
 			// Incoming additions require different handling then incoming changes and deletions
-			List additions = new ArrayList();
-			List changes = new ArrayList();
-			for (int i = 0; i < nodes.length; i++) {
-				SyncInfo resource = nodes[i];
+			List<SyncInfo> additions = new ArrayList<>();
+			List<SyncInfo> changes = new ArrayList<>();
+			for (SyncInfo resource : nodes) {
 				int kind = resource.getKind();
 				if ((kind & SyncInfo.CHANGE_MASK) == SyncInfo.ADDITION) {
 					additions.add(resource);
@@ -118,7 +107,7 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 				if (!additions.isEmpty()) {
 					safeUpdate(
 						project, 
-						getIResourcesFrom((SyncInfo[]) additions.toArray(new SyncInfo[additions.size()])), 
+						getIResourcesFrom(additions.toArray(new SyncInfo[additions.size()])), 
 						new Command.LocalOption[] {
 							Command.DO_NOT_RECURSE,
 							Command.makeArgumentOption(Update.JOIN, endTag.getName()) 
@@ -128,7 +117,7 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 				if (!changes.isEmpty()) {
 					safeUpdate(
 						project, 
-						getIResourcesFrom((SyncInfo[]) changes.toArray(new SyncInfo[changes.size()])), 
+						getIResourcesFrom(changes.toArray(new SyncInfo[changes.size()])), 
 						new Command.LocalOption[] {
 							Command.DO_NOT_RECURSE,
 							Command.makeArgumentOption(Update.JOIN, startTag.getName()),
@@ -154,17 +143,15 @@ public class MergeUpdateOperation extends SafeUpdateOperation {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#overwriteUpdate(org.eclipse.team.core.synchronize.SyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void overwriteUpdate(SyncInfoSet set, IProgressMonitor monitor) throws TeamException {
 		SyncInfo[] nodes = set.getSyncInfos();
 		if (nodes.length == 0) return;
 		setSubscriber(nodes[0]);
 		monitor.beginTask(null, 1000 * nodes.length);
 		try {
-			for (int i = 0; i < nodes.length; i++) {
-				makeRemoteLocal(nodes[i], Policy.subMonitorFor(monitor, 1000));
+			for (SyncInfo node : nodes) {
+				makeRemoteLocal(node, Policy.subMonitorFor(monitor, 1000));
 			}
 		} finally {
 			monitor.done();

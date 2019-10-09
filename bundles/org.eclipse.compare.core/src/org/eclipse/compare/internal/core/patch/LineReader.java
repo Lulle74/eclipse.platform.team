@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,15 +16,12 @@ package org.eclipse.compare.internal.core.patch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.compare.internal.core.ComparePlugin;
 import org.eclipse.compare.patch.ReaderCreator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Platform;
 
 public class LineReader {
 	/**
@@ -56,8 +56,7 @@ public class LineReader {
 	public static List<String> readLines(BufferedReader reader) {
 		List<String> lines;
 		LineReader lr= new LineReader(reader);
-		if (!Platform.WS_CARBON.equals(Platform.getWS()))
-			lr.ignoreSingleCR(); // Don't treat single CRs as line feeds to be consistent with command line patch
+		lr.ignoreSingleCR(); // Don't treat single CRs as line feeds to be consistent with command line patch
 		lines= lr.readLines();
 		return lines;
 	}
@@ -122,15 +121,15 @@ public class LineReader {
 		this.fIgnoreSingleCR= true;
 	}
 
-    /**
-     * Reads a line of text. A line is considered to be terminated by any one
-     * of a line feed ('\n'), a carriage return ('\r'), or a carriage return
-     * followed immediately by a line-feed.
-     * @return A string containing the contents of the line including
-     *	the line-termination characters, or <code>null</code> if the end of the
-     *	stream has been reached
-     * @exception IOException If an I/O error occurs
-     */
+	/**
+	 * Reads a line of text. A line is considered to be terminated by any one
+	 * of a line feed ('\n'), a carriage return ('\r'), or a carriage return
+	 * followed immediately by a line-feed.
+	 * @return A string containing the contents of the line including
+	 *	the line-termination characters, or <code>null</code> if the end of the
+	 *	stream has been reached
+	 * @exception IOException If an I/O error occurs
+	 */
 	String readLine() throws IOException {
 		try {
 			while (!this.fSawEOF) {

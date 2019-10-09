@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -32,9 +35,6 @@ public abstract class ModelParticipantWizard extends ParticipantSynchronizeWizar
 		setNeedsProgressMonitor(true);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#createParticipant()
-	 */
 	@Override
 	protected final void createParticipant() {
 		ISynchronizeParticipant participant = createParticipant(selectionPage.getSelectedMappings());
@@ -43,9 +43,6 @@ public abstract class ModelParticipantWizard extends ParticipantSynchronizeWizar
 		participant.run(null /* no site */);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#createScopeSelectionPage()
-	 */
 	@Override
 	protected final WizardPage createScopeSelectionPage() {
 		selectionPage = new ModelElementSelectionPage(getRootResources());

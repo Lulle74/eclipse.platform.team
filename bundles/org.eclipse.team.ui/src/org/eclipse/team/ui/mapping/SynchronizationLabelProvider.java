@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +15,10 @@ package org.eclipse.team.ui.mapping;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ModelProvider;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
@@ -20,7 +26,9 @@ import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.ICommonContentExtensionSite;
+import org.eclipse.ui.navigator.ICommonLabelProvider;
+import org.eclipse.ui.navigator.IDescriptionProvider;
 
 /**
  * A label provider wrapper that adds synchronization image and/or text decorations
@@ -40,9 +48,6 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		this.context = context;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.navigator.ICommonLabelProvider#init(org.eclipse.ui.navigator.ICommonContentExtensionSite)
-	 */
 	@Override
 	public void init(ICommonContentExtensionSite site) {
 		this.site = site;
@@ -71,9 +76,6 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		return scope;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.navigator.IMementoAware#restoreState(org.eclipse.ui.IMemento)
-	 */
 	@Override
 	public void restoreState(IMemento aMemento) {
 		ILabelProvider provider = getDelegateLabelProvider();
@@ -82,9 +84,6 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.navigator.IMementoAware#saveState(org.eclipse.ui.IMemento)
-	 */
 	@Override
 	public void saveState(IMemento aMemento) {
 		ILabelProvider provider = getDelegateLabelProvider();
@@ -93,9 +92,6 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.navigator.IDescriptionProvider#getDescription(java.lang.Object)
-	 */
 	@Override
 	public String getDescription(Object anElement) {
 		ILabelProvider provider = getDelegateLabelProvider();
@@ -105,17 +101,11 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.mapping.SynchronizationStateLabelProvider#isDecorationEnabled()
-	 */
 	@Override
 	protected boolean isDecorationEnabled() {
 		return getContext() != null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.mapping.SynchronizationStateLabelProvider#getImage(java.lang.Object)
-	 */
 	@Override
 	public Image getImage(Object element) {
 		Image image = super.getImage(element);
@@ -135,9 +125,6 @@ public abstract class SynchronizationLabelProvider extends AbstractSynchronizeLa
 		return ResourcesPlugin.getWorkspace().getRoot();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.AbstractSynchronizeLabelProvider#getText(java.lang.Object)
-	 */
 	@Override
 	public String getText(Object element) {
 		String text = super.getText(element);

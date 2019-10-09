@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,7 +22,7 @@ import java.util.List;
  */
 /* package */ class DifferencesIterator {
 
-	List fRange;
+	List<RangeDifference> fRange;
 	int fIndex;
 	RangeDifference[] fArray;
 	RangeDifference fDifference;
@@ -31,7 +34,7 @@ import java.util.List;
 
 		this.fArray= differenceRanges;
 		this.fIndex= 0;
-		this.fRange= new ArrayList();
+		this.fRange= new ArrayList<>();
 		if (this.fIndex < this.fArray.length)
 			this.fDifference= this.fArray[this.fIndex++];
 		else
@@ -39,8 +42,8 @@ import java.util.List;
 	}
 
 	/*
-	  * Returns the number of RangeDifferences
-	  */
+	 * Returns the number of RangeDifferences
+	 */
 	int getCount() {
 		return this.fRange.size();
 	}
@@ -69,8 +72,8 @@ import java.util.List;
 	}
 
 	/*
-	  * Removes all <code>RangeDifference</code>s
-	  */
+	 * Removes all <code>RangeDifference</code>s
+	 */
 	void removeAll() {
 		this.fRange.clear();
 	}

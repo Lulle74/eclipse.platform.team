@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +21,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
@@ -86,6 +88,7 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		setWindowTitle(CVSUIMessages.SharingWizard_title); 
 	}	
 		
+	@Override
 	public void addPages() {
 		ImageDescriptor sharingImage = CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_WIZBAN_SHARE);
 		boolean autoconnect = false;
@@ -143,17 +146,20 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		addPage(syncPage);
 	}
 	
+	@Override
 	public boolean canFinish() {
 		IWizardPage page = getContainer().getCurrentPage();
 		return (page == autoconnectPage || page == syncPage);
 	}
 	
+	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 		// Assume the page is about to be shown when this method is
 		// invoked
 		return getNextPage(page, true /* about to show*/);
 	}
 	
+	@Override
 	public IWizardPage getNextPage(IWizardPage page, boolean aboutToShow) {
 		if (page == autoconnectPage) return null;
 		if (page == locationPage) {
@@ -221,22 +227,18 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		return null;
 	}
 
-	/*
-	 * @see IWizard#performFinish
-	 */
+	@Override
 	public boolean performFinish() {
 		final boolean[] result = new boolean[] { true };
 		if (isAutoconnect()) {
 			try {
-				getContainer().run(true /* fork */, true /* cancel */, new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) throws InvocationTargetException {
-						try {
-							result[0] = autoconnectCVSProject(monitor);
-						} catch (TeamException e) {
-							throw new InvocationTargetException(e);
-						} finally {
-							monitor.done();
-						}
+				getContainer().run(true /* fork */, true /* cancel */, monitor -> {
+					try {
+						result[0] = autoconnectCVSProject(monitor);
+					} catch (TeamException e) {
+						throw new InvocationTargetException(e);
+					} finally {
+						monitor.done();
 					}
 				});
 			} catch (InterruptedException e) {
@@ -255,14 +257,12 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		if (getContainer().getCurrentPage() == syncPage) {
 			syncPage.saveSettings();
 			if (syncPage.commitChanges()) {
-				Display.getCurrent().asyncExec(new Runnable() {
-					public void run() {
-						try {
-							CommitWizard.run(null, parentShell, new IResource[] { syncPage.getProject() });
-						} catch (CVSException e) {
-							//TODO:handle
-							CVSUIPlugin.log(e);
-						}
+				Display.getCurrent().asyncExec(() -> {
+					try {
+						CommitWizard.run(null, parentShell, new IResource[] { syncPage.getProject() });
+					} catch (CVSException e) {
+						// TODO:handle
+						CVSUIPlugin.log(e);
 					}
 				});
 			}
@@ -270,9 +270,7 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		return result[0];
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#performCancel()
-	 */
+	@Override
 	public boolean performCancel() {
 		boolean disposeLocation = isNewLocation;
 		ICVSRepositoryLocation location;
@@ -296,12 +294,8 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 				}
 			} else {
 				try {
-					getContainer().run(true, true, new IRunnableWithProgress() {
-						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							new DisconnectOperation(null, new IProject[] { project }, true)
-								.run(monitor);
-						}
-					});
+					getContainer().run(true, true,
+							monitor -> new DisconnectOperation(null, new IProject[] { project }, true).run(monitor));
 				} catch (InvocationTargetException e) {
 					CVSUIPlugin.log(IStatus.ERROR, e.getMessage(), e.getTargetException());
 				} catch (InterruptedException e) {
@@ -344,13 +338,11 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		// Otherwise, get the location from the create location page
 		final ICVSRepositoryLocation[] locations = new ICVSRepositoryLocation[] { null };
 		final CVSException[] exception = new CVSException[] { null };
-		getShell().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				try {
-					locations[0] = createLocationPage.getLocation();
-				} catch (CVSException e) {
-					exception[0] = e;
-				}
+		getShell().getDisplay().syncExec(() -> {
+			try {
+				locations[0] = createLocationPage.getLocation();
+			} catch (CVSException e) {
+				exception[0] = e;
 			}
 		});
 		if (exception[0] != null) {
@@ -376,9 +368,7 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		return location;
 	}
 	
-	/*
-	 * @see IConfigurationWizard#init(IWorkbench, IProject)
-	 */
+	@Override
 	public void init(IWorkbench workbench, IProject project) {
 		this.project = project;
 	}
@@ -392,15 +382,13 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 		}
 		final boolean[] isCVSFolder = new boolean[] { false };
 		try {
-			CVSUIPlugin.runWithRefresh(shell, new IResource[] { project }, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						ICVSFolder folder = (ICVSFolder)CVSWorkspaceRoot.getCVSResourceFor(project);
-						FolderSyncInfo info = folder.getFolderSyncInfo();
-						isCVSFolder[0] = info != null;
-					} catch (final TeamException e) {
-						throw new InvocationTargetException(e);
-					}
+			CVSUIPlugin.runWithRefresh(shell, new IResource[] { project }, monitor -> {
+				try {
+					ICVSFolder folder = (ICVSFolder) CVSWorkspaceRoot.getCVSResourceFor(project);
+					FolderSyncInfo info = folder.getFolderSyncInfo();
+					isCVSFolder[0] = info != null;
+				} catch (final TeamException e) {
+					throw new InvocationTargetException(e);
 				}
 			}, null);
 		} catch (InvocationTargetException e) {
@@ -443,13 +431,11 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 				} catch (final TeamException e) {
 					// Exception validating. We can continue if the user wishes.
 					final boolean[] keep = new boolean[] { false };
-					getShell().getDisplay().syncExec(new Runnable() {
-						public void run() {
-							keep[0] = MessageDialog.openQuestion(getContainer().getShell(),
-								CVSUIMessages.SharingWizard_validationFailedTitle, 
-								NLS.bind(CVSUIMessages.SharingWizard_validationFailedText, (new Object[] {e.getStatus().getMessage()}))); 
-						}
-					});
+					getShell().getDisplay()
+							.syncExec(() -> keep[0] = MessageDialog.openQuestion(getContainer().getShell(),
+									CVSUIMessages.SharingWizard_validationFailedTitle,
+									NLS.bind(CVSUIMessages.SharingWizard_validationFailedText,
+											(new Object[] { e.getStatus().getMessage() }))));
 					if (!keep[0]) {
 						return false;
 					}
@@ -512,44 +498,38 @@ public class SharingWizard extends Wizard implements IConfigurationWizard, ICVSW
 	
 	private boolean exists(final ICVSRemoteFolder folder) throws InvocationTargetException, InterruptedException {
 		final boolean[] result = new boolean[] { false };
-		getContainer().run(true, true, new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor)
-					throws InvocationTargetException, InterruptedException {
-				try {
-					result[0] = exists(folder, monitor);
-				} catch (TeamException e) {
-					throw new InvocationTargetException(e);
-				}
+		getContainer().run(true, true, monitor -> {
+			try {
+				result[0] = exists(folder, monitor);
+			} catch (TeamException e) {
+				throw new InvocationTargetException(e);
 			}
 		});
 		return result[0];
 	}
 	
 	private void populateSyncPage(final boolean exists) throws InvocationTargetException, InterruptedException {
-		getContainer().run(true, true, new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				monitor.beginTask(null, IProgressMonitor.UNKNOWN);
-				if (exists) {
-					reconcileProject(Policy.subMonitorFor(monitor, 50));
-				} else {
-					shareProject(Policy.subMonitorFor(monitor, 50));
-				}
-				try {
-					getParticipant().getContext().refresh(Utils.getResourceMappings(new IProject[] { project }), Policy.subMonitorFor(monitor, 50));
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				}
-				if (monitor.isCanceled()) {
-					throw new InterruptedException();
-				}
-				monitor.done();
+		getContainer().run(true, true, monitor -> {
+			monitor.beginTask(null, IProgressMonitor.UNKNOWN);
+			if (exists) {
+				reconcileProject(Policy.subMonitorFor(monitor, 50));
+			} else {
+				shareProject(Policy.subMonitorFor(monitor, 50));
 			}
+			try {
+				getParticipant().getContext().refresh(Utils.getResourceMappings(new IProject[] { project }),
+						Policy.subMonitorFor(monitor, 50));
+			} catch (CoreException e) {
+				throw new InvocationTargetException(e);
+			}
+			if (monitor.isCanceled()) {
+				throw new InterruptedException();
+			}
+			monitor.done();
 		});
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#getPreviousPage(org.eclipse.jface.wizard.IWizardPage)
-	 */
+	@Override
 	public IWizardPage getPreviousPage(IWizardPage page) {
 		if (page == syncPage) {
 			// There's no going back from the sync page

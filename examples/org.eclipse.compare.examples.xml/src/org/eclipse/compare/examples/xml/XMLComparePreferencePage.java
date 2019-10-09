@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -97,9 +100,6 @@ public class XMLComparePreferencePage extends PreferencePage implements IWorkben
 		fOrderedElementsInternal= plugin.getOrderedElementsInternal();
 	}
 
-	/**
-	 * @see PreferencePage#createContents(Composite)
-	 */
 	@Override
 	protected Control createContents(Composite ancestor) {
 		Composite parent= new Composite(ancestor, SWT.NULL);
@@ -441,13 +441,13 @@ public class XMLComparePreferencePage extends PreferencePage implements IWorkben
 			fOrderedElements.remove( IdMapName );
 			//All the corresponding ID Mappings must be removed as well
 			TableItem[] itemsMappings = fMappingsTable.getItems();
-			for (int i=0; i<itemsMappings.length; i++) {
-				itemsMappings[i].dispose();
+			for (TableItem itemsMapping : itemsMappings) {
+				itemsMapping.dispose();
 			}
 			//All the corresponding Ordered entries must be removed as well
 			TableItem[] itemsOrdered= fOrderedTable.getItems();
-			for (int i= 0; i < itemsOrdered.length; i++) {
-				itemsOrdered[i].dispose();
+			for (TableItem itemsOrd : itemsOrdered) {
+				itemsOrd.dispose();
 			}
 			//Remove extension
 			if (!itemsIdMap[0].getText(2).equals("")) { //$NON-NLS-1$
@@ -769,9 +769,6 @@ public class XMLComparePreferencePage extends PreferencePage implements IWorkben
 		idmap.setOrdered(Ordered);
 	}
 
-	/*
-	 * @see IWorkbenchPreferencePage#performDefaults
-	 */	
 	@Override
 	public boolean performOk() {
 		XMLPlugin plugin= XMLPlugin.getDefault();

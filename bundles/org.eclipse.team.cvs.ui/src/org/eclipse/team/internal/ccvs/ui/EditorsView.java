@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     CSC - Initial implementation
@@ -42,16 +45,12 @@ public class EditorsView extends ViewPart {
 	private TableViewer tableViewer;
 
 	class EditorsLabelProvider implements ITableLabelProvider {
-		/**
-		 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
-		 */
+		@Override
 		public Image getColumnImage(Object element, int columnIndex) {
 			return null;
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
-		 */
+		@Override
 		public String getColumnText(Object element, int columnIndex) {
 			if (element == null)
 				return ""; //$NON-NLS-1$
@@ -78,28 +77,20 @@ public class EditorsView extends ViewPart {
 
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.jface.viewers.ILabelProviderListener)
-		 */
+		@Override
 		public void addListener(ILabelProviderListener listener) {
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IBaseLabelProvider#dispose()
-		 */
+		@Override
 		public void dispose() {
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IBaseLabelProvider#isLabelProperty(java.lang.Object, java.lang.String)
-		 */
+		@Override
 		public boolean isLabelProperty(Object element, String property) {
 			return false;
 		}
 
-		/**
-		 * @see org.eclipse.jface.viewers.IBaseLabelProvider#removeListener(org.eclipse.jface.viewers.ILabelProviderListener)
-		 */
+		@Override
 		public void removeListener(ILabelProviderListener listener) {
 		}
 
@@ -132,6 +123,7 @@ public class EditorsView extends ViewPart {
 			this.reversed = reversed;
 		}
 		
+		@Override
 		public int compare(Viewer compareViewer, Object o1, Object o2) {
 			int result = 0;
 			if ((o1 instanceof EditorsInfo) && (o2 instanceof EditorsInfo)) {
@@ -184,10 +176,10 @@ public class EditorsView extends ViewPart {
 		 */
 		private long extractDate(String dateString) {
 			if (dateString != null) {
-				for (int i = 0; i < dateFormats.length; i++) {
-					dateFormats[i].setLenient(true);
+				for (DateFormat dateFormat : dateFormats) {
+					dateFormat.setLenient(true);
 					try {
-						return dateFormats[i].parse(dateString).getTime();
+						return dateFormat.parse(dateString).getTime();
 					} catch (ParseException ex) {
 						// silently ignored
 					}
@@ -197,9 +189,7 @@ public class EditorsView extends ViewPart {
 		}
 	}	
 	
-	/**
-	 * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createPartControl(Composite parent) {
 		table =	new Table(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		table.setHeaderVisible(true);
@@ -219,7 +209,7 @@ public class EditorsView extends ViewPart {
 		tableViewer.setContentProvider(ArrayContentProvider.getInstance());
 		tableViewer.setLabelProvider(new EditorsLabelProvider());
 		// set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(tableViewer.getControl(), IHelpContextIds.CVS_EDITORS_VIEW);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(tableViewer.getControl(), IHelpContextIds.CVS_EDITORS_VIEW);
 	}
 	public void setInput(EditorsInfo[] infos) {
 		tableViewer.setInput(infos);
@@ -265,6 +255,7 @@ public class EditorsView extends ViewPart {
 
 	private SelectionListener getColumnListener(final TableViewer tableViewer) {
 		return new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// column selected - need to sort
 				TableColumn tableColumn = (TableColumn) e.widget;
@@ -285,17 +276,12 @@ public class EditorsView extends ViewPart {
 		};
 	}
 	
-	/**
-	 * @see org.eclipse.ui.IWorkbenchPart#setFocus()
-	 */
+	@Override
 	public void setFocus() {
 		if (table != null)
 			table.setFocus();
 	}
 	
-	/**
-	 * Method getTable.
-	 */
 	public Table getTable() {
 		return table;
 	}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -41,17 +44,11 @@ public abstract class ElementLocalHistoryPageSource extends HistoryPageSource {
 		super();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPageSource#canShowHistoryFor(java.lang.Object)
-	 */
 	@Override
 	public final boolean canShowHistoryFor(Object object) {
 		return getFile(object) != null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPageSource#createPage(java.lang.Object)
-	 */
 	@Override
 	public final Page createPage(Object object) {
 		return new EditionHistoryPage(getFile(object), object);

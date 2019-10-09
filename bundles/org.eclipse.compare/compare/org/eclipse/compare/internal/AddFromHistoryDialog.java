@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,21 +15,43 @@ package org.eclipse.compare.internal;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.ResourceBundle;
 
-import org.eclipse.compare.*;
-import org.eclipse.core.resources.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.CompareViewerPane;
+import org.eclipse.compare.CompareViewerSwitchingPane;
+import org.eclipse.compare.IEncodedStreamContentAccessor;
+import org.eclipse.compare.IModificationDate;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.Splitter;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFileState;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 
 import com.ibm.icu.text.DateFormat;
 import com.ibm.icu.text.MessageFormat;
@@ -163,8 +188,7 @@ public class AddFromHistoryDialog extends ResizableDialog {
 		// sort input files
 		final int count= inputFiles.length;
 		final IFile[] files= new IFile[count];
-		for (int i= 0; i < count; i++)
-			files[i]= inputFiles[i];
+		System.arraycopy(inputFiles, 0, files, 0, count);
 		if (count > 1)
 			internalSort(files, 0, count-1);
 
@@ -172,8 +196,7 @@ public class AddFromHistoryDialog extends ResizableDialog {
 		String prefix= root.getFullPath().toString();
 
 		if (fMemberTable != null && !fMemberTable.isDisposed()) {
-			for (int i = 0; i < files.length; i++) {
-				IFile file = files[i];
+			for (IFile file : files) {
 				String path = file.getFullPath().toString();
 
 				// ignore a recently deleted file at the same path as the
@@ -430,9 +453,6 @@ public class AddFromHistoryDialog extends ResizableDialog {
 		return MessageFormat.format(format, date);
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		String buttonLabel= Utilities.getString(fBundle, "buttonLabel", IDialogConstants.OK_LABEL); //$NON-NLS-1$

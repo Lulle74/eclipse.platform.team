@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -22,43 +25,41 @@ public class CVSRepositoryLocationMatcher {
 	private static final String PSERVER = "pserver"; //$NON-NLS-1$
 	private static final String EXT = "ext"; //$NON-NLS-1$
 
-	private static Comparator COMPATIBLE_LOCATIONS_COMPARATOR = new Comparator() {
-		public int compare(Object o1, Object o2) {
-			if (o1 instanceof ICVSRepositoryLocation
-					&& o2 instanceof ICVSRepositoryLocation) {
-				ICVSRepositoryLocation rl1 = (ICVSRepositoryLocation) o1;
-				ICVSRepositoryLocation rl2 = (ICVSRepositoryLocation) o2;
-				String name1 = rl1.getMethod().getName();
-				String name2 = rl2.getMethod().getName();
+	private static Comparator COMPATIBLE_LOCATIONS_COMPARATOR = (o1, o2) -> {
+		if (o1 instanceof ICVSRepositoryLocation
+				&& o2 instanceof ICVSRepositoryLocation) {
+			ICVSRepositoryLocation rl1 = (ICVSRepositoryLocation) o1;
+			ICVSRepositoryLocation rl2 = (ICVSRepositoryLocation) o2;
+			String name1 = rl1.getMethod().getName();
+			String name2 = rl2.getMethod().getName();
 
-				if (!name1.equals(name2) && isCompatible(rl1, rl2, false)) {
-					if (name1.equals(EXTSSH))
-						return -1;
-					if (name2.equals(EXTSSH))
-						return 1;
-					if (name1.equals(PSERVER))
-						return -1;
-					if (name2.equals(PSERVER))
-						return 1;
-					if (name1.equals(EXT))
-						return -1;
-					if (name2.equals(EXT))
-						return 1;
-				}
-				return name1.compareTo(name2);
+			if (!name1.equals(name2) && isCompatible(rl1, rl2, false)) {
+				if (name1.equals(EXTSSH))
+					return -1;
+				if (name2.equals(EXTSSH))
+					return 1;
+				if (name1.equals(PSERVER))
+					return -1;
+				if (name2.equals(PSERVER))
+					return 1;
+				if (name1.equals(EXT))
+					return -1;
+				if (name2.equals(EXT))
+					return 1;
 			}
-			return 0;
+			return name1.compareTo(name2);
 		}
+		return 0;
 	};
 
-	public static Map/* <IProject, List<ICVSRepositoryLocation>> */prepareSuggestedRepositoryLocations(
-			IProject[] projects, final Map/* <IProject, LoadInfo> */infoMap) {
-		List/* <IProject> */confirmedProjectsList = Arrays.asList(projects);
-		Set/* <ICVSRepositoryLocation> */projectSetRepositoryLocations = new HashSet();
+	public static Map<IProject, List<ICVSRepositoryLocation>> prepareSuggestedRepositoryLocations(
+			IProject[] projects, final Map<IProject, LoadInfo> infoMap) {
+		List<IProject> confirmedProjectsList = Arrays.asList(projects);
+		Set<ICVSRepositoryLocation> projectSetRepositoryLocations = new HashSet<>();
 		for (Iterator i = infoMap.keySet().iterator(); i.hasNext();) {
 			IProject project = (IProject) i.next();
 			if (confirmedProjectsList.contains(project)) {
-				LoadInfo loadInfo = (LoadInfo) infoMap.get(project);
+				LoadInfo loadInfo = infoMap.get(project);
 				projectSetRepositoryLocations.add(loadInfo.repositoryLocation);
 			}
 		}
@@ -68,7 +69,7 @@ public class CVSRepositoryLocationMatcher {
 			return null;
 		}
 
-		List/* <ICVSRepositoryLocation> */knownRepositories = Arrays
+		List<ICVSRepositoryLocation> knownRepositories = Arrays
 				.asList(KnownRepositories.getInstance().getRepositories());
 
 		if (knownRepositories.isEmpty()) {
@@ -79,7 +80,7 @@ public class CVSRepositoryLocationMatcher {
 					.hasNext();) {
 				ICVSRepositoryLocation projectSetRepositoryLocation = (ICVSRepositoryLocation) i
 						.next();
-				ArrayList list = new ArrayList(1);
+				ArrayList<ICVSRepositoryLocation> list = new ArrayList<>(1);
 				list.add(projectSetRepositoryLocation);
 				result.put(projectSetRepositoryLocation, list);
 			}
@@ -87,7 +88,7 @@ public class CVSRepositoryLocationMatcher {
 		} else if (knownRepositories.containsAll(projectSetRepositoryLocations)) {
 			// All repositories are known, no need to prompt for additional
 			// information.
-			return Collections.EMPTY_MAP;
+			return Collections.emptyMap();
 		} else {
 			// Not all repositories from the project set are known.
 			Map result = new HashMap();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,30 +15,70 @@ package org.eclipse.team.internal.ui.synchronize;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.*;
-import org.eclipse.compare.structuremergeviewer.*;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.action.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.ICompareContainer;
+import org.eclipse.compare.IEditableContent;
+import org.eclipse.compare.IPropertyChangeNotifier;
+import org.eclipse.compare.IResourceProvider;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.structuremergeviewer.Differencer;
+import org.eclipse.compare.structuremergeviewer.ICompareInput;
+import org.eclipse.compare.structuremergeviewer.ICompareInputChangeListener;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.history.CompareFileRevisionEditorInput;
 import org.eclipse.team.internal.ui.mapping.AbstractCompareInput;
 import org.eclipse.team.internal.ui.mapping.CompareInputChangeNotifier;
 import org.eclipse.team.internal.ui.synchronize.EditableSharedDocumentAdapter.ISharedDocumentAdapterListener;
 import org.eclipse.team.ui.mapping.SaveableComparison;
 import org.eclipse.team.ui.synchronize.SaveableCompareEditorInput;
-import org.eclipse.ui.*;
-import org.eclipse.ui.actions.*;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.ISaveablesLifecycleListener;
+import org.eclipse.ui.ISaveablesSource;
+import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
+import org.eclipse.ui.SaveablesLifecycleEvent;
+import org.eclipse.ui.actions.ContributionItemFactory;
+import org.eclipse.ui.actions.OpenFileAction;
+import org.eclipse.ui.actions.OpenWithMenu;
+import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.services.IDisposable;
@@ -552,14 +595,6 @@ public class SaveablesCompareEditorInput extends CompareEditorInput implements
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.eclipse.compare.CompareEditorInput#addCompareInputChangeListener(
-	 * org.eclipse.compare.structuremergeviewer.ICompareInput,
-	 * org.eclipse.compare.structuremergeviewer.ICompareInputChangeListener)
-	 */
 	@Override
 	public void addCompareInputChangeListener(ICompareInput input,
 			ICompareInputChangeListener listener) {
@@ -570,14 +605,6 @@ public class SaveablesCompareEditorInput extends CompareEditorInput implements
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.eclipse.compare.CompareEditorInput#removeCompareInputChangeListener
-	 * (org.eclipse.compare.structuremergeviewer.ICompareInput,
-	 * org.eclipse.compare.structuremergeviewer.ICompareInputChangeListener)
-	 */
 	@Override
 	public void removeCompareInputChangeListener(ICompareInput input,
 			ICompareInputChangeListener listener) {
@@ -592,8 +619,8 @@ public class SaveablesCompareEditorInput extends CompareEditorInput implements
 		if (!inputChangeListeners.isEmpty()) {
 			Object[] allListeners = inputChangeListeners.getListeners();
 			final ICompareInput compareResult = (ICompareInput) getCompareResult();
-			for (int i = 0; i < allListeners.length; i++) {
-				final ICompareInputChangeListener listener = (ICompareInputChangeListener) allListeners[i];
+			for (Object l : allListeners) {
+				final ICompareInputChangeListener listener = (ICompareInputChangeListener) l;
 				SafeRunner.run(new ISafeRunnable() {
 					@Override
 					public void run() throws Exception {
@@ -609,11 +636,6 @@ public class SaveablesCompareEditorInput extends CompareEditorInput implements
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.compare.CompareEditorInput#getTitleImage()
-	 */
 	@Override
 	public Image getTitleImage() {
 		ImageRegistry reg = TeamUIPlugin.getPlugin().getImageRegistry();
@@ -625,11 +647,6 @@ public class SaveablesCompareEditorInput extends CompareEditorInput implements
 		return image;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.eclipse.ui.IEditorInput#getImageDescriptor()
-	 */
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return TeamUIPlugin.getImageDescriptor(ITeamUIImages.IMG_SYNC_VIEW);

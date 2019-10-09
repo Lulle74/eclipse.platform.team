@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -50,33 +52,29 @@ public class OpenFileSystemRevisionAction extends BaseSelectionListenerAction {
 
 		Object[] objArray = structSel.toArray();
 
-		for (int i = 0; i < objArray.length; i++) {
-			Object tempRevision = objArray[i];
-
+		for (Object tempRevision : objArray) {
 			final IFileRevision revision = (IFileRevision) tempRevision;
 			if (revision == null || !revision.exists()) {
 				MessageDialog.openError(page.getSite().getShell(), "Deleted Revision", "Can't open a deleted revision");
 			} else {
-				IRunnableWithProgress runnable = new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) throws InvocationTargetException {
-						IStorage file;
-						try {
-							file = revision.getStorage(monitor);
-							String id = getEditorID(file.getName(), file.getContents());
+				IRunnableWithProgress runnable = monitor -> {
+					IStorage file;
+					try {
+						file = revision.getStorage(monitor);
+						String id = getEditorID(file.getName(), file.getContents());
 
-							if (file instanceof IFile) {
-								//if this is the current workspace file, open it
-								IDE.openEditor(page.getSite().getPage(), (IFile) file);
-							} else {
-								FileSystemRevisionEditorInput fileRevEditorInput = new FileSystemRevisionEditorInput(revision);
-								if (!editorAlreadyOpenOnContents(fileRevEditorInput))
-									page.getSite().getPage().openEditor(fileRevEditorInput, id);
-							}
-						} catch (CoreException e) {
-							throw new InvocationTargetException(e);
+						if (file instanceof IFile) {
+							//if this is the current workspace file, open it
+							IDE.openEditor(page.getSite().getPage(), (IFile) file);
+						} else {
+							FileSystemRevisionEditorInput fileRevEditorInput = new FileSystemRevisionEditorInput(revision);
+							if (!editorAlreadyOpenOnContents(fileRevEditorInput))
+								page.getSite().getPage().openEditor(fileRevEditorInput, id);
 						}
-
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
 					}
+
 				};
 
 				IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
@@ -88,7 +86,6 @@ public class OpenFileSystemRevisionAction extends BaseSelectionListenerAction {
 					// ignore
 				}
 			}
-
 		}
 	}
 
@@ -133,8 +130,8 @@ public class OpenFileSystemRevisionAction extends BaseSelectionListenerAction {
 		if (objArray.length == 0)
 			return false;
 
-		for (int i = 0; i < objArray.length; i++) {
-			IFileRevision revision = (IFileRevision) objArray[i];
+		for (Object obj : objArray) {
+			IFileRevision revision = (IFileRevision) obj;
 			//check to see if any of the selected revisions are deleted revisions
 			if (revision != null && !revision.exists())
 				return false;
@@ -145,8 +142,8 @@ public class OpenFileSystemRevisionAction extends BaseSelectionListenerAction {
 
 	boolean editorAlreadyOpenOnContents(FileSystemRevisionEditorInput input) {
 		IEditorReference[] editorRefs = page.getSite().getPage().getEditorReferences();
-		for (int i = 0; i < editorRefs.length; i++) {
-			IEditorPart part = editorRefs[i].getEditor(false);
+		for (IEditorReference editorRef : editorRefs) {
+			IEditorPart part = editorRef.getEditor(false);
 			if (part != null && part.getEditorInput() instanceof FileSystemRevisionEditorInput) {
 				IFileRevision inputRevision = input.getAdapter(IFileRevision.class);
 				IFileRevision editorRevision = part.getEditorInput().getAdapter(IFileRevision.class);

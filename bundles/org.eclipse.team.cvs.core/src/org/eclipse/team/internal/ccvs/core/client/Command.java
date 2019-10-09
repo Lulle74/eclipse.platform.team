@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,7 +79,7 @@ public abstract class Command extends Request {
 	// Empty local option array
 	public static final LocalOption[] NO_LOCAL_OPTIONS = new LocalOption[0];
 	// valid for: annotate checkout commit diff export log rdiff remove rtag status tag update
-    public static final LocalOption RECURSE = new LocalOption("-R"); //$NON-NLS-1$
+	public static final LocalOption RECURSE = new LocalOption("-R"); //$NON-NLS-1$
 	public static final LocalOption DO_NOT_RECURSE = new LocalOption("-l"); //$NON-NLS-1$	
 	// valid for: checkout export update
 	public static final LocalOption PRUNE_EMPTY_DIRECTORIES = new LocalOption("-P"); //$NON-NLS-1$
@@ -300,38 +303,36 @@ public abstract class Command extends Request {
 		final LocalOption[] localOptions, final String[] arguments, final ICommandOutputListener listener,
 		IProgressMonitor pm) throws CVSException {		
 		final IStatus[] status = new IStatus[1];
-		ICVSRunnable job = new ICVSRunnable() {
-			public void run(IProgressMonitor monitor) throws CVSException {
-				// update the global and local options
-				GlobalOption[] gOptions = filterGlobalOptions(session, globalOptions);
-				LocalOption[] lOptions = filterLocalOptions(session, gOptions, localOptions);
-				
-				// print the invocation string to the console
-				if (session.isOutputToConsole() || Policy.isDebugProtocol()) {
-					IPath commandRootPath;
-					IResource resource = session.getLocalRoot().getIResource();
-					if (resource == null) {
-						commandRootPath = Path.EMPTY;
-					} else {
-						commandRootPath = resource.getFullPath();
-					}
-					String line = constructCommandInvocationString(commandRootPath, gOptions, lOptions, arguments);
-					ConsoleListeners.getInstance().commandInvoked(session, line);
-					if (Policy.isDebugProtocol()) Policy.printProtocolLine("CMD> " + line); //$NON-NLS-1$
+		ICVSRunnable job = monitor -> {
+			// update the global and local options
+			GlobalOption[] gOptions = filterGlobalOptions(session, globalOptions);
+			LocalOption[] lOptions = filterLocalOptions(session, gOptions, localOptions);
+			
+			// print the invocation string to the console
+			if (session.isOutputToConsole() || Policy.isDebugProtocol()) {
+				IPath commandRootPath;
+				IResource resource = session.getLocalRoot().getIResource();
+				if (resource == null) {
+					commandRootPath = Path.EMPTY;
+				} else {
+					commandRootPath = resource.getFullPath();
 				}
-				
-				// run the command
-				try {
-				    session.setCurrentCommand(Command.this);
-					status[0] = doExecute(session, gOptions, lOptions, arguments, listener, monitor);
-					notifyConsoleOnCompletion(session, status[0], null);
-				} catch (CVSException e) {
-					notifyConsoleOnCompletion(session, null, e);
-					throw e;
-				} catch (RuntimeException e) {
-					notifyConsoleOnCompletion(session, null, e);
-					throw e;
-				}
+				String line = constructCommandInvocationString(commandRootPath, gOptions, lOptions, arguments);
+				ConsoleListeners.getInstance().commandInvoked(session, line);
+				if (Policy.isDebugProtocol()) Policy.printProtocolLine("CMD> " + line); //$NON-NLS-1$
+			}
+			
+			// run the command
+			try {
+				session.setCurrentCommand(Command.this);
+				status[0] = doExecute(session, gOptions, lOptions, arguments, listener, monitor);
+				notifyConsoleOnCompletion(session, status[0], null);
+			} catch (CVSException e1) {
+				notifyConsoleOnCompletion(session, null, e1);
+				throw e1;
+			} catch (RuntimeException e2) {
+				notifyConsoleOnCompletion(session, null, e2);
+				throw e2;
 			}
 		};
 		if (isWorkspaceModification()) {
@@ -378,13 +379,13 @@ public abstract class Command extends Request {
 
 			/*** initiate command ***/
 			// send global options
-			for (int i = 0; i < globalOptions.length; i++) {
-				globalOptions[i].send(session);
+			for (GlobalOption globalOption : globalOptions) {
+				globalOption.send(session);
 			}
 			Policy.checkCanceled(monitor);
 			// send local options
-			for (int i = 0; i < localOptions.length; i++) {
-				localOptions[i].send(session);
+			for (LocalOption localOption : localOptions) {
+				localOption.send(session);
 			}
 			Policy.checkCanceled(monitor);
 			// compute the work resources
@@ -431,7 +432,7 @@ public abstract class Command extends Request {
 	 */
 	private String constructCommandInvocationString(IPath commandRootPath, GlobalOption[] globalOptions,
 		LocalOption[] localOptions, String[] arguments) {
-		StringBuffer commandLine = new StringBuffer("cvs"); //$NON-NLS-1$
+		StringBuilder commandLine = new StringBuilder("cvs"); //$NON-NLS-1$
 		for (int i = 0; i < globalOptions.length; ++i) {
 			String option = globalOptions[i].toString();
 			if (option.length() == 0) continue;
@@ -559,28 +560,27 @@ public abstract class Command extends Request {
 			session.sendArgument(option);
 			if (argument != null) session.sendArgument(argument);
 		}
-        public LocalOption[] addTo(LocalOption[] options) {
-            if (this.isElementOf(options)) {
-                return options;
-            }
-            LocalOption[] newOptions = new LocalOption[options.length + 1];
-            System.arraycopy(options, 0, newOptions, 0, options.length);
-            newOptions[options.length] = this;
-            return newOptions;
-        }
-        public LocalOption[] removeFrom(LocalOption[] options) {
-            if (!this.isElementOf(options)) {
-                return options;
-            }
-            List result = new ArrayList();
-            for (int i = 0; i < options.length; i++) {
-                Command.LocalOption option = options[i];
-                if (!option.equals(this)) {
-                    result.add(option);
-                }
-            }
-            return (LocalOption[]) result.toArray(new LocalOption[result.size()]);
-        }
+		public LocalOption[] addTo(LocalOption[] options) {
+			if (this.isElementOf(options)) {
+				return options;
+			}
+			LocalOption[] newOptions = new LocalOption[options.length + 1];
+			System.arraycopy(options, 0, newOptions, 0, options.length);
+			newOptions[options.length] = this;
+			return newOptions;
+		}
+		public LocalOption[] removeFrom(LocalOption[] options) {
+			if (!this.isElementOf(options)) {
+				return options;
+			}
+			List result = new ArrayList();
+			for (LocalOption option : options) {
+				if (!option.equals(this)) {
+					result.add(option);
+				}
+			}
+			return (LocalOption[]) result.toArray(new LocalOption[result.size()]);
+		}
 	}
 	/**
 	 * Options subtype for keyword substitution options.
@@ -653,40 +653,40 @@ public abstract class Command extends Request {
 		 */
 		public String getShortDisplayText() {
 			if (isUnknownMode)
-                return NLS.bind(CVSMessages.KSubstOption_unknown_short, new String[] { option }); 
-            if (option.equals("-kb")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kb_short;
-            if (option.equals("-kkv")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kkv_short;
-            if (option.equals("-ko")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__ko_short;
-            if (option.equals("-kk")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kk_short;
-            if (option.equals("-kv")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kv_short;
-            if (option.equals("-kkvl")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kkvl_short;
-            return NLS.bind(CVSMessages.KSubstOption_unknown_short, new String[] { option }); 
+				return NLS.bind(CVSMessages.KSubstOption_unknown_short, new String[] { option }); 
+			if (option.equals("-kb")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kb_short;
+			if (option.equals("-kkv")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kkv_short;
+			if (option.equals("-ko")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__ko_short;
+			if (option.equals("-kk")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kk_short;
+			if (option.equals("-kv")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kv_short;
+			if (option.equals("-kkvl")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kkvl_short;
+			return NLS.bind(CVSMessages.KSubstOption_unknown_short, new String[] { option }); 
 		}
 		/**
 		 * Returns a long localized text string describing this mode.
 		 */
 		public String getLongDisplayText() {
 			if (isUnknownMode)
-                return NLS.bind(CVSMessages.KSubstOption_unknown_long, new String[] { option }); 
-            if (option.equals("-kb")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kb_long;
-            if (option.equals("-kkv")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kkv_long;
-            if (option.equals("-ko")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__ko_long;
-            if (option.equals("-kk")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kk_long;
-            if (option.equals("-kv")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kv_long;
-            if (option.equals("-kkvl")) //$NON-NLS-1$
-                return CVSMessages.KSubstOption__kkvl_long;
-            return NLS.bind(CVSMessages.KSubstOption_unknown_long, new String[] { option }); 
+				return NLS.bind(CVSMessages.KSubstOption_unknown_long, new String[] { option }); 
+			if (option.equals("-kb")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kb_long;
+			if (option.equals("-kkv")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kkv_long;
+			if (option.equals("-ko")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__ko_long;
+			if (option.equals("-kk")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kk_long;
+			if (option.equals("-kv")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kv_long;
+			if (option.equals("-kkvl")) //$NON-NLS-1$
+				return CVSMessages.KSubstOption__kkvl_long;
+			return NLS.bind(CVSMessages.KSubstOption_unknown_long, new String[] { option }); 
 		}
 		/**
 		 * Return the text mode that will be used by default
@@ -807,8 +807,8 @@ public abstract class Command extends Request {
 	protected String[] convertArgumentsForOpenSession(ICVSResource[] arguments, Session openSession) throws CVSException {
 		// Convert arguments
 		List stringArguments = new ArrayList(arguments.length);
-		for (int i = 0; i < arguments.length; i++) {
-			stringArguments.add(arguments[i].getRelativePath(openSession.getLocalRoot()));
+		for (ICVSResource argument : arguments) {
+			stringArguments.add(argument.getRelativePath(openSession.getLocalRoot()));
 		}
 		return (String[]) stringArguments.toArray(new String[stringArguments.size()]);
 	}

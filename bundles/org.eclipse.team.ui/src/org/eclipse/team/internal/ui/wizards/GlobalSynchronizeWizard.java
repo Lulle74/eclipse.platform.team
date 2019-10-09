@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,8 +16,8 @@ package org.eclipse.team.internal.ui.wizards;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.team.internal.ui.*;
 import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.ui.TeamImages;
 import org.eclipse.team.ui.synchronize.ISynchronizeParticipantReference;
@@ -27,7 +30,7 @@ import org.eclipse.ui.IWorkbench;
  */
 public class GlobalSynchronizeWizard extends Wizard {
 
-    private final static String DIALOG_SETTINGS_SECTION= "SynchronizeWizard"; //$NON-NLS-1$
+	private final static String DIALOG_SETTINGS_SECTION= "SynchronizeWizard"; //$NON-NLS-1$
 
 	protected IWorkbench workbench;
 	protected GlobalRefreshWizardSelectionPage mainPage;
@@ -42,24 +45,18 @@ public class GlobalSynchronizeWizard extends Wizard {
 		final IDialogSettings pluginSettings= TeamUIPlugin.getPlugin().getDialogSettings();
 		IDialogSettings wizardSettings= pluginSettings.getSection(DIALOG_SETTINGS_SECTION);
 		if (wizardSettings == null) {
-		    pluginSettings.addNewSection(DIALOG_SETTINGS_SECTION);
-		    wizardSettings= pluginSettings.getSection(DIALOG_SETTINGS_SECTION);
+			pluginSettings.addNewSection(DIALOG_SETTINGS_SECTION);
+			wizardSettings= pluginSettings.getSection(DIALOG_SETTINGS_SECTION);
 		}
 		setDialogSettings(wizardSettings);
 	}
 
-	/*
-	 * @see Wizard#addPages
-	 */
 	@Override
 	public void addPages() {
 		mainPage = new GlobalRefreshWizardSelectionPage();
 		addPage(mainPage);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#canFinish()
-	 */
 	@Override
 	public boolean canFinish() {
 		// If we are on the first page, never allow finish unless the selected
@@ -73,9 +70,6 @@ public class GlobalSynchronizeWizard extends Wizard {
 		return super.canFinish();
 	}
 
-	/*
-	 * @see Wizard#performFinish
-	 */
 	@Override
 	public boolean performFinish() {
 		// If we are on the first page and the selected wizard has no pages then allow it to finish.
@@ -83,7 +77,7 @@ public class GlobalSynchronizeWizard extends Wizard {
 			IWizard noPageWizard = mainPage.getSelectedWizard();
 			if (noPageWizard != null) {
 				if (noPageWizard.canFinish()) {
-				    mainPage.savePageSettings();
+					mainPage.savePageSettings();
 					return noPageWizard.performFinish();
 				}
 			}

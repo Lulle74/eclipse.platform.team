@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,9 @@ package org.eclipse.team.internal.ui.synchronize;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -25,7 +30,12 @@ import org.eclipse.team.core.mapping.IResourceDiff;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.mapping.CommonViewerAdvisor;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
+import org.eclipse.team.ui.synchronize.ISynchronizePage;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.SynchronizePageActionGroup;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.actions.ActionContext;
 
@@ -106,10 +116,10 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 
 	public static final int CHECKBOX = TreeViewerAdvisor.CHECKBOX;
 
-    // State flags
-    private static final int UNINITIALIZED = 0;
-    private static final int INITIALIZED = 1;
-    private static final int DISPOSED = 2;
+	// State flags
+	private static final int UNINITIALIZED = 0;
+	private static final int INITIALIZED = 1;
+	private static final int DISPOSED = 2;
 
 	private ISynchronizeParticipant participant;
 	private ISynchronizePageSite site;
@@ -182,25 +192,25 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 
 	@Override
 	public void addActionContribution(SynchronizePageActionGroup contribution) {
-        int currentActionState;
+		int currentActionState;
 		synchronized(actionContributions) {
-            // Determine the action state while locked so we handle the addition properly below
-            currentActionState = actionState;
-            if (currentActionState != DISPOSED)
-                actionContributions.add(contribution);
+			// Determine the action state while locked so we handle the addition properly below
+			currentActionState = actionState;
+			if (currentActionState != DISPOSED)
+				actionContributions.add(contribution);
 		}
 		if (currentActionState == INITIALIZED) {
-            // This is tricky because we are doing the initialize while not locked.
-            // It is possible that another thread is concurrently disposing the contributions
-            // but we can't lock while calling client code. We'll change for DISPOSE after
-            // we initialize and, if we are disposed, we dispose this one, just in case.
+			// This is tricky because we are doing the initialize while not locked.
+			// It is possible that another thread is concurrently disposing the contributions
+			// but we can't lock while calling client code. We'll change for DISPOSE after
+			// we initialize and, if we are disposed, we dispose this one, just in case.
 			contribution.initialize(this);
-            if (actionState == DISPOSED) {
-                contribution .dispose();
-            }
+			if (actionState == DISPOSED) {
+				contribution .dispose();
+			}
 		} else if (currentActionState == DISPOSED) {
-            contribution.dispose();
-        }
+			contribution.dispose();
+		}
 	}
 
 	@Override
@@ -216,8 +226,8 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 			listeners = propertyChangeListeners.getListeners();
 		}
 		final PropertyChangeEvent event = new PropertyChangeEvent(this, key, oldValue, newValue);
-		for (int i = 0; i < listeners.length; i++) {
-			final IPropertyChangeListener listener = (IPropertyChangeListener)listeners[i];
+		for (Object l : listeners) {
+			final IPropertyChangeListener listener = (IPropertyChangeListener) l;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -234,18 +244,18 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 	@Override
 	public void initialize(final ISynchronizePageConfiguration configuration) {
 		super.initialize(configuration);
-        // need to synchronize here to ensure that actions that are added concurrently also get initialized
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            if (actionState != UNINITIALIZED) {
-                // Initialization has already taken place so just return.
-                return;
-            }
-            actionState = INITIALIZED;
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		// need to synchronize here to ensure that actions that are added concurrently also get initialized
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			if (actionState != UNINITIALIZED) {
+				// Initialization has already taken place so just return.
+				return;
+			}
+			actionState = INITIALIZED;
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -262,12 +272,12 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 	@Override
 	public void setContext(final ActionContext context) {
 		super.setContext(context);
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -288,12 +298,12 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 	 */
 	@Override
 	public void fillContextMenu(final IMenuManager manager) {
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -316,12 +326,12 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 		if (actionState == UNINITIALIZED) {
 			initialize(this);
 		}
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -337,12 +347,12 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 
 	@Override
 	public void updateActionBars() {
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -358,12 +368,12 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 
 	@Override
 	public void modelChanged(final ISynchronizeModelElement root) {
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -380,13 +390,13 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 	@Override
 	public void dispose() {
 		super.dispose();
-        final Object[] listeners;
-        synchronized(actionContributions) {
-            listeners = actionContributions.getListeners();
-            actionState = DISPOSED;
-        }
-		for (int i= 0; i < listeners.length; i++) {
-			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup)listeners[i];
+		final Object[] listeners;
+		synchronized(actionContributions) {
+			listeners = actionContributions.getListeners();
+			actionState = DISPOSED;
+		}
+		for (Object listener : listeners) {
+			final SynchronizePageActionGroup contribution = (SynchronizePageActionGroup) listener;
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -423,8 +433,7 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 		if (groups == null) {
 			groups = getDefault(menuPropertyId);
 		}
-		for (int i = 0; i < groups.length; i++) {
-			String string = groups[i];
+		for (String string : groups) {
 			if (string.equals(groupId)) return true;
 		}
 		return false;
@@ -449,8 +458,7 @@ public class SynchronizePageConfiguration extends SynchronizePageActionGroup imp
 			decorators = new ILabelDecorator[0];
 		}
 		// Ensure we don't have it registered already
-		for (int i = 0; i < decorators.length; i++) {
-			ILabelDecorator d = decorators[i];
+		for (ILabelDecorator d : decorators) {
 			if (d == decorator) {
 				return;
 			}

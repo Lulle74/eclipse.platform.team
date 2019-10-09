@@ -1,21 +1,36 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
+import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -28,17 +43,33 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiffChangeEvent;
+import org.eclipse.team.core.diff.IDiffChangeListener;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.internal.core.subscribers.SubscriberDiffTreeEventHandler;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.synchronize.AbstractSynchronizePage;
+import org.eclipse.team.internal.ui.synchronize.ForwardingChangesSection;
+import org.eclipse.team.internal.ui.synchronize.StartupPreferencePage;
+import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
+import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
 import org.eclipse.team.ui.ISharedImages;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.mapping.*;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
+import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
+import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ModelOperation;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.Hyperlink;
@@ -206,9 +237,6 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 		calculateDescription();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.diff.IDiffChangeListener#propertyChanged(int, org.eclipse.core.runtime.IPath[])
-	 */
 	@Override
 	public void propertyChanged(IDiffTree tree, int property, IPath[] paths) {
 		// Do nothing
@@ -249,8 +277,7 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 				// same mode before offering to change modes.
 				ModelProvider[] providers =findModelsWithChangesInMode(getConfiguration().getMode());
 				ModelProvider currentProvider = null;
-				for (int i = 0; i < providers.length; i++) {
-					ModelProvider provider = providers[i];
+				for (ModelProvider provider : providers) {
 					if (isEnabled(provider)) {
 						if (provider.getDescriptor().getId().equals(id)) {
 							currentProvider = provider;
@@ -272,8 +299,7 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 
 	private boolean isAtLeastOneProviderDisabled() {
 		ModelProvider[] providers =findModelsWithChangesInMode(getConfiguration().getMode());
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			if (!isEnabled(provider)) {
 				return true;
 			}
@@ -285,8 +311,7 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 		ModelProvider[] providers =context.getScope().getModelProviders();
 		providers = ModelOperation.sortByExtension(providers);
 		List<ModelProvider> result = new ArrayList<>();
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			ISynchronizationCompareAdapter adapter = Utils.getCompareAdapter(provider);
 			if (adapter != null) {
 				boolean hasChanges = hasChangesInMode(provider.getId(), adapter, getConfiguration().getMode());
@@ -339,8 +364,7 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 				ModelProvider[] providers = participant.getEnabledModelProviders();
 				Set<ITeamContentProviderDescriptor> toEnable = new HashSet<>();
 				toEnable.addAll(Arrays.asList(descriptors));
-				for (int i = 0; i < providers.length; i++) {
-					ModelProvider provider = providers[i];
+				for (ModelProvider provider : providers) {
 					ITeamContentProviderDescriptor desc = TeamUI.getTeamContentProviderManager().getDescriptor(provider.getId());
 					if (desc != null && !desc.isEnabled()) {
 						toEnable.add(desc);
@@ -361,8 +385,7 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 		ModelSynchronizeParticipant participant = (ModelSynchronizeParticipant)getConfiguration().getParticipant();
 		ModelProvider[] providers = participant.getEnabledModelProviders();
 		Set<ITeamContentProviderDescriptor> result = new HashSet<>();
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			ITeamContentProviderDescriptor desc = TeamUI.getTeamContentProviderManager().getDescriptor(provider.getId());
 			if (desc != null && desc.isEnabled())
 				result.add(desc);
@@ -471,9 +494,9 @@ public class DiffTreeChangesSection extends ForwardingChangesSection implements 
 		IModelProviderDescriptor oldDesc = ModelProvider.getModelProviderDescriptor(oldId);
 		String message;
 		String modeToString = Utils.modeToString(getConfiguration().getMode());
-        message = NLS.bind(TeamUIMessages.DiffTreeChangesSection_0, new String[] {
-            		provider.getDescriptor().getLabel(),
-            		modeToString });
+		message = NLS.bind(TeamUIMessages.DiffTreeChangesSection_0, new String[] {
+					provider.getDescriptor().getLabel(),
+					modeToString });
 		message = NLS.bind(TeamUIMessages.DiffTreeChangesSection_1, new String[] { modeToString, oldDesc.getLabel(), message });
 
 		createDescriptionLabel(composite, message);

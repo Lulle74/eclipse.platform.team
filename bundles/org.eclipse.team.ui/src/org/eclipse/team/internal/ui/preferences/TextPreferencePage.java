@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,20 +19,33 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.core.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.team.core.IFileContentManager;
+import org.eclipse.team.core.IStringMapping;
+import org.eclipse.team.core.Team;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.PixelConverter;
+import org.eclipse.team.internal.ui.SWTUtils;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.preferences.FileTypeTable.Item;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 /**
  * This preference page displays all patterns which determine whether a resource
  * is to be treated as a text file or not. The page allows the user to add or
@@ -90,54 +106,51 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 	}
 
 	// The input for the table viewer
-	private final List fItems;
+	private final List<Item> fItems;
 
 	// Widgets
 	private Button fRemoveButton;
 	private Button fChangeButton;
 
-    protected FileTypeTable fTable;
+	protected FileTypeTable fTable;
 
-    public TextPreferencePage() {
-        fItems= new ArrayList();
-        initializeItems();
-    }
+	public TextPreferencePage() {
+		fItems= new ArrayList<>();
+		initializeItems();
+	}
 
-    private void initializeItems() {
+	private void initializeItems() {
 
-        fItems.clear();
+		fItems.clear();
 
-        final IFileContentManager manager= Team.getFileContentManager();
+		final IFileContentManager manager= Team.getFileContentManager();
 
-	    final IStringMapping [] extensionInfoArray= manager.getExtensionMappings();
-        final IStringMapping [] nameInfoArray= manager.getNameMappings();
+		final IStringMapping [] extensionInfoArray= manager.getExtensionMappings();
+		final IStringMapping [] nameInfoArray= manager.getNameMappings();
 
-        Set fPluginNames= makeSetOfStrings(manager.getDefaultNameMappings());
-        Set fPluginExtensions= makeSetOfStrings(manager.getDefaultExtensionMappings());
+		Set fPluginNames= makeSetOfStrings(manager.getDefaultNameMappings());
+		Set fPluginExtensions= makeSetOfStrings(manager.getDefaultExtensionMappings());
 
-        for (int i = 0; i < extensionInfoArray.length; i++) {
-            final IStringMapping info= extensionInfoArray[i];
-            final FileTypeTable.Extension extension= new FileTypeTable.Extension(info.getString(), fPluginExtensions.contains(info.getString()));
-            extension.mode= info.getType();
-            fItems.add(extension);
-        }
-
-        for (int i = 0; i < nameInfoArray.length; i++) {
-            final IStringMapping info= nameInfoArray[i];
-            final FileTypeTable.Name name= new FileTypeTable.Name(info.getString(), fPluginNames.contains(info.getString()));
-            name.mode= info.getType();
-            fItems.add(name);
-        }
-
-    }
-
-    private static Set<String> makeSetOfStrings(IStringMapping [] mappings) {
-    	final Set<String> set= new HashSet<>(mappings.length);
-    	for (int i = 0; i < mappings.length; i++) {
-			set.add(mappings[i].getString());
+		for (IStringMapping info : extensionInfoArray) {
+			final FileTypeTable.Extension extension= new FileTypeTable.Extension(info.getString(), fPluginExtensions.contains(info.getString()));
+			extension.mode= info.getType();
+			fItems.add(extension);
 		}
-    	return set;
-    }
+		for (IStringMapping info : nameInfoArray) {
+			final FileTypeTable.Name name= new FileTypeTable.Name(info.getString(), fPluginNames.contains(info.getString()));
+			name.mode= info.getType();
+			fItems.add(name);
+		}
+
+	}
+
+	private static Set<String> makeSetOfStrings(IStringMapping [] mappings) {
+		final Set<String> set= new HashSet<>(mappings.length);
+		for (IStringMapping mapping : mappings) {
+			set.add(mapping.getString());
+		}
+		return set;
+	}
 
 	@Override
 	public void init(IWorkbench workbench) {
@@ -200,8 +213,8 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 
 		Dialog.applyDialogFont(parent);
 
-        // set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.FILE_TYPE_PREFERENCE_PAGE);
+		// set F1 help
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.FILE_TYPE_PREFERENCE_PAGE);
 
 		return composite;
 	}
@@ -211,7 +224,7 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 		super.performDefaults();
 		initializeItems();
 		if (fTable != null)
-		    fTable.getViewer().refresh();
+			fTable.getViewer().refresh();
 	}
 
 	/**
@@ -221,32 +234,32 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 	 */
 	@Override
 	public boolean performOk() {
-	    final ArrayList<String> extensionsList= new ArrayList<>();
-	    final ArrayList<Integer> extensionsModesList= new ArrayList<>();
+		final ArrayList<String> extensionsList= new ArrayList<>();
+		final ArrayList<Integer> extensionsModesList= new ArrayList<>();
 
-	    final ArrayList<String> namesList= new ArrayList<>();
-	    final ArrayList<Integer> namesModesList= new ArrayList<>();
+		final ArrayList<String> namesList= new ArrayList<>();
+		final ArrayList<Integer> namesModesList= new ArrayList<>();
 
-	    for (final Iterator iter = fItems.iterator(); iter.hasNext();) {
-            final FileTypeTable.Item item= (FileTypeTable.Item) iter.next();
+		for (final Iterator iter = fItems.iterator(); iter.hasNext();) {
+			final FileTypeTable.Item item= (FileTypeTable.Item) iter.next();
 
-            if (item instanceof FileTypeTable.Extension) {
-                extensionsList.add(item.name);
-                extensionsModesList.add(Integer.valueOf(item.mode));
-            } else if (item instanceof FileTypeTable.Name) {
-                namesList.add(item.name);
-                namesModesList.add(Integer.valueOf(item.mode));
-            }
-        }
+			if (item instanceof FileTypeTable.Extension) {
+				extensionsList.add(item.name);
+				extensionsModesList.add(Integer.valueOf(item.mode));
+			} else if (item instanceof FileTypeTable.Name) {
+				namesList.add(item.name);
+				namesModesList.add(Integer.valueOf(item.mode));
+			}
+		}
 
-	    final String [] extensions= extensionsList.toArray(new String [extensionsList.size()]);
-	    final String [] names= namesList.toArray(new String [namesList.size()]);
+		final String [] extensions= extensionsList.toArray(new String [extensionsList.size()]);
+		final String [] names= namesList.toArray(new String [namesList.size()]);
 
-	    final int [] extensionsModes= integerListToIntArray(extensionsModesList);
-	    final int [] namesModes= integerListToIntArray(namesModesList);
+		final int [] extensionsModes= integerListToIntArray(extensionsModesList);
+		final int [] namesModes= integerListToIntArray(namesModesList);
 
-	    Team.getFileContentManager().setExtensionMappings(extensions, extensionsModes);
-	    Team.getFileContentManager().setNameMappings(names, namesModes);
+		Team.getFileContentManager().setExtensionMappings(extensions, extensionsModes);
+		Team.getFileContentManager().setNameMappings(names, namesModes);
 
 		TeamUIPlugin.broadcastPropertyChange(new PropertyChangeEvent(this, TeamUI.GLOBAL_FILE_TYPES_CHANGED, null, null));
 
@@ -254,11 +267,11 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 	}
 
 	private static int [] integerListToIntArray(List integers) {
-	    final int [] array= new int [integers.size()];
-	    int index= 0;
-	    for (Iterator iter = integers.iterator(); iter.hasNext();)
-            array[index++]= ((Integer)iter.next()).intValue();
-	    return array;
+		final int [] array= new int [integers.size()];
+		int index= 0;
+		for (Iterator iter = integers.iterator(); iter.hasNext();)
+			array[index++]= ((Integer)iter.next()).intValue();
+		return array;
 	}
 
 	/**
@@ -325,13 +338,13 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 			fItems.remove(item);
 		}
 		fTable.getViewer().refresh();
-        handleSelection();
+		handleSelection();
 	}
 	/**
 	 * Toggle the selected items' content types
 	 */
 	void changePattern() {
-	    final IStructuredSelection selection = fTable.getSelection();
+		final IStructuredSelection selection = fTable.getSelection();
 		if (selection == null)
 			return;
 
@@ -347,7 +360,7 @@ public class TextPreferencePage extends PreferencePage implements IWorkbenchPref
 	 */
 	void handleSelection() {
 		final boolean empty = fTable.getSelection().isEmpty();
-        FileTypeTable.Item selectedItem = (Item) fTable.getSelection().getFirstElement();
+		FileTypeTable.Item selectedItem = (Item) fTable.getSelection().getFirstElement();
 
 		fRemoveButton.setEnabled(!empty && !selectedItem.contributed);
 		fChangeButton.setEnabled(!empty);

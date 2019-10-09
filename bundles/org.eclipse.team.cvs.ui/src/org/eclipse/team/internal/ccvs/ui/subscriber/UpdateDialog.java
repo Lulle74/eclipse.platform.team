@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,9 +34,7 @@ public class UpdateDialog extends SyncInfoSetDetailsDialog {
 		super(parentShell, CVSUIMessages.UpdateDialog_overwriteTitle, syncSet); // 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.DetailsDialog#createMainDialogArea(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	protected void createMainDialogArea(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout());
@@ -44,20 +45,24 @@ public class UpdateDialog extends SyncInfoSetDetailsDialog {
 		createWrappingLabel(composite, CVSUIMessages.UpdateDialog_overwriteMessage); 
 	}
 
+	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, YES, IDialogConstants.YES_LABEL, false);
 		createButton(parent, IDialogConstants.NO_ID, IDialogConstants.NO_LABEL, true);
 		super.createButtonsForButtonBar(parent);
 	}
 	
+	@Override
 	protected boolean includeOkButton() {
 		return false;
 	}
 	
+	@Override
 	protected boolean includeCancelButton() {
 		return false;
 	}
 
+	@Override
 	protected void buttonPressed(int id) {
 		// hijack yes and no buttons to set the correct return
 		// codes.

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,9 +18,7 @@ import org.eclipse.team.internal.ccvs.core.CVSTag;
 import org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder;
 import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
 import org.eclipse.team.internal.ccvs.ui.ICVSUIConstants;
-import org.eclipse.ui.views.properties.IPropertyDescriptor;
-import org.eclipse.ui.views.properties.IPropertySource;
-import org.eclipse.ui.views.properties.PropertyDescriptor;
+import org.eclipse.ui.views.properties.*;
 
 public class CVSRemoteFolderPropertySource implements IPropertySource {
 	ICVSRemoteFolder folder;
@@ -50,6 +51,7 @@ public class CVSRemoteFolderPropertySource implements IPropertySource {
 	/**
 	 * Do nothing because properties are read only.
 	 */
+	@Override
 	public Object getEditableValue() {
 		return this;
 	}
@@ -57,13 +59,12 @@ public class CVSRemoteFolderPropertySource implements IPropertySource {
 	/**
 	 * Return the Property Descriptors for the receiver.
 	 */
+	@Override
 	public IPropertyDescriptor[] getPropertyDescriptors() {
 		return propertyDescriptors;
 	}
 
-	/*
-	 * @see IPropertySource#getPropertyValue(Object)
-	 */
+	@Override
 	public Object getPropertyValue(Object id) {
 		if (id.equals(ICVSUIConstants.PROP_NAME)) {
 			return folder.getName();
@@ -82,6 +83,7 @@ public class CVSRemoteFolderPropertySource implements IPropertySource {
 	 * Answer true if the value of the specified property 
 	 * for this object has been changed from the default.
 	 */
+	@Override
 	public boolean isPropertySet(Object property) {
 		return false;
 	}
@@ -91,11 +93,13 @@ public class CVSRemoteFolderPropertySource implements IPropertySource {
 	 * 
 	 * @param   property    The property to reset.
 	 */
+	@Override
 	public void resetPropertyValue(Object property) {
 	}
 	/**
 	 * Do nothing because properties are read only.
 	 */
+	@Override
 	public void setPropertyValue(Object name, Object value) {
 	}
 }

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,9 @@ package org.eclipse.team.core;
 
 import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -235,15 +240,14 @@ public abstract class ProjectSetCapability {
 		// Build a collection of existing projects
 
 		final Collection<IProject> existingProjects = new ArrayList<>();
-		for (int i = 0; i < projects.length; i++) {
-			IProject eachProj = projects[i];
+		for (IProject eachProj : projects) {
 			if (eachProj.exists()) {
 				existingProjects.add(eachProj);
-            } else if (new File(eachProj.getParent().getLocation().toFile(), eachProj.getName()).exists()) {
-                existingProjects.add(eachProj);
-            }
+			} else if (new File(eachProj.getParent().getLocation().toFile(), eachProj.getName()).exists()) {
+				existingProjects.add(eachProj);
+			}
 		}
-		if (existingProjects.size() == 0)
+		if (existingProjects.isEmpty())
 			return projects;
 
 		// Confirm the overwrite
@@ -262,8 +266,7 @@ public abstract class ProjectSetCapability {
 		Collection<IProject> result = new ArrayList<>(projects.length);
 		result.addAll(Arrays.asList(projects));
 		result.removeAll(existingProjects);
-		for (int i = 0; i < confirmed.length; i++) {
-			IProject eachProj = confirmed[i];
+		for (IProject eachProj : confirmed) {
 			if (existingProjects.contains(eachProj))
 				result.add(eachProj);
 		}

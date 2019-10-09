@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,17 +17,24 @@ package org.eclipse.team.internal.ui.synchronize;
 
 import java.util.Date;
 
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
@@ -87,9 +97,6 @@ public class ConfigureSynchronizeScheduleComposite extends Composite {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
-	 */
 	protected void createMainDialogArea(Composite parent) {
 		GC gc = new GC(parent);
 		gc.setFont(JFaceResources.getDialogFont());
@@ -171,9 +178,6 @@ public class ConfigureSynchronizeScheduleComposite extends Composite {
 		updateEnablements();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#okPressed()
-	 */
 	public void saveValues() {
 		if (enableBackgroundRefresh.getSelection()) {
 
@@ -217,9 +221,6 @@ public class ConfigureSynchronizeScheduleComposite extends Composite {
 		schedule.getRefreshable().setRefreshSchedule(schedule);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#updateEnablements()
-	 */
 	public void updateEnablements() {
 		if (!enableBackgroundRefresh.getSelection()) {
 			validator.setComplete(null);

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,9 +18,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.mapping.ResourceMapping;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffChangeEvent;
+import org.eclipse.team.core.diff.IDiffChangeListener;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.internal.core.mapping.GroupProgressMonitor;
@@ -41,13 +51,11 @@ public class RefreshModelParticipantJob extends RefreshParticipantJob {
 		@Override
 		public void diffsChanged(IDiffChangeEvent event, IProgressMonitor monitor) {
 			IDiff[] additions = event.getAdditions();
-			for (int i = 0; i < additions.length; i++) {
-				IDiff node = additions[i];
+			for (IDiff node : additions) {
 				changes.put(node.getPath(), node);
 			}
 			IDiff[] changed = event.getChanges();
-			for (int i = 0; i < changed.length; i++) {
-				IDiff node = changed[i];
+			for (IDiff node : changed) {
 				changes.put(node.getPath(), node);
 			}
 		}
@@ -87,17 +95,17 @@ public class RefreshModelParticipantJob extends RefreshParticipantJob {
 		return ((ModelSynchronizeParticipant)getParticipant()).getContext().getDiffTree().size();
 	}
 
-    @Override
+	@Override
 	protected int getIncomingChangeCount() {
-      IResourceDiffTree diffTree = ((ModelSynchronizeParticipant)getParticipant()).getContext().getDiffTree();
-      return (int) diffTree.countFor(IThreeWayDiff.INCOMING, IThreeWayDiff.DIRECTION_MASK);
-    }
+		IResourceDiffTree diffTree = ((ModelSynchronizeParticipant)getParticipant()).getContext().getDiffTree();
+		return (int) diffTree.countFor(IThreeWayDiff.INCOMING, IThreeWayDiff.DIRECTION_MASK);
+	}
 
-    @Override
+	@Override
 	protected int getOutgoingChangeCount() {
-      IResourceDiffTree diffTree = ((ModelSynchronizeParticipant)getParticipant()).getContext().getDiffTree();
-      return (int) diffTree.countFor(IThreeWayDiff.OUTGOING, IThreeWayDiff.DIRECTION_MASK);
-    }
+		IResourceDiffTree diffTree = ((ModelSynchronizeParticipant)getParticipant()).getContext().getDiffTree();
+		return (int) diffTree.countFor(IThreeWayDiff.OUTGOING, IThreeWayDiff.DIRECTION_MASK);
+	}
 
 	@Override
 	protected void handleProgressGroupSet(IProgressMonitor group, int ticks) {

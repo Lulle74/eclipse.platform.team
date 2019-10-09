@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,43 +15,23 @@ package org.eclipse.team.internal.ccvs.ui.wizards;
 
 
 import java.text.Collator;  // don't use ICU, pending resolution of issue 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.team.internal.ccvs.core.client.Command.KSubstOption;
 import org.eclipse.team.internal.ccvs.core.util.StringMatcher;
 import org.eclipse.team.internal.ccvs.ui.*;
@@ -71,10 +54,12 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable= table;
 		}
 		
+		@Override
 		public boolean canModify(Object element, String property) {
 			return PROPERTY_MODE.equals(property);
 		}
 		
+		@Override
 		public Object getValue(Object element, String property) {
 			if (PROPERTY_MODE.equals(property)) {
 				final KSubstOption mode= ((ModeChange)element).getNewMode();
@@ -87,6 +72,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			return null;
 		}
 		
+		@Override
 		public void modify(Object element, String property, Object value) {
 			if (element instanceof Item)
 				element= ((Item)element).getData();
@@ -108,6 +94,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fDecoratingLP.addListener(fTable);
 		}
 		
+		@Override
 		public Image getColumnImage(Object element, int columnIndex) {
 			if (columnIndex == INDEX_FILE) {
 				return fDecoratingLP.getImage(((ModeChange)element).getFile());
@@ -115,6 +102,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			return null;
 		}
 		
+		@Override
 		public String getColumnText(Object element, int columnIndex) {
 			final ModeChange change= (ModeChange)element;
 			switch (columnIndex) {
@@ -125,17 +113,21 @@ public class ModeWizardSelectionPage extends WizardPage {
 			throw new IllegalArgumentException();
 		}
 		
+		@Override
 		public void addListener(ILabelProviderListener listener) {
 		}
 		
+		@Override
 		public boolean isLabelProperty(Object element, String property) {
 			return false;
 		}
 		
+		@Override
 		public void dispose() {
 			fDecoratingLP.removeListener(fTable);
 		}
 		
+		@Override
 		public void removeListener(ILabelProviderListener listener) {        
 		}
 	}
@@ -170,6 +162,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			pathColumn.addSelectionListener(this);
 		}
 		
+		@Override
 		public int compare(Viewer viewer, Object e1, Object e2) {
 			
 			final ModeChange mc1= (ModeChange)e1;
@@ -202,6 +195,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			return fAscending ? compare : -compare;
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final int index= columnToIndex(e.widget);
 			if (index == fIndex) {
@@ -230,6 +224,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fViewer.refresh();
 		}
 		
+		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 			// nop
 		}
@@ -306,6 +301,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fViewer.addSelectionChangedListener(this);
 			
 			fileColumn.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					
 				}
@@ -318,6 +314,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			return fViewer;
 		}
 		
+		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
 			setChanged();
 			notifyObservers(fViewer.getSelection());
@@ -340,9 +337,10 @@ public class ModeWizardSelectionPage extends WizardPage {
 		}
 		
 		public IStructuredSelection getSelection() {
-			return (IStructuredSelection)fViewer.getSelection();
+			return fViewer.getStructuredSelection();
 		}
 		
+		@Override
 		public void labelProviderChanged(LabelProviderChangedEvent event) {
 			fViewer.refresh();
 		}
@@ -364,15 +362,18 @@ public class ModeWizardSelectionPage extends WizardPage {
 	
 	private static final class ModeChangeContentProvider implements IStructuredContentProvider {
 		
+		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		}
 		
+		@Override
 		public Object[] getElements(Object inputElement) {
 //			new FetchJob(fViewer, (List)inputElement, fPattern);
 //			return new Object[0];
 			return ((List)inputElement).toArray();
 		}
 		
+		@Override
 		public void dispose() {
 		}
 	}
@@ -391,6 +392,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable.addObserver(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final KSubstOption mode= MODES[fCombo.getSelectionIndex()];
 			final IStructuredSelection selection= fTable.getSelection();
@@ -401,8 +403,9 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable.modelChanged(true);
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
-			final IStructuredSelection selection= (IStructuredSelection)fTable.getViewer().getSelection();
+			final IStructuredSelection selection= fTable.getViewer().getStructuredSelection();
 			
 			if (selection.isEmpty()) {
 				fCombo.deselectAll();
@@ -431,6 +434,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fMatcher= new StringMatcher("*", true, false); //$NON-NLS-1$
 		}
 		
+		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element) {
 			final ModeChange change= (ModeChange)element;
 			if (fFilterUnchanged && !change.hasChanged())
@@ -469,6 +473,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable.addObserver(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			fButton.setEnabled(false);
 			final IStructuredSelection selection= fTable.getSelection();
@@ -479,6 +484,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable.modelChanged(true);
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
 			final IStructuredSelection selection= fTable.getSelection();
 			for (final Iterator iter = selection.iterator(); iter.hasNext();) {
@@ -508,6 +514,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final IStructuredSelection selection= fTable.getSelection();
 			for (Iterator iter = selection.iterator(); iter.hasNext();) {
@@ -517,6 +524,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTable.modelChanged(true);
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
 			fButton.setEnabled(!fTable.getSelection().isEmpty());
 		}
@@ -536,6 +544,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fButton.addSelectionListener(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			fPage.getTable().selectAll();
 		}
@@ -555,6 +564,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fButton.addSelectionListener(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			fPage.getTable().selectNone();
 		}
@@ -574,6 +584,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fCheck.addSelectionListener(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			final ModeChangeTable table= fPage.getTable();
 			table.getFilter().filterUnchanged(fCheck.getSelection());
@@ -599,11 +610,13 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fTextField.addModifyListener(this);
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			fTextField.setText(""); //$NON-NLS-1$
 			fTextField.setFocus();
 		}
 		
+		@Override
 		public void modifyText(ModifyEvent e) {
 			final ModeChangeTable table= fPage.getTable();
 			table.getFilter().setPattern(fTextField.getText());
@@ -627,6 +640,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fLabel.setFont(JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT));
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
 			updateText(fTable.getNumberOfChanges());
 		}
@@ -652,6 +666,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 			fLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
 			updateText(fTable.getSelection().size());
 		}
@@ -681,12 +696,10 @@ public class ModeWizardSelectionPage extends WizardPage {
 	
 	static {
 		MODES= KSubstOption.getAllKSubstOptions();
-		Arrays.sort(MODES, new Comparator() {
-			public int compare(Object a, Object b) {
-				String aKey = ((KSubstOption)a).getLongDisplayText();
-				String bKey = ((KSubstOption) b).getLongDisplayText();
-				return aKey.compareTo(bKey);
-			}
+		Arrays.sort(MODES, (a, b) -> {
+			String aKey = a.getLongDisplayText();
+			String bKey = b.getLongDisplayText();
+			return aKey.compareTo(bKey);
 		});
 		COMBO_TEXT= new String[MODES.length];
 		int maxLength= 0;
@@ -708,6 +721,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 		fChanges= modeChanges;
 	}
 	
+	@Override
 	public void createControl(final Composite parent) {
 		
 		final PixelConverter converter= SWTUtils.createDialogPixelConverter(parent);
@@ -719,9 +733,9 @@ public class ModeWizardSelectionPage extends WizardPage {
 		 * The main composite with the vertical sash
 		 */
 		final Composite mainComposite= SWTUtils.createHVFillComposite(parent, SWTUtils.MARGINS_DEFAULT);
-        // set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(mainComposite, IHelpContextIds.KEYWORD_SUBSTITUTION_PAGE);
-        
+		// set F1 help
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(mainComposite, IHelpContextIds.KEYWORD_SUBSTITUTION_PAGE);
+		
 		final SashForm mainSash= new SashForm(mainComposite, SWT.VERTICAL);
 		mainSash.setLayoutData(SWTUtils.createHVFillGridData());
 		
@@ -771,12 +785,10 @@ public class ModeWizardSelectionPage extends WizardPage {
 		SWTUtils.createPlaceholder(leftGroup, 1);
 		final Label infoLabel= SWTUtils.createLabel(leftGroup, CVSUIMessages.ModeWizardSelectionPage_23, 3); 
 		
-		fTable.addObserver(new Observer() {
-			public void update(Observable o, Object arg) {
-				final boolean enabled= !fTable.getSelection().isEmpty();
-				leftGroup.setEnabled(enabled);
-				infoLabel.setEnabled(enabled);
-			}
+		fTable.addObserver((o, arg) -> {
+			final boolean enabled= !fTable.getSelection().isEmpty();
+			leftGroup.setEnabled(enabled);
+			infoLabel.setEnabled(enabled);
 		});
 		
 		/**
@@ -803,11 +815,9 @@ public class ModeWizardSelectionPage extends WizardPage {
 	}
 
 	private void setupListeners() {
-		fCommentArea.addPropertyChangeListener(new IPropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty() != null) {
-					validatePage();
-				}
+		fCommentArea.addPropertyChangeListener(event -> {
+			if (event.getProperty() != null) {
+				validatePage();
 			}
 		});
 	}
@@ -817,7 +827,7 @@ public class ModeWizardSelectionPage extends WizardPage {
 	}
 	
 	public List getChanges() {
-		final List changes= new ArrayList();
+		final List<ModeChange> changes = new ArrayList<>();
 		for (Iterator iter = fChanges.iterator(); iter.hasNext();) {
 			final ModeChange change = (ModeChange) iter.next();
 			if (change.hasChanged())

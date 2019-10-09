@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,17 +61,17 @@ public class ImportTest extends EclipseTest {
 	// Assert that the two containers have equal contents
 	protected void assertEquals(IContainer container1, IContainer container2) throws CoreException {
 		assertEquals(container1.getName(), container2.getName());
-		List members1 = new ArrayList();
+		List<IResource> members1 = new ArrayList<>();
 		members1.addAll(Arrays.asList(container1.members()));
 		members1.remove(container1.findMember("CVS"));
 		
-		List members2 = new ArrayList();
+		List<IResource> members2 = new ArrayList<>();
 		members2.addAll(Arrays.asList(container2.members()));
 		members2.remove(container2.findMember("CVS"));
 		
 		assertTrue(members1.size() == members2.size());
 		for (int i=0;i<members1.size();i++) {
-			IResource member1 = (IResource)members1.get(i);
+			IResource member1 = members1.get(i);
 			IResource member2 = container2.findMember(member1.getName());
 			assertNotNull(member2);
 			assertEquals(member1, member2);
@@ -83,20 +86,21 @@ public class ImportTest extends EclipseTest {
 	
 	// Assert that the two projects have equal contents ignoreing the project name
 	// and the .vcm_meta file
+	@Override
 	protected void assertEquals(IProject container1, IProject container2) throws CoreException {
-		List members1 = new ArrayList();
+		List<IResource> members1 = new ArrayList<>();
 		members1.addAll(Arrays.asList(container1.members()));
 		members1.remove(container1.findMember(".project"));
 		members1.remove(container1.findMember("CVS"));
 		
-		List members2 = new ArrayList();
+		List<IResource> members2 = new ArrayList<>();
 		members2.addAll(Arrays.asList(container2.members()));
 		members2.remove(container2.findMember(".project"));
 		members2.remove(container2.findMember("CVS"));
 		
 		assertTrue("Number of children differs for " + container1.getFullPath(), members1.size() == members2.size());
 		for (int i=0;i<members1.size();i++) {
-			IResource member1 = (IResource)members1.get(i);
+			IResource member1 = members1.get(i);
 			IResource member2 = container2.findMember(member1.getName());
 			assertNotNull(member2);
 			assertEquals(member1, member2);
@@ -133,19 +137,19 @@ public class ImportTest extends EclipseTest {
 		assertEquals(project, copy, true, true);
 		
 		// 1. Delete the project but not it's contents and checkout the project again
-        waitForDecorator();
+		waitForDecorator();
 		project.delete(false, false, DEFAULT_MONITOR);
 		project = checkoutProject(project, null, null);
 		assertEquals(project, copy, true, true);
 		
 		// 2. Delete the project and its contents and use the module name instead of the project
-        waitForDecorator();
+		waitForDecorator();
 		project.delete(true, false, DEFAULT_MONITOR);
 		project = checkoutProject(null, project.getName(), null);
 		assertEquals(project, copy, true, true);
 		
 		// 3. Create a project in a custom location and check out over it
-        waitForDecorator();
+		waitForDecorator();
 		project.delete(true, false, DEFAULT_MONITOR);
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(project.getName());
 		//desc.setLocation(new Path("C:\\temp\\project"));
@@ -154,7 +158,7 @@ public class ImportTest extends EclipseTest {
 		assertEquals(project, copy, true, true);
 		
 		// 4. Checkout something that doesn't contain a .project
-        waitForDecorator();
+		waitForDecorator();
 		project.delete(true, false, DEFAULT_MONITOR);
 		project = checkoutProject(null, project.getName() + "/folder1", null);
 		//assertEquals(project, copy.getFolder("folder1"));

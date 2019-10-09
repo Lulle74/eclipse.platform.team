@@ -1,21 +1,29 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.mapping.ISynchronizationScopeChangeListener;
 
@@ -32,11 +40,9 @@ public abstract class AbstractSynchronizationScope implements ISynchronizationSc
 	public IResource[] getRoots() {
 		List<IResource> result = new ArrayList<>();
 		ResourceTraversal[] traversals = getTraversals();
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
-			for (int j = 0; j < resources.length; j++) {
-				IResource resource = resources[j];
+			for (IResource resource : resources) {
 				accumulateRoots(result, resource);
 			}
 		}
@@ -46,8 +52,7 @@ public abstract class AbstractSynchronizationScope implements ISynchronizationSc
 	@Override
 	public boolean contains(IResource resource) {
 		ResourceTraversal[] traversals = getTraversals();
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			if (traversal.contains(resource))
 				return true;
 		}
@@ -81,8 +86,7 @@ public abstract class AbstractSynchronizationScope implements ISynchronizationSc
 	 */
 	public void fireTraversalsChangedEvent(final ResourceTraversal[] newTraversals, final ResourceMapping[] newMappings) {
 		Object[] allListeners = listeners.getListeners();
-		for (int i = 0; i < allListeners.length; i++) {
-			final Object listener = allListeners[i];
+		for (Object listener : allListeners) {
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void run() throws Exception {

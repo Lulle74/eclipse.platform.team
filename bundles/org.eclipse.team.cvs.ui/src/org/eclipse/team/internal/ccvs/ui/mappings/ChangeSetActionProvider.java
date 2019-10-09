@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -59,22 +62,20 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			super(TeamUIMessages.ChangeLogModelProvider_0, configuration);
 		}
 
+		@Override
 		public void run() {
 			final IDiff[] diffs = getLocalChanges(getStructuredSelection());
-			syncExec(new Runnable() {
-				public void run() {
-					createChangeSet(diffs);
-				}
-			});
+			syncExec(() -> createChangeSet(diffs));
 		}
 
 		/* package */void createChangeSet(IDiff[] diffs) {
-            ActiveChangeSet set =  getChangeSetCapability().createChangeSet(getConfiguration(), diffs);
+			ActiveChangeSet set =  getChangeSetCapability().createChangeSet(getConfiguration(), diffs);
 			if (set != null) {
 				getActiveChangeSetManager().add(set);
 			}
 		}
 
+		@Override
 		protected boolean isEnabledForSelection(IStructuredSelection selection) {
 			return isContentProviderEnabled()
 					&& containsOnlyLocalChanges(selection);
@@ -92,7 +93,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			return x;
 
 		int len = x.length();
-		StringBuffer sb = new StringBuffer(2 * len + 1);
+		StringBuilder sb = new StringBuilder(2 * len + 1);
 		int doneIndex = 0;
 		while (ampersandIndex != -1) {
 			sb.append(x.substring(doneIndex, ampersandIndex));
@@ -109,12 +110,13 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 
 		private final ActiveChangeSet set;
 
-        public AddToChangeSetAction(ISynchronizePageConfiguration configuration, ActiveChangeSet set, ISelection selection) {
-            super(set == null ? TeamUIMessages.ChangeSetActionGroup_2 : escapeActionText(set.getTitle()), configuration); 
+		public AddToChangeSetAction(ISynchronizePageConfiguration configuration, ActiveChangeSet set, ISelection selection) {
+			super(set == null ? TeamUIMessages.ChangeSetActionGroup_2 : escapeActionText(set.getTitle()), configuration); 
 			this.set = set;
 			selectionChanged(selection);
 		}
 
+		@Override
 		public void run() {
 			IDiff[] diffArray = getLocalChanges(getStructuredSelection());
 			if (set != null) {
@@ -122,13 +124,14 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			} else {
 				ChangeSet[] sets = getActiveChangeSetManager().getSets();
 				IResource[] resources = getResources(diffArray);
-				for (int i = 0; i < sets.length; i++) {
-					ActiveChangeSet activeSet = (ActiveChangeSet) sets[i];
+				for (ChangeSet s : sets) {
+					ActiveChangeSet activeSet = (ActiveChangeSet) s;
 					activeSet.remove(resources);
 				}
 			}
 		}
 
+		@Override
 		protected boolean isEnabledForSelection(IStructuredSelection selection) {
 			return isContentProviderEnabled()
 					&& containsOnlyLocalChanges(selection);
@@ -137,13 +140,11 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 
 	private abstract class ChangeSetAction extends BaseSelectionListenerAction {
 
-        public ChangeSetAction(String title, ISynchronizePageConfiguration configuration) {
+		public ChangeSetAction(String title, ISynchronizePageConfiguration configuration) {
 			super(title);
 		}
 
-        /* (non-Javadoc)
-         * @see org.eclipse.ui.actions.BaseSelectionListenerAction#updateSelection(org.eclipse.jface.viewers.IStructuredSelection)
-		 */
+		@Override
 		protected boolean updateSelection(IStructuredSelection selection) {
 			return getSelectedSet() != null;
 		}
@@ -168,10 +169,11 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			super(TeamUIMessages.ChangeLogModelProvider_6, configuration);
 		}
 
+		@Override
 		public void run() {
 			ActiveChangeSet set = getSelectedSet();
-            if (set == null) return;
-            getChangeSetCapability().editChangeSet(internalGetSynchronizePageConfiguration(), set);
+			if (set == null) return;
+			getChangeSetCapability().editChangeSet(internalGetSynchronizePageConfiguration(), set);
 		}
 	}
 
@@ -181,16 +183,18 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			super(TeamUIMessages.ChangeLogModelProvider_7, configuration);
 		}
 
+		@Override
 		public void run() {
 			IDiff[] diffArray = getLocalChanges(getStructuredSelection());
 			ChangeSet[] sets = getActiveChangeSetManager().getSets();
 			IResource[] resources = getResources(diffArray);
-			for (int i = 0; i < sets.length; i++) {
-				ActiveChangeSet activeSet = (ActiveChangeSet) sets[i];
+			for (ChangeSet set : sets) {
+				ActiveChangeSet activeSet = (ActiveChangeSet) set;
 				activeSet.remove(resources);
 			}
 		}
 
+		@Override
 		protected boolean isEnabledForSelection(IStructuredSelection selection) {
 			return isContentProviderEnabled()
 					&& containsOnlyLocalChanges(selection);
@@ -203,6 +207,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			super(TeamUIMessages.ChangeLogModelProvider_9, configuration);
 		}
 
+		@Override
 		protected boolean updateSelection(IStructuredSelection selection) {
 			if (getSelectedSet() != null) {
 				setText(TeamUIMessages.ChangeLogModelProvider_9);
@@ -215,6 +220,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			return true;
 		}
 
+		@Override
 		public void run() {
 			getActiveChangeSetManager().makeDefault(
 					isChecked() ? getSelectedSet() : null);
@@ -236,10 +242,11 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 			update();
 		}
 
+		@Override
 		public void run() {
 			int sortCriteria = getSortCriteria(internalGetSynchronizePageConfiguration());
 			if (isChecked() && sortCriteria != criteria) {
-			    setSortCriteria(internalGetSynchronizePageConfiguration(), criteria);
+				setSortCriteria(internalGetSynchronizePageConfiguration(), criteria);
 				update();
 				((SynchronizePageConfiguration)internalGetSynchronizePageConfiguration()).getPage().getViewer().refresh();
 			}
@@ -250,7 +257,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		}
 	}
 
-    public static int getSortCriteria(ISynchronizePageConfiguration configuration) {
+	public static int getSortCriteria(ISynchronizePageConfiguration configuration) {
 		int sortCriteria = ChangeSetSorter.DATE;
 		if (configuration != null) {
 			Object o = configuration.getProperty(P_LAST_COMMENTSORT);
@@ -292,6 +299,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		super();
 	}
 
+	@Override
 	protected void initialize() {
 		super.initialize();
 		if (getChangeSetCapability().supportsCheckedInChangeSets()) {
@@ -327,17 +335,17 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 	}
 
 	private IResource[] getResources(IDiff[] diffArray) {
-		List result = new ArrayList();
-		for (int i = 0; i < diffArray.length; i++) {
-			IDiff diff = diffArray[i];
+		List<IResource> result = new ArrayList<>();
+		for (IDiff diff : diffArray) {
 			IResource resource = ResourceDiffTree.getResourceFor(diff);
 			if (resource != null) {
 				result.add(resource);
 			}
 		}
-		return (IResource[]) result.toArray(new IResource[result.size()]);
+		return result.toArray(new IResource[result.size()]);
 	}
 
+	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		if (isContentProviderEnabled()) {
 			super.fillContextMenu(menu);
@@ -383,8 +391,8 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		createChangeSet.selectionChanged(selection);
 		manager.add(createChangeSet);
 		manager.add(new Separator());
-		for (int i = 0; i < sets.length; i++) {
-			ActiveChangeSet set = (ActiveChangeSet) sets[i];
+		for (ChangeSet s : sets) {
+			ActiveChangeSet set = (ActiveChangeSet) s;
 			AddToChangeSetAction action = new AddToChangeSetAction(
 					getSynchronizePageConfiguration(), set, selection);
 			manager.add(action);
@@ -392,6 +400,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		manager.add(new Separator());
 	}
 
+	@Override
 	public void dispose() {
 		if (addToChangeSet != null) {
 			addToChangeSet.dispose();
@@ -426,7 +435,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 	}
 
 	public ChangeSetCapability getChangeSetCapability() {
-        ISynchronizeParticipant participant = getSynchronizePageConfiguration().getParticipant();
+		ISynchronizeParticipant participant = getSynchronizePageConfiguration().getParticipant();
 		if (participant instanceof IChangeSetProvider) {
 			IChangeSetProvider provider = (IChangeSetProvider) participant;
 			return provider.getChangeSetCapability();
@@ -447,16 +456,12 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		if (selection instanceof ITreeSelection) {
 			ITreeSelection ts = (ITreeSelection) selection;
 			TreePath[] paths = ts.getPaths();
-			List result = new ArrayList();
-			for (int i = 0; i < paths.length; i++) {
-				TreePath path = paths[i];
+			List<IDiff> result = new ArrayList<>();
+			for (TreePath path : paths) {
 				IDiff[] diffs = getLocalChanges(path);
-				for (int j = 0; j < diffs.length; j++) {
-					IDiff diff = diffs[j];
-					result.add(diff);
-				}
+				Collections.addAll(result, diffs);
 			}
-			return (IDiff[]) result.toArray(new IDiff[result.size()]);
+			return result.toArray(new IDiff[result.size()]);
 		}
 		return new IDiff[0];
 	}
@@ -479,10 +484,11 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		IDiff[] diffArray = getLocalChanges(selection);
 		ChangeSet[] activeChangeSets = getActiveChangeSetManager().getSets();
 		IResource[] resources = getResources(diffArray);
-		for (int i = 0; i < activeChangeSets.length; i++) {
-			for (int j = 0; j < resources.length; j++) {
-				if (activeChangeSets[i].contains(resources[j]))
+		for (ChangeSet activeChangeSet : activeChangeSets) {
+			for (IResource resource : resources) {
+				if (activeChangeSet.contains(resource)) {
 					return false;
+				}
 			}
 		}
 		return true;
@@ -492,8 +498,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		if (selection instanceof ITreeSelection) {
 			ITreeSelection ts = (ITreeSelection) selection;
 			TreePath[] paths = ts.getPaths();
-			for (int i = 0; i < paths.length; i++) {
-				TreePath path = paths[i];
+			for (TreePath path : paths) {
 				if (!containsOnlyLocalChanges(path)) {
 					return false;
 				}
@@ -536,6 +541,7 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 	
 	private FastDiffFilter getNonLocalChangesFilter() {
 		return new FastDiffFilter() {
+			@Override
 			public boolean select(IDiff diff) {
 				if (diff instanceof IThreeWayDiff && isVisible(diff)) {
 					IThreeWayDiff twd = (IThreeWayDiff) diff;
@@ -586,15 +592,16 @@ public class ChangeSetActionProvider extends ResourceModelActionProvider {
 		return TeamUIPlugin.getPlugin().getPreferenceStore().getString(IPreferenceIds.SYNCVIEW_DEFAULT_LAYOUT);
 	}
 
+	@Override
 	public void setContext(ActionContext context) {
 		super.setContext(context);
 		if (context != null) {
 			if (editChangeSet != null)
-		        editChangeSet.selectionChanged((IStructuredSelection)getContext().getSelection());
+				editChangeSet.selectionChanged((IStructuredSelection)getContext().getSelection());
 			if (removeChangeSet != null)
-	            removeChangeSet.selectionChanged((IStructuredSelection)getContext().getSelection());
+				removeChangeSet.selectionChanged((IStructuredSelection)getContext().getSelection());
 			if (makeDefault != null)
-		        makeDefault.selectionChanged((IStructuredSelection)getContext().getSelection());
+				makeDefault.selectionChanged((IStructuredSelection)getContext().getSelection());
 		}
 	}
 

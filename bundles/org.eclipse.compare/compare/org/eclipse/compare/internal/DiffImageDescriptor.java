@@ -1,19 +1,23 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
-import org.eclipse.swt.graphics.*;
-
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 
 /**
  * Combines an image with an overlay.
@@ -65,17 +69,11 @@ public class DiffImageDescriptor extends CompositeImageDescriptor {
 		return hash;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.resource.CompositeImageDescriptor#getSize()
-	 */
 	@Override
 	protected Point getSize() {
 		return new Point(fWidth, HEIGHT);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.resource.CompositeImageDescriptor#drawCompositeImage(int, int)
-	 */
 	@Override
 	protected void drawCompositeImage(int width, int height) {
 		if (fLeft) {
@@ -103,17 +101,11 @@ public class DiffImageDescriptor extends CompositeImageDescriptor {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return hashCode;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this)
@@ -141,7 +133,7 @@ public class DiffImageDescriptor extends CompositeImageDescriptor {
 				/* && i1.palette == i2.palette */
 				&& i1.transparentPixel == i2.transparentPixel
 				&& i1.maskPad == i2.maskPad
-	            && i1.alpha == i2.alpha
+				&& i1.alpha == i2.alpha
 				&& i1.type == i2.type && i1.x == i2.x && i1.y == i2.y
 				&& i1.disposalMethod == i2.disposalMethod && i1.delayTime == i2.delayTime
 				&& equals(i1.data,i2.data) && equals(i1.maskData, i2.maskData)

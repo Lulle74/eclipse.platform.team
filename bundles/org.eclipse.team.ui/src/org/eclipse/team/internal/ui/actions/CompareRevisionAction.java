@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +14,9 @@
 
 package org.eclipse.team.internal.ui.actions;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.ITypedElement;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -22,11 +27,18 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.history.provider.FileRevision;
 import org.eclipse.team.internal.core.history.LocalFileRevision;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.history.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.history.AbstractHistoryCategory;
+import org.eclipse.team.internal.ui.history.CompareFileRevisionEditorInput;
+import org.eclipse.team.internal.ui.history.FileRevisionTypedElement;
 import org.eclipse.team.ui.history.HistoryPage;
 import org.eclipse.team.ui.synchronize.SaveableCompareEditorInput;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IReusableEditor;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.actions.BaseSelectionListenerAction;
 
 public class CompareRevisionAction extends BaseSelectionListenerAction {
@@ -81,7 +93,7 @@ public class CompareRevisionAction extends BaseSelectionListenerAction {
 		}
 
 		if (file1 == null || file2 == null ||
-		   !file1.exists() || !file2.exists()){
+			!file1.exists() || !file2.exists()){
 			MessageDialog.openError(page.getSite().getShell(), TeamUIMessages.OpenRevisionAction_DeletedRevTitle, TeamUIMessages.CompareRevisionAction_DeleteCompareMessage);
 			return;
 		}
@@ -101,7 +113,7 @@ public class CompareRevisionAction extends BaseSelectionListenerAction {
 		}
 		ITypedElement right = new FileRevisionTypedElement(file2, getLocalEncoding());
 
-	    openInCompare(left, right);
+		openInCompare(left, right);
 	}
 
 	private String getLocalEncoding() {
@@ -214,13 +226,12 @@ public class CompareRevisionAction extends BaseSelectionListenerAction {
 		if (objArray.length == 0)
 			return false;
 
-		for (int i = 0; i < objArray.length; i++) {
-
+		for (Object obj : objArray) {
 			//Don't bother showing if this a category
-			if (objArray[i] instanceof AbstractHistoryCategory)
+			if (obj instanceof AbstractHistoryCategory) {
 				return false;
-
-			IFileRevision revision = (IFileRevision) objArray[i];
+			}
+			IFileRevision revision = (IFileRevision) obj;
 			//check to see if any of the selected revisions are deleted revisions
 			if (revision != null && !revision.exists())
 				return false;

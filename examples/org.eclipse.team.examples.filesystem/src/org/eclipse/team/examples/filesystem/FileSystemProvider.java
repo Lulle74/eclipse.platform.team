@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -88,6 +91,7 @@ public class FileSystemProvider extends RepositoryProvider {
 	 * 
 	 * @see org.eclipse.team.core.RepositoryProvider#configureProject()
 	 */
+	@Override
 	public void configureProject() {
 		FileSystemSubscriber.getInstance().handleRootChanged(getProject(), true /* added */);
 	}
@@ -98,6 +102,7 @@ public class FileSystemProvider extends RepositoryProvider {
 	 * 
 	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
 	 */
+	@Override
 	public void deconfigure() throws CoreException {
 		// Clear the persistant property containing the location
 		getProject().setPersistentProperty(FILESYSTEM_REPO_LOC, null);
@@ -109,6 +114,7 @@ public class FileSystemProvider extends RepositoryProvider {
 	 * 
 	 * @see RepositoryProvider#getID()
 	 */
+	@Override
 	public String getID() {
 		return FileSystemPlugin.PROVIDER_ID;
 	}
@@ -172,16 +178,12 @@ public class FileSystemProvider extends RepositoryProvider {
 		return new FileSystemOperations(this);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.RepositoryProvider#getFileModificationValidator()
-	 */
+	@Override
 	public IFileModificationValidator getFileModificationValidator() {
 		return getFileModificationValidator2();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.RepositoryProvider#getFileModificationValidator2()
-	 */
+	@Override
 	public FileModificationValidator getFileModificationValidator2() {
 		return new org.eclipse.team.examples.filesystem.FileModificationValidator(this);
 	}
@@ -226,18 +228,17 @@ public class FileSystemProvider extends RepositoryProvider {
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.RepositoryProvider#getRuleFactory()
-	 */
+	@Override
 	public IResourceRuleFactory getRuleFactory() {
 		return RESOURCE_RULE_FACTORY;
 	}
 	
+	@Override
 	public IFileHistoryProvider getFileHistoryProvider() {
-		  if (FileSystemProvider.fileHistoryProvider == null) {
-			  FileSystemProvider.fileHistoryProvider = new FileSystemHistoryProvider();
-	        }
-	        return FileSystemProvider.fileHistoryProvider;
+		if (FileSystemProvider.fileHistoryProvider == null) {
+			FileSystemProvider.fileHistoryProvider = new FileSystemHistoryProvider();
+		}
+		return FileSystemProvider.fileHistoryProvider;
 	}
 
 }

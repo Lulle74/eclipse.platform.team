@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -79,7 +82,7 @@ public interface ISynchronizePageConfiguration {
 	 * determines which object contribution actions appear in the
 	 * context menu for the page. This defaults to the id of the
 	 * participant but can be set to another id or <code>null</code>
-     * @since 3.1
+	 * @since 3.1
 	 */
 	public static final String P_OBJECT_CONTRIBUTION_ID = TeamUIPlugin.ID +  ".P_OBJECT_CONTRIBUTION_ID"; //$NON-NLS-1$
 
@@ -139,7 +142,7 @@ public interface ISynchronizePageConfiguration {
 	/**
 	 * The id of the sort group that determines where sort
 	 * actions or submenus appear.
-     * @since 3.1
+	 * @since 3.1
 	 */
 	public final static String SORT_GROUP = "sort"; //$NON-NLS-1$
 
@@ -171,7 +174,7 @@ public interface ISynchronizePageConfiguration {
 	 * The id of the group that determines where workbench object contributions
 	 * should appear. This group will only be used if there is an
 	 * OBJECT_CONTRIBUTION_ID set in the configuration
-     * @since 3.1
+	 * @since 3.1
 	 */
 	public static final String OBJECT_CONTRIBUTIONS_GROUP = IWorkbenchActionConstants.MB_ADDITIONS;
 

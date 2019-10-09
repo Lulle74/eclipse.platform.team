@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -35,8 +38,8 @@ public class Bug152581Test extends BenchmarkTest {
 	private static final String OLD_SYNCHRONIZE_GROUP_SUFFIX2 = "OldSynchronize2";
 	private static final String NEW_SYNCHRONIZE_GROUP_SUFFIX2 = "NewSynchronize2";
 	private static final String UPDATE_GROUP_SUFFIX2 = "Update2";
-    private static final String[] PERFORMANCE_GROUPS = new String[] {OLD_SYNCHRONIZE_GROUP_SUFFIX, NEW_SYNCHRONIZE_GROUP_SUFFIX, UPDATE_GROUP_SUFFIX, OLD_SYNCHRONIZE_GROUP_SUFFIX2, NEW_SYNCHRONIZE_GROUP_SUFFIX2, UPDATE_GROUP_SUFFIX2};
-    
+	private static final String[] PERFORMANCE_GROUPS = new String[] {OLD_SYNCHRONIZE_GROUP_SUFFIX, NEW_SYNCHRONIZE_GROUP_SUFFIX, UPDATE_GROUP_SUFFIX, OLD_SYNCHRONIZE_GROUP_SUFFIX2, NEW_SYNCHRONIZE_GROUP_SUFFIX2, UPDATE_GROUP_SUFFIX2};
+	
 	public Bug152581Test() {
 		super();
 	}
@@ -69,12 +72,9 @@ public class Bug152581Test extends BenchmarkTest {
 		ensureExistsInWorkspace(currentDir.getFile(new Path(null,filename)), true);
 	}
 
+	@Override
 	public void ensureExistsInWorkspace(final IResource resource, final boolean local) {
-		IWorkspaceRunnable body = new IWorkspaceRunnable() {
-			public void run(IProgressMonitor monitor) throws CoreException {
-				create(resource, local);
-			}
-		};
+		IWorkspaceRunnable body = monitor -> create(resource, local);
 		try {
 			getWorkspace().run(body, null);
 		} catch (CoreException e) {
@@ -93,8 +93,7 @@ public class Bug152581Test extends BenchmarkTest {
 
 	private IProject createProject(String filename) throws IOException, CoreException {
 		File file = BenchmarkTestSetup.getTestFile(filename + ".txt");
-		InputStream content = getContents(file, "Could not read seed file " + filename + ".txt");
-		try {
+		try (InputStream content = getContents(file, "Could not read seed file " + filename + ".txt")) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(content));
 			IProject project = getUniqueTestProject(filename);
 			populateProject(reader, project);
@@ -102,8 +101,6 @@ public class Bug152581Test extends BenchmarkTest {
 			// Perform an update to prune any empty directories
 			updateProject(project, null, false);
 			return project;
-		} finally {
-			content.close();
 		}
 	}
 	

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -46,18 +49,22 @@ public class SyncSetTests extends CVSSyncSubscriberTest {
 	}
 
 	class TestSyncInfo extends SyncInfo {
+		@Override
 		protected int calculateKind() throws TeamException {
 				return 0;
 		}
-		public TestSyncInfo() throws TeamException {
+		public TestSyncInfo() {
 			super(ResourcesPlugin.getWorkspace().getRoot(), null, null, new IResourceVariantComparator() {
+				@Override
 				public boolean compare(IResource local, IResourceVariant remote) {
 					return false;
 				}
+				@Override
 				public boolean compare(IResourceVariant base,
 						IResourceVariant remote) {
 					return false;
 				}
+				@Override
 				public boolean isThreeWay() {
 					return false;
 				}
@@ -76,6 +83,7 @@ public class SyncSetTests extends CVSSyncSubscriberTest {
 		
 		for(int numJobs = 0; numJobs < 10; numJobs++) {		
 			Job job = new Job("SyncSetTests" + numJobs) {
+				@Override
 				public IStatus run(IProgressMonitor monitor) {
 					while(! done[0]) {
 						try {
@@ -93,6 +101,7 @@ public class SyncSetTests extends CVSSyncSubscriberTest {
 			};
 			
 			job.addJobChangeListener(new JobChangeAdapter() {
+				@Override
 				public void done(IJobChangeEvent event) {
 					if(event.getResult() != Status.OK_STATUS) {
 						error[0] = event.getResult();

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,9 +22,9 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -84,20 +87,21 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 		private void initialize(ICVSRepositoryLocation oldLocation) {
 			allLocations = CVSUIPlugin.getPlugin().getRepositoryManager().getKnownRepositoryLocations();
 			List locations = new ArrayList();
-			for (int i = 0; i < allLocations.length; i++) {
-				ICVSRepositoryLocation location = allLocations[i];
+			for (ICVSRepositoryLocation location : allLocations) {
 				if (isCompatible(location, oldLocation)) {
 					locations.add(location);
 				}
 			}
 			compatibleLocations = (ICVSRepositoryLocation[]) locations.toArray(new ICVSRepositoryLocation[locations.size()]);
 		}
+		@Override
 		protected void createButtonsForButtonBar(Composite parent) {
 			// create OK and Cancel buttons by default
 			okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 			okButton.setEnabled(false);
 			createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 		}
+		@Override
 		protected Control createDialogArea(Composite parent) {
 			parent.getShell().setText(CVSUIMessages.CVSProjectPropertiesPage_Select_a_Repository_1); 
 			Composite composite = (Composite) super.createDialogArea(parent);
@@ -111,6 +115,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 			viewer.setLabelProvider(new WorkbenchLabelProvider());
 			viewer.setComparator(new RepositoryComparator());
 			viewer.setContentProvider(new WorkbenchContentProvider() {
+				@Override
 				public Object[] getElements(Object inputElement) {
 					if (showCompatible) {
 						return compatibleLocations;
@@ -119,28 +124,23 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 					}
 				}
 			});
-			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-				public void selectionChanged(SelectionChangedEvent event) {
-					IStructuredSelection selection = (IStructuredSelection)event.getSelection();
-					if (selection.isEmpty()) {
-						selectedLocation = null;
-						okButton.setEnabled(false);
-					} else {
-						selectedLocation = (ICVSRepositoryLocation)selection.getFirstElement();
-						okButton.setEnabled(true);
-					}
+			viewer.addSelectionChangedListener(event -> {
+				IStructuredSelection selection = event.getStructuredSelection();
+				if (selection.isEmpty()) {
+					selectedLocation = null;
+					okButton.setEnabled(false);
+				} else {
+					selectedLocation = (ICVSRepositoryLocation)selection.getFirstElement();
+					okButton.setEnabled(true);
 				}
 			});
-			viewer.addDoubleClickListener(new IDoubleClickListener() {
-				public void doubleClick(DoubleClickEvent event) {
-					okPressed();
-				}
-			});
+			viewer.addDoubleClickListener(event -> okPressed());
 			viewer.setInput(compatibleLocations);
 			
 			final Button compatibleButton = createCheckBox(composite, CVSUIMessages.CVSProjectPropertiesPage_31); 
 			compatibleButton.setSelection(showCompatible);
 			compatibleButton.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					showCompatible = compatibleButton.getSelection();
 					viewer.refresh();
@@ -151,6 +151,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 			
 			return composite;
 		}
+		@Override
 		protected void cancelPressed() {
 			selectedLocation = null;
 			super.cancelPressed();
@@ -160,9 +161,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 		}
 	}
 	
-	/*
-	 * @see PreferencesPage#createContents
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		initialize();
 		
@@ -197,19 +196,11 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 		
 		// Should absent directories be fetched on update
 		fetchButton = createCheckBox(composite, CVSUIMessages.CVSProjectPropertiesPage_fetchAbsentDirectoriesOnUpdate); 
-		fetchButton.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				fetch = fetchButton.getSelection();
-			}
-		});
+		fetchButton.addListener(SWT.Selection, event -> fetch = fetchButton.getSelection());
 		
 		// Should the project be configured for watch/edit
 		watchEditButton = createCheckBox(composite, CVSUIMessages.CVSProjectPropertiesPage_configureForWatchEdit); 
-		watchEditButton.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				watchEdit = watchEditButton.getSelection();
-			}
-		});
+		watchEditButton.addListener(SWT.Selection, event -> watchEdit = watchEditButton.getSelection());
 		
 		createLabel(composite, "", 1); //$NON-NLS-1$
 		createLabel(composite, "", 1); //$NON-NLS-1$
@@ -225,20 +216,18 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 		
 		Button changeButton = new Button(composite, SWT.PUSH);
 		changeButton.setText(CVSUIMessages.CVSProjectPropertiesPage_Change_Sharing_5); 
-		changeButton.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				RepositorySelectionDialog dialog = new RepositorySelectionDialog(getShell(), oldLocation);
-				dialog.open();
-				ICVSRepositoryLocation location = dialog.getLocation();
-				if (location == null) return;
-				newLocation = location;
-				initializeValues(newLocation);
-			}
+		changeButton.addListener(SWT.Selection, e -> {
+			RepositorySelectionDialog dialog = new RepositorySelectionDialog(getShell(), oldLocation);
+			dialog.open();
+			ICVSRepositoryLocation location = dialog.getLocation();
+			if (location == null) return;
+			newLocation = location;
+			initializeValues(newLocation);
 		});
 		
 		initializeValues(oldLocation);
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.PROJECT_PROPERTY_PAGE);
-        Dialog.applyDialogFont(parent);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.PROJECT_PROPERTY_PAGE);
+		Dialog.applyDialogFont(parent);
 		return composite;
 	}
 	/**
@@ -249,6 +238,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 	 * @param text  the text for the new label
 	 * @return the new label
 	 */
+	@Override
 	protected Label createLabel(Composite parent, String text, int span) {
 		Label label = new Label(parent, SWT.LEFT);
 		label.setText(text);
@@ -317,7 +307,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 			hostText.setText(location.getHost());
 			int port = location.getPort();
 			if (port == ICVSRepositoryLocation.USE_DEFAULT_PORT) {
-                portText.setText(CVSUIMessages.CVSPropertiesPage_defaultPort); 
+				portText.setText(CVSUIMessages.CVSPropertiesPage_defaultPort); 
 			} else {
 				portText.setText("" + port); //$NON-NLS-1$
 			}
@@ -351,9 +341,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 			handle(e);
 		}
 	}
-	/*
-	 * @see PreferencesPage#performOk
-	 */
+	@Override
 	public boolean performOk() {
 		final boolean[] changeReadOnly = { false };
 		try {
@@ -375,18 +363,16 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 					return false;
 				}
 			}
-			new ProgressMonitorDialog(getShell()).run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						monitor.beginTask(CVSUIMessages.CVSProjectPropertiesPage_progressTaskName,  
-						((newLocation == null)?0:100) + (changeReadOnly[0]?100:0));
-						if (newLocation != null)
-							provider.setRemoteRoot(newLocation, Policy.subMonitorFor(monitor, 100));
-						if (changeReadOnly[0])
-							setReadOnly(watchEdit, Policy.infiniteSubMonitorFor(monitor, 100));
-					} catch (TeamException e) {
-						throw new InvocationTargetException(e);
-					}
+			new ProgressMonitorDialog(getShell()).run(true, true, monitor -> {
+				try {
+					monitor.beginTask(CVSUIMessages.CVSProjectPropertiesPage_progressTaskName,  
+					((newLocation == null)?0:100) + (changeReadOnly[0]?100:0));
+					if (newLocation != null)
+						provider.setRemoteRoot(newLocation, Policy.subMonitorFor(monitor, 100));
+					if (changeReadOnly[0])
+						setReadOnly(watchEdit, Policy.infiniteSubMonitorFor(monitor, 100));
+				} catch (TeamException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 			newLocation = null;
@@ -412,6 +398,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 		monitor.subTask(taskName);
 		ICVSFolder root = CVSWorkspaceRoot.getCVSFolderFor(project);
 		root.accept(new ICVSResourceVisitor() {
+			@Override
 			public void visitFile(ICVSFile file) throws CVSException {
 				// only change managed, unmodified files
 				if (file.isManaged() && !file.isModified(null))
@@ -419,6 +406,7 @@ public class CVSProjectPropertiesPage extends CVSPropertiesPage {
 				monitor.worked(1);
 			}
 
+			@Override
 			public void visitFolder(ICVSFolder folder) throws CVSException {
 				folder.acceptChildren(this);
 			}

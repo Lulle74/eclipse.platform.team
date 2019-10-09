@@ -1,15 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +21,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.core.variants.*;
+import org.eclipse.team.core.variants.ResourceVariantByteStore;
 
 /**
  * A <code>ResourceVariantByteStore</code> that optimizes the memory footprint
@@ -152,11 +156,8 @@ public abstract class DescendantResourceVariantByteStore extends ResourceVariant
 		IResource[] remoteMembers = getRemoteStore().members(resource);
 		IResource[] baseMembers = getBaseStore().members(resource);
 		Set<IResource> members = new HashSet<>();
-		for (int i = 0; i < remoteMembers.length; i++) {
-			members.add(remoteMembers[i]);
-		}
-		for (int i = 0; i < baseMembers.length; i++) {
-			IResource member = baseMembers[i];
+		Collections.addAll(members, remoteMembers);
+		for (IResource member : baseMembers) {
 			// Add the base only if the remote does not know about it
 			// (i.e. hasn't marked it as deleted
 			if (!isVariantKnown(member)) {

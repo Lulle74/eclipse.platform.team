@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -29,34 +32,22 @@ public abstract class HistoryPage extends Page implements IHistoryPage, IAdaptab
 	private IHistoryView historyView;
 	private PropertyChangeHandler fChangeHandler;
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#setSite(org.eclipse.team.ui.history.IHistoryPageSite)
-	 */
 	@Override
 	public void setSite(IHistoryPageSite site) {
 		this.site = site;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#getHistoryPageSite()
-	 */
 	@Override
 	public IHistoryPageSite getHistoryPageSite() {
 		return site;
 	}
 
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#getInput()
-	 */
 	@Override
 	public Object getInput() {
 		return input;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#setInput(java.lang.Object, boolean)
-	 */
 	@Override
 	public boolean setInput(Object object) {
 		this.input = object;
@@ -76,9 +67,6 @@ public abstract class HistoryPage extends Page implements IHistoryPage, IAdaptab
 		this.historyView = historyView;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#getHistoryView()
-	 */
 	@Override
 	public IHistoryView getHistoryView() {
 		if (historyView != null)
@@ -87,9 +75,6 @@ public abstract class HistoryPage extends Page implements IHistoryPage, IAdaptab
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#addPropertyChangeListener(org.eclipse.jface.util.IPropertyChangeListener)
-	 */
 	@Override
 	public synchronized void addPropertyChangeListener(IPropertyChangeListener listener) {
 		if (fChangeHandler == null) {
@@ -98,9 +83,6 @@ public abstract class HistoryPage extends Page implements IHistoryPage, IAdaptab
 		fChangeHandler.addPropertyChangeListener(listener);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryPage#removePropertyChangeListener(org.eclipse.jface.util.IPropertyChangeListener)
-	 */
 	@Override
 	public void removePropertyChangeListener(IPropertyChangeListener listener) {
 		if (fChangeHandler != null) {

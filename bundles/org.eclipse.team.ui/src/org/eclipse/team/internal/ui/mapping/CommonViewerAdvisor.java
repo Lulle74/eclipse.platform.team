@@ -1,42 +1,85 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.core.resources.mapping.*;
+import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
+import org.eclipse.core.resources.mapping.ModelProvider;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.OpenEvent;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.core.mapping.*;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.AbstractTreeViewerAdvisor;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.mapping.*;
+import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
+import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
+import org.eclipse.team.ui.mapping.SynchronizationStateTester;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
 import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.navigator.CommonViewerSiteFactory;
+import org.eclipse.ui.navigator.CommonViewerSorter;
+import org.eclipse.ui.navigator.ICommonViewerSite;
+import org.eclipse.ui.navigator.INavigatorContentExtension;
+import org.eclipse.ui.navigator.INavigatorContentServiceListener;
+import org.eclipse.ui.navigator.NavigatorActionService;
 import org.eclipse.ui.part.IPageSite;
 
 /**
@@ -117,34 +160,33 @@ public class CommonViewerAdvisor extends AbstractTreeViewerAdvisor implements IN
 			getNavigatorContentService().getDnDService().bindDragAssistant(new ResourceDragAdapterAssistant());
 			super.initDragAndDrop();
 		}
-	    /**
-	     * Gets the expanded elements that are visible to the user. An expanded
-	     * element is only visible if the parent is expanded.
-	     *
-	     * @return the visible expanded elements
-	     * @since 2.0
-	     */
-	    public TreePath[] getVisibleExpandedPaths() {
-	        ArrayList<TreePath> v = new ArrayList<>();
-	        internalCollectVisibleExpanded(v, getControl());
-	        return v.toArray(new TreePath[v.size()]);
-	    }
+		/**
+		 * Gets the expanded elements that are visible to the user. An expanded
+		 * element is only visible if the parent is expanded.
+		 *
+		 * @return the visible expanded elements
+		 * @since 2.0
+		 */
+		public TreePath[] getVisibleExpandedPaths() {
+			ArrayList<TreePath> v = new ArrayList<>();
+			internalCollectVisibleExpanded(v, getControl());
+			return v.toArray(new TreePath[v.size()]);
+		}
 
-	    private void internalCollectVisibleExpanded(ArrayList<TreePath> result, Widget widget) {
-	        Item[] items = getChildren(widget);
-	        for (int i = 0; i < items.length; i++) {
-	            Item item = items[i];
-	            if (getExpanded(item)) {
-	            	TreePath path = getTreePathFromItem(item);
-	                if (path != null) {
+		private void internalCollectVisibleExpanded(ArrayList<TreePath> result, Widget widget) {
+			Item[] items = getChildren(widget);
+			for (Item item : items) {
+				if (getExpanded(item)) {
+					TreePath path = getTreePathFromItem(item);
+					if (path != null) {
 						result.add(path);
-	                }
-	                //Only recurse if it is expanded - if
-	                //not then the children aren't visible
-	                internalCollectVisibleExpanded(result, item);
-	            }
-	        }
-	    }
+					}
+					//Only recurse if it is expanded - if
+					//not then the children aren't visible
+					internalCollectVisibleExpanded(result, item);
+				}
+			}
+		}
 	}
 
 	/**
@@ -256,8 +298,7 @@ public class CommonViewerAdvisor extends AbstractTreeViewerAdvisor implements IN
 		Set<String> result = new HashSet<>();
 		Object property = configuration.getProperty(ITeamContentProviderManager.PROP_PAGE_LAYOUT);
 		boolean isFlatLayout = property != null && property.equals(ITeamContentProviderManager.FLAT_LAYOUT);
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			ITeamContentProviderDescriptor desc = TeamUI.getTeamContentProviderManager().getDescriptor(provider.getId());
 			if (desc != null && desc.isEnabled() && (!isFlatLayout || desc.isFlatLayoutSupported()))
 				result.add(desc.getContentExtensionId());
@@ -269,8 +310,7 @@ public class CommonViewerAdvisor extends AbstractTreeViewerAdvisor implements IN
 		ITeamContentProviderManager teamContentProviderManager = TeamUI.getTeamContentProviderManager();
 		ITeamContentProviderDescriptor[] descriptors = teamContentProviderManager.getDescriptors();
 		Set<String> toBind = new HashSet<>();
-		for (int i = 0; i < descriptors.length; i++) {
-			ITeamContentProviderDescriptor descriptor = descriptors[i];
+		for (ITeamContentProviderDescriptor descriptor : descriptors) {
 			toBind.add(descriptor.getContentExtensionId());
 		}
 		v.getNavigatorContentService().bindExtensions(toBind.toArray(new String[toBind.size()]), true);
@@ -292,8 +332,8 @@ public class CommonViewerAdvisor extends AbstractTreeViewerAdvisor implements IN
 		configuration.addPropertyChangeListener(this);
 		GridData data = new GridData(GridData.FILL_BOTH);
 		viewer.getControl().setLayoutData(data);
-        viewer.getNavigatorContentService().addListener(this);
-        initializeViewer(viewer);
+		viewer.getNavigatorContentService().addListener(this);
+		initializeViewer(viewer);
 		IBaseLabelProvider provider = viewer.getLabelProvider();
 		if (provider instanceof DecoratingLabelProvider) {
 			DecoratingLabelProvider dlp = (DecoratingLabelProvider) provider;
@@ -364,8 +404,8 @@ public class CommonViewerAdvisor extends AbstractTreeViewerAdvisor implements IN
 	@Override
 	public void setInitialInput() {
 		CommonViewer viewer = (CommonViewer)getViewer();
-        viewer.setInput(getInitialInput());
-        viewer.expandToLevel(2);
+		viewer.setInput(getInitialInput());
+		viewer.expandToLevel(2);
 	}
 
 	@Override

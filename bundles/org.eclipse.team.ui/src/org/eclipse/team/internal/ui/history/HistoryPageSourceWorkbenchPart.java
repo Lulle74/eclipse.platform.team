@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,7 +16,9 @@ package org.eclipse.team.internal.ui.history;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.ui.history.IHistoryPageSource;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
 
 /**
  * Fake part to use in page book for the History view
@@ -26,7 +31,7 @@ public class HistoryPageSourceWorkbenchPart implements IWorkbenchPart {
 	@Override
 	public boolean equals(Object obj) {
 		return (obj instanceof HistoryPageSourceWorkbenchPart) &&
-		    source.equals(((HistoryPageSourceWorkbenchPart)obj).getSource());
+			source.equals(((HistoryPageSourceWorkbenchPart)obj).getSource());
 	}
 
 	@Override

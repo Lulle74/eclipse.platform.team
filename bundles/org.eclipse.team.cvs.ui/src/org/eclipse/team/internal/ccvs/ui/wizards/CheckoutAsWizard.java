@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,14 +48,12 @@ public class CheckoutAsWizard extends Wizard {
 
 	class NewProjectListener implements IResourceChangeListener {
 		private IProject newProject = null;
-		/**
-		 * @see IResourceChangeListener#resourceChanged(IResourceChangeEvent)
-		 */
+
+		@Override
 		public void resourceChanged(IResourceChangeEvent event) {
 			IResourceDelta root = event.getDelta();
 			IResourceDelta[] projectDeltas = root.getAffectedChildren();
-			for (int i = 0; i < projectDeltas.length; i++) {							
-				IResourceDelta delta = projectDeltas[i];
+			for (IResourceDelta delta : projectDeltas) {
 				IResource resource = delta.getResource();
 				if (delta.getKind() == IResourceDelta.ADDED) {
 					newProject = (IProject)resource;
@@ -68,29 +69,27 @@ public class CheckoutAsWizard extends Wizard {
 		}
 	}
 	
-    /**
-     * Return the settings used for all CheckoutAsWizard pages
-     */
-    public static IDialogSettings getCheckoutAsDialogSettings() {
-        IDialogSettings workbenchSettings = CVSUIPlugin.getPlugin().getDialogSettings();
-        IDialogSettings section = workbenchSettings.getSection("CheckoutAsWizard");//$NON-NLS-1$
-        if (section == null) {
-            section = workbenchSettings.addNewSection("CheckoutAsWizard");//$NON-NLS-1$
-        }
-        return section;
-    }
-    
+	/**
+	 * Return the settings used for all CheckoutAsWizard pages
+	 */
+	public static IDialogSettings getCheckoutAsDialogSettings() {
+		IDialogSettings workbenchSettings = CVSUIPlugin.getPlugin().getDialogSettings();
+		IDialogSettings section = workbenchSettings.getSection("CheckoutAsWizard");//$NON-NLS-1$
+		if (section == null) {
+			section = workbenchSettings.addNewSection("CheckoutAsWizard");//$NON-NLS-1$
+		}
+		return section;
+	}
+	
 	public CheckoutAsWizard(IWorkbenchPart part, ICVSRemoteFolder[] remoteFolders, boolean allowProjectConfiguration) {
 		this.part = part;
 		this.remoteFolders = remoteFolders;
-        setDialogSettings(getCheckoutAsDialogSettings());
+		setDialogSettings(getCheckoutAsDialogSettings());
 		setWindowTitle(CVSUIMessages.CheckoutAsWizard_title); 
 		this.allowProjectConfiguration = allowProjectConfiguration;
 	}
 	
-	/**
-	 * @see org.eclipse.jface.wizard.IWizard#addPages()
-	 */
+	@Override
 	public void addPages() {
 		setNeedsProgressMonitor(true);
 		ImageDescriptor substImage = CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_WIZBAN_CHECKOUT);
@@ -105,11 +104,11 @@ public class CheckoutAsWizard extends Wizard {
 		addPage(locationSelectionPage);
 		
 		tagSelectionPage = new TagSelectionWizardPage("tagPage", CVSUIMessages.CheckoutAsWizard_3, substImage, CVSUIMessages.CheckoutAsWizard_4, TagSource.create(remoteFolders), //$NON-NLS-1$    
-		        TagSelectionArea.INCLUDE_HEAD_TAG |
-		        TagSelectionArea.INCLUDE_BRANCHES |
-		        TagSelectionArea.INCLUDE_VERSIONS |
-		        TagSelectionArea.INCLUDE_DATES
-		        );
+				TagSelectionArea.INCLUDE_HEAD_TAG |
+				TagSelectionArea.INCLUDE_BRANCHES |
+				TagSelectionArea.INCLUDE_VERSIONS |
+				TagSelectionArea.INCLUDE_DATES
+				);
 		if (remoteFolders.length > 0) {
 			try {
 				CVSTag selectedTag = remoteFolders[0].getFolderSyncInfo().getTag();
@@ -122,9 +121,7 @@ public class CheckoutAsWizard extends Wizard {
 		addPage(tagSelectionPage);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#performFinish()
-	 */
+	@Override
 	public boolean performFinish() {
 		try {
 			if (mainPage.isPerformConfigure()) {
@@ -147,16 +144,11 @@ public class CheckoutAsWizard extends Wizard {
 		return false;
 	}
 
-	/**
-	 * @return
-	 */
 	private boolean isSingleFolder() {
 		return remoteFolders.length == 1;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#canFinish()
-	 */
+	@Override
 	public boolean canFinish() {
 		return (mainPage.isPageComplete() 
 		&& (mainPage.isPerformConfigure()
@@ -164,9 +156,7 @@ public class CheckoutAsWizard extends Wizard {
 			|| (mainPage.isPerformCheckoutAs() && locationSelectionPage.isPageComplete())));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
-	 */
+	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 		if (page == mainPage) {
 			if (mainPage.isPerformConfigure()) return tagSelectionPage;
@@ -220,7 +210,7 @@ public class CheckoutAsWizard extends Wizard {
 	 * Return the remote folders to be checked out
 	 */
 	private ICVSRemoteFolder[] getRemoteFolders() {
-		ICVSRemoteFolder[] folders = (ICVSRemoteFolder[]) remoteFolders.clone();
+		ICVSRemoteFolder[] folders = remoteFolders.clone();
 		CVSTag selectedTag = getSelectedTag();
 		// see bug 160851
 		if(selectedTag != null){
@@ -254,6 +244,7 @@ public class CheckoutAsWizard extends Wizard {
 		ICVSRemoteFolder folder = getRemoteFolder();
 		final boolean recurse = mainPage.isRecurse();
 		new CheckoutSingleProjectOperation(part, folder, newProject, targetLocation, false, mainPage.getWorkingSets()) {
+				@Override
 				protected boolean isRecursive() {
 					return recurse;
 				}

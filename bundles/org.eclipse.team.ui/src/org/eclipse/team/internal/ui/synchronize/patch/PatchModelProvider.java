@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,9 +15,17 @@ package org.eclipse.team.internal.ui.synchronize.patch;
 
 import org.eclipse.compare.internal.core.patch.DiffProject;
 import org.eclipse.compare.internal.core.patch.FilePatch2;
-import org.eclipse.compare.internal.patch.*;
+import org.eclipse.compare.internal.patch.HunkDiffNode;
+import org.eclipse.compare.internal.patch.PatchDiffNode;
+import org.eclipse.compare.internal.patch.PatchFileDiffNode;
+import org.eclipse.compare.internal.patch.PatchProjectDiffNode;
+import org.eclipse.compare.internal.patch.WorkspacePatcher;
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ModelProvider;
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.runtime.CoreException;
@@ -77,16 +88,17 @@ public class PatchModelProvider extends ModelProvider {
 		if (resource.getType() == IResource.PROJECT) {
 			if (patcher.isWorkspacePatch()) {
 				DiffProject[] diffProjects = patcher.getDiffProjects();
-				for (int i = 0; i < diffProjects.length; i++) {
-					if (diffProjects[i].getName().equals(resource.getName()))
-						return diffProjects[i];
+				for (DiffProject diffProject : diffProjects) {
+					if (diffProject.getName().equals(resource.getName())) {
+						return diffProject;
+					}
 				}
 			}
 		} else if (resource.getType() == IResource.FILE) {
 			FilePatch2[] diffs = patcher.getDiffs();
-			for (int i = 0; i < diffs.length; i++) {
-				if (resource.equals(getFile(diffs[i], patcher))) {
-					return diffs[i];
+			for (FilePatch2 diff : diffs) {
+				if (resource.equals(getFile(diff, patcher))) {
+					return diff;
 				}
 			}
 		}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,17 +14,30 @@
 package org.eclipse.team.ui.mapping;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffChangeEvent;
+import org.eclipse.team.core.diff.IDiffChangeListener;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IThreeWayDiff;
+import org.eclipse.team.core.diff.ITwoWayDiff;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.internal.core.TeamPlugin;
@@ -29,7 +45,8 @@ import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.ICommonContentExtensionSite;
+import org.eclipse.ui.navigator.ICommonContentProvider;
 
 /**
  * Abstract team aware content provider that delegates to another content provider.
@@ -211,8 +228,7 @@ public abstract class SynchronizationContentProvider implements ICommonContentPr
 		ResourceMapping mapping = Utils.getResourceMapping(internalGetElement(element));
 		if (mapping != null) {
 			ResourceMapping[] mappings = scope.getMappings(mapping.getModelProviderId());
-			for (int i = 0; i < mappings.length; i++) {
-				ResourceMapping sm = mappings[i];
+			for (ResourceMapping sm : mappings) {
 				if (mapping.contains(sm)) {
 					return true;
 				}
@@ -450,8 +466,7 @@ public abstract class SynchronizationContentProvider implements ICommonContentPr
 	 */
 	protected Object[] getChildrenInScope(ISynchronizationScope scope, Object parent, Object[] children) {
 		List<Object> result = new ArrayList<>();
-		for (int i = 0; i < children.length; i++) {
-			Object object = children[i];
+		for (Object object : children) {
 			if (object != null && isInScope(scope, parent, object)) {
 				result.add(object);
 			}
@@ -490,19 +505,14 @@ public abstract class SynchronizationContentProvider implements ICommonContentPr
 		if (children.length == 0)
 			return setChildren;
 		Set<Object> result = new HashSet<>(children.length);
-		for (int i = 0; i < children.length; i++) {
-			result.add(children[i]);
-		}
-		for (int i = 0; i < setChildren.length; i++) {
-			result.add(setChildren[i]);
-		}
+		Collections.addAll(result, children);
+		Collections.addAll(result, setChildren);
 		return result.toArray();
 	}
 
 	private Object[] internalGetChildren(ISynchronizationContext context, Object parent, Object[] children) {
 		List<Object> result = new ArrayList<>(children.length);
-		for (int i = 0; i < children.length; i++) {
-			Object object = children[i];
+		for (Object object : children) {
 			// If the parent is a TreePath then the subclass is
 			// TreePath aware and we can send a TrePath to the
 			// isVisible method
@@ -543,8 +553,7 @@ public abstract class SynchronizationContentProvider implements ICommonContentPr
 
 	private boolean isVisible(IDiff[] diffs) {
 		if (diffs.length > 0) {
-			for (int j = 0; j < diffs.length; j++) {
-				IDiff diff = diffs[j];
+			for (IDiff diff : diffs) {
 				if (isVisible(diff)) {
 					return true;
 				}
@@ -612,8 +621,7 @@ public abstract class SynchronizationContentProvider implements ICommonContentPr
 		ResourceMapping mapping = Utils.getResourceMapping(internalGetElement(element));
 		if (mapping != null) {
 			ResourceMapping[] mappings = scope.getMappings(mapping.getModelProviderId());
-			for (int i = 0; i < mappings.length; i++) {
-				ResourceMapping sm = mappings[i];
+			for (ResourceMapping sm : mappings) {
 				if (mapping.contains(sm)) {
 					return true;
 				}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,14 +18,27 @@ import java.util.Comparator;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
-import org.eclipse.jface.preference.*;
+import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ComboFieldEditor;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IPerspectiveRegistry;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 
 import com.ibm.icu.text.Collator;
 
@@ -33,8 +49,8 @@ public class SyncViewerPreferencePage extends FieldEditorPreferencePage implemen
 
 	private BooleanFieldEditor showSyncInLabels = null;
 	private RadioGroupFieldEditor synchronizePerspectiveSwitch = null;
-    private RadioGroupFieldEditor defaultLayout = null;
-    private boolean includeDefaultLayout = true;
+	private RadioGroupFieldEditor defaultLayout = null;
+	private boolean includeDefaultLayout = true;
 
 	private static class PerspectiveDescriptorComparator implements Comparator {
 		@Override
@@ -58,8 +74,8 @@ public class SyncViewerPreferencePage extends FieldEditorPreferencePage implemen
 	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
-        // set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_PREFERENCE_PAGE);
+		// set F1 help
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_PREFERENCE_PAGE);
 	}
 
 	@Override
@@ -68,45 +84,45 @@ public class SyncViewerPreferencePage extends FieldEditorPreferencePage implemen
 		addField(showSyncInLabels);
 
 		addField(new BooleanFieldEditor(
-		        SHOW_AUTHOR_IN_COMPARE_EDITOR,
-		        TeamUIMessages.SyncViewerPreferencePage_43,
+				SHOW_AUTHOR_IN_COMPARE_EDITOR,
+				TeamUIMessages.SyncViewerPreferencePage_43,
 				BooleanFieldEditor.DEFAULT,
 				getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(
 				MAKE_FILE_WRITTABLE_IF_CONTEXT_MISSING,
-		        TeamUIMessages.SyncViewerPreferencePage_44,
+				TeamUIMessages.SyncViewerPreferencePage_44,
 				BooleanFieldEditor.DEFAULT,
 				getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(
 				REUSE_OPEN_COMPARE_EDITOR,
-		        TeamUIMessages.SyncViewerPreferencePage_45,
+				TeamUIMessages.SyncViewerPreferencePage_45,
 				BooleanFieldEditor.DEFAULT,
 				getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(
 				RUN_IMPORT_IN_BACKGROUND,
-		        TeamUIMessages.SyncViewerPreferencePage_46,
+				TeamUIMessages.SyncViewerPreferencePage_46,
 				BooleanFieldEditor.DEFAULT,
 				getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(
 				APPLY_PATCH_IN_SYNCHRONIZE_VIEW,
-		        TeamUIMessages.SyncViewerPreferencePage_47,
+				TeamUIMessages.SyncViewerPreferencePage_47,
 				BooleanFieldEditor.DEFAULT,
 				getFieldEditorParent()));
 
 		if (isIncludeDefaultLayout()) {
-		    defaultLayout = new RadioGroupFieldEditor(SYNCVIEW_DEFAULT_LAYOUT,
-		            TeamUIMessages.SyncViewerPreferencePage_0, 3,
-		            new String[][] {
-		            	{TeamUIMessages.SyncViewerPreferencePage_1, FLAT_LAYOUT},
-		            	{TeamUIMessages.SyncViewerPreferencePage_2, TREE_LAYOUT},
-		            	{TeamUIMessages.SyncViewerPreferencePage_3, COMPRESSED_LAYOUT}
-		    		},
-		    		getFieldEditorParent(), true /* use a group */);
-		    addField(defaultLayout);
+			defaultLayout = new RadioGroupFieldEditor(SYNCVIEW_DEFAULT_LAYOUT,
+					TeamUIMessages.SyncViewerPreferencePage_0, 3,
+					new String[][] {
+						{TeamUIMessages.SyncViewerPreferencePage_1, FLAT_LAYOUT},
+						{TeamUIMessages.SyncViewerPreferencePage_2, TREE_LAYOUT},
+						{TeamUIMessages.SyncViewerPreferencePage_3, COMPRESSED_LAYOUT}
+					},
+					getFieldEditorParent(), true /* use a group */);
+			addField(defaultLayout);
 		}
 
 		synchronizePerspectiveSwitch= new RadioGroupFieldEditor(SYNCHRONIZING_COMPLETE_PERSPECTIVE, TeamUIMessages.SyncViewerPreferencePage_13, 3,

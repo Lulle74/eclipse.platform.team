@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -68,7 +71,7 @@ public class CVSParticipantLabelDecorator extends LabelProvider implements IProp
 				decoration.setRevision(getRevisionNumber(elementOrPath));
 				decoration.compute();
 				// Update label
-				StringBuffer output = new StringBuffer(25);
+				StringBuilder output = new StringBuilder(25);
 				if (decoration.getPrefix() != null) {
 					output.append(decoration.getPrefix());
 				}
@@ -90,11 +93,11 @@ public class CVSParticipantLabelDecorator extends LabelProvider implements IProp
 		return Utils.getResource(internalGetElement(element));
 	}
 
-    protected CVSDecoration getDecoration(IResource resource) throws CoreException {
-        return CVSLightweightDecorator.decorate(resource, tester);
-    }
+	protected CVSDecoration getDecoration(IResource resource) throws CoreException {
+		return CVSLightweightDecorator.decorate(resource, tester);
+	}
 
-    public Image decorateImage(Image base, Object element) {
+	public Image decorateImage(Image base, Object element) {
 		return base;
 	}
 	public void propertyChange(PropertyChangeEvent event) {
@@ -107,8 +110,8 @@ public class CVSParticipantLabelDecorator extends LabelProvider implements IProp
 	}
 	
 	protected boolean needsRefresh(PropertyChangeEvent event) {
-	    final String property= event.getProperty();
-	    return property.equals(CVSUIPlugin.P_DECORATORS_CHANGED) || property.equals(TeamUI.GLOBAL_FILE_TYPES_CHANGED);
+		final String property= event.getProperty();
+		return property.equals(CVSUIPlugin.P_DECORATORS_CHANGED) || property.equals(TeamUI.GLOBAL_FILE_TYPES_CHANGED);
 	}
 	public void dispose() {
 		CVSUIPlugin.removePropertyChangeListener(this);
@@ -128,7 +131,7 @@ public class CVSParticipantLabelDecorator extends LabelProvider implements IProp
 				local = getBase(elementOrPath);
 			}
 			String localRevision = getRevisionString(local);
-			StringBuffer revisionString = new StringBuffer();
+			StringBuilder revisionString = new StringBuilder();
 			IResourceVariant remote = getRemote(elementOrPath);
 			String remoteRevision = getRevisionString(remote);
 			if(localRevision != null) {

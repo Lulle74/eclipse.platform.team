@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,7 +31,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.IDocument;
@@ -75,14 +78,14 @@ public class StructureDiffViewer extends DiffTreeViewer {
 	 */
 	private IRunnableWithProgress diffTask = monitor -> {
 		monitor.beginTask(CompareMessages.StructureDiffViewer_0, 100);
-		diff(new SubProgressMonitor(monitor, 100));
+		diff(SubMonitor.convert(monitor, 100));
 		monitor.done();
 	};
 
 	private IRunnableWithProgress inputChangedTask = monitor -> {
 		monitor.beginTask(CompareMessages.StructureDiffViewer_1, 100);
 		// TODO: Should we always force
-		compareInputChanged((ICompareInput) getInput(), true, new SubProgressMonitor(monitor, 100));
+		compareInputChanged((ICompareInput) getInput(), true, SubMonitor.convert(monitor, 100));
 		monitor.done();
 	};
 
@@ -260,11 +263,11 @@ public class StructureDiffViewer extends DiffTreeViewer {
 		return fRoot;
 	}
 
-    /*
-     * (non-Javadoc) Method declared on StructuredViewer.
-     * Overridden to create the comparable structures from the input object
-	 * and to feed them through the differencing engine. Note: for this viewer
-	 * the value from <code>getInput</code> is not identical to <code>getRoot</code>.
+	/*
+	 * Method declared on StructuredViewer. Overridden to create the comparable
+	 * structures from the input object and to feed them through the differencing
+	 * engine. Note: for this viewer the value from <code>getInput</code> is not
+	 * identical to <code>getRoot</code>.
 	 */
 	@Override
 	protected void inputChanged(Object input, Object oldInput) {
@@ -370,7 +373,7 @@ public class StructureDiffViewer extends DiffTreeViewer {
 		if (monitor != null) {
 			if (monitor.isCanceled() || getControl().isDisposed())
 				throw new OperationCanceledException();
-			return new SubProgressMonitor(monitor, work);
+			return SubMonitor.convert(monitor, work);
 		}
 		return null;
 	}
@@ -526,7 +529,7 @@ public class StructureDiffViewer extends DiffTreeViewer {
 			if (compareConfiguration != null) {
 				compareConfiguration.getContainer().run(true, true, monitor -> {
 					monitor.beginTask(CompareMessages.StructureDiffViewer_2, 100);
-					diffTask.run(new SubProgressMonitor(monitor, 100));
+					diffTask.run(SubMonitor.convert(monitor, 100));
 					monitor.done();
 				});
 			}

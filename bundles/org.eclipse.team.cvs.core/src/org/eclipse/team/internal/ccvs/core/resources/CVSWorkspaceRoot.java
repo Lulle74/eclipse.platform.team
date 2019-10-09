@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -51,12 +54,12 @@ public class CVSWorkspaceRoot {
 		if ( ! info.equals(folderInfo)) {
 			throw new CVSException(new CVSStatus(IStatus.ERROR, NLS.bind(CVSMessages.CVSProvider_infoMismatch, new String[] { project.getName() })));
 		}
-        
-        // Ensure that the repository location format is supported
-        String root = info.getRoot();
-        // This will try to create a repository location for the root.
-        // If it fails, an exception is thrown.
-        KnownRepositories.getInstance().getRepository(root);
+		
+		// Ensure that the repository location format is supported
+		String root = info.getRoot();
+		// This will try to create a repository location for the root.
+		// If it fails, an exception is thrown.
+		KnownRepositories.getInstance().getRepository(root);
 		
 		// Register the project with Team
 		RepositoryProvider.map(project, CVSProviderPlugin.getTypeId());

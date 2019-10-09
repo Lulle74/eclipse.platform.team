@@ -1,28 +1,56 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.ResourceNode;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.action.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.commands.ActionHandler;
-import org.eclipse.jface.dialogs.*;
+import org.eclipse.jface.dialogs.DialogSettings;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IBasicPropertyConstants;
+import org.eclipse.jface.viewers.IElementComparer;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -30,16 +58,59 @@ import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.variants.IResourceVariant;
 import org.eclipse.team.internal.core.mapping.ResourceVariantFileRevision;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.history.FileRevisionEditorInput;
-import org.eclipse.team.internal.ui.synchronize.actions.*;
+import org.eclipse.team.internal.ui.synchronize.actions.PasteAction;
+import org.eclipse.team.internal.ui.synchronize.actions.PinParticipantAction;
+import org.eclipse.team.internal.ui.synchronize.actions.RemoveSynchronizeParticipantAction;
+import org.eclipse.team.internal.ui.synchronize.actions.SynchronizeAndRefreshAction;
+import org.eclipse.team.internal.ui.synchronize.actions.SynchronizePageDropDownAction;
+import org.eclipse.team.internal.ui.synchronize.actions.ToggleLinkingAction;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeManager;
+import org.eclipse.team.ui.synchronize.ISynchronizePage;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantListener;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantReference;
+import org.eclipse.team.ui.synchronize.ISynchronizeView;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.ISaveablePart;
+import org.eclipse.ui.ISaveablesLifecycleListener;
+import org.eclipse.ui.ISaveablesSource;
+import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.OpenAndLinkWithEditorHelper;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
+import org.eclipse.ui.SaveablesLifecycleEvent;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.IPage;
+import org.eclipse.ui.part.IPageBookViewPage;
+import org.eclipse.ui.part.IShowInTarget;
+import org.eclipse.ui.part.MessagePage;
+import org.eclipse.ui.part.Page;
+import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.PageBookView;
+import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 
 /**
@@ -108,8 +179,8 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 	 * Preference key to save
 	 */
 	private static final String KEY_LAST_ACTIVE_PARTICIPANT_ID = "lastactiveparticipant_id"; //$NON-NLS-1$
-    private static final String KEY_LAST_ACTIVE_PARTICIPANT_SECONDARY_ID = "lastactiveparticipant_sec_id"; //$NON-NLS-1$
-    private static final String KEY_LINK_WITH_EDITOR = "linkWithEditor"; //$NON-NLS-1$
+	private static final String KEY_LAST_ACTIVE_PARTICIPANT_SECONDARY_ID = "lastactiveparticipant_sec_id"; //$NON-NLS-1$
+	private static final String KEY_LINK_WITH_EDITOR = "linkWithEditor"; //$NON-NLS-1$
 	private static final String KEY_SETTINGS_SECTION= "SynchronizeViewSettings"; //$NON-NLS-1$
 
 
@@ -267,14 +338,14 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 		getSite().getPage().removePartListener(fLinkWithEditorListener);
 	}
 
-    /**
-     *
-     */
-    private void rememberCurrentParticipant() {
-        IDialogSettings section = getDialogSettings();
-        section.put(KEY_LAST_ACTIVE_PARTICIPANT_ID, activeParticipantRef.getId());
-        section.put(KEY_LAST_ACTIVE_PARTICIPANT_SECONDARY_ID, activeParticipantRef.getSecondaryId());
-    }
+	/**
+	 *
+	 */
+	private void rememberCurrentParticipant() {
+		IDialogSettings section = getDialogSettings();
+		section.put(KEY_LAST_ACTIVE_PARTICIPANT_ID, activeParticipantRef.getId());
+		section.put(KEY_LAST_ACTIVE_PARTICIPANT_SECONDARY_ID, activeParticipantRef.getSecondaryId());
+	}
 
 	@Override
 	protected IPage createDefaultPage(PageBook book) {
@@ -286,8 +357,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 
 	@Override
 	public void participantsAdded(final ISynchronizeParticipant[] participants) {
-		for (int i = 0; i < participants.length; i++) {
-			ISynchronizeParticipant participant = participants[i];
+		for (ISynchronizeParticipant participant : participants) {
 			if (isAvailable() && select(TeamUI.getSynchronizeManager().get(participant.getId(), participant.getSecondaryId()))) {
 				SynchronizeViewWorkbenchPart part = new SynchronizeViewWorkbenchPart(participant, getSite());
 				fParticipantToPart.put(participant, part);
@@ -301,8 +371,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 	public void participantsRemoved(final ISynchronizeParticipant[] participants) {
 		if (isAvailable()) {
 			Runnable r = () -> {
-				for (int i = 0; i < participants.length; i++) {
-					ISynchronizeParticipant participant = participants[i];
+				for (ISynchronizeParticipant participant : participants) {
 					if (isAvailable()) {
 						SynchronizeViewWorkbenchPart part = (SynchronizeViewWorkbenchPart)fParticipantToPart.get(participant);
 						if (part != null) {
@@ -541,8 +610,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 		// create pages
 		List<ISynchronizeParticipantReference> participants = new ArrayList<>();
 		ISynchronizeParticipantReference[] refs = manager.getSynchronizeParticipants();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference ref =refs[i];
+		for (ISynchronizeParticipantReference ref : refs) {
 			if(select(ref)) {
 				participants.add(ref);
 			}
@@ -588,7 +656,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 	private String getSettingsKey(ISynchronizeParticipant participant) {
 		String id = participant.getId();
 		String secondaryId = participant.getSecondaryId();
-	    return secondaryId == null ? id : id + '.' + secondaryId;
+		return secondaryId == null ? id : id + '.' + secondaryId;
 	}
 
 	private IDialogSettings getDialogSettings(ISynchronizeParticipant participant) {
@@ -647,8 +715,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 		if (saveables.length == 0)
 			return;
 		monitor.beginTask(null, 100* saveables.length);
-		for (int i = 0; i < saveables.length; i++) {
-			Saveable saveable = saveables[i];
+		for (Saveable saveable : saveables) {
 			try {
 				saveable.doSave(Policy.subMonitorFor(monitor, 100));
 			} catch (CoreException e) {
@@ -668,8 +735,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 	@Override
 	public boolean isDirty() {
 		Saveable[] saveables = getSaveables();
-		for (int i = 0; i < saveables.length; i++) {
-			Saveable saveable = saveables[i];
+		for (Saveable saveable : saveables) {
 			if (saveable.isDirty())
 				return true;
 		}
@@ -900,7 +966,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 	}
 
 	private boolean inputIsSelected(IEditorInput input) {
-		IStructuredSelection selection= (IStructuredSelection) getViewer().getSelection();
+		IStructuredSelection selection= getViewer().getStructuredSelection();
 		if (selection.size() != 1)
 			return false;
 		IEditorInput selectionAsInput= getEditorInput(selection.getFirstElement());
@@ -943,10 +1009,11 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 				IEditorPart editor = p.findEditor(input);
 				if (editor == null) {
 					IEditorReference[] er = p.getEditorReferences();
-					for (int i = 0; i < er.length; i++)
-						if (er[i].getId().equals(
-								"org.eclipse.compare.CompareEditor") && matches(er[i], input)) //$NON-NLS-1$
-							editor = er[i].getEditor(false);
+					for (IEditorReference e : er) {
+						if (e.getId().equals("org.eclipse.compare.CompareEditor") && matches(e, input)) { //$NON-NLS-1$
+							editor = e.getEditor(false);
+						}
+					}
 				}
 				return editor;
 			}
@@ -1019,9 +1086,6 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 		return selection.getFirstElement();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.IShowInTarget#show(org.eclipse.ui.part.ShowInContext)
-	 */
 	@Override
 	public boolean show(ShowInContext context) {
 		Object selection = getSingleElement(context.getSelection());
@@ -1036,7 +1100,7 @@ public class SynchronizeView extends PageBookView implements ISynchronizeView, I
 			if (input instanceof IEditorInput) {
 				return showInput(getInputFromEditor((IEditorInput) input));
 			}
-			 return showInput(input);
+			return showInput(input);
 		}
 		return false;
 	}

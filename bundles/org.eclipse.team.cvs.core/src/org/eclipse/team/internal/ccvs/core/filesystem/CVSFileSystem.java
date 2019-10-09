@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,7 +57,7 @@ public class CVSFileSystem extends FileSystem {
 	
 
 	public CVSFileTree refreshTree(URI uri, IProgressMonitor monitor){
-	    CVSURI cvsURI = CVSURI.fromUri(uri);
+		CVSURI cvsURI = CVSURI.fromUri(uri);
 		
 		//Make sure that we're building the tree from the topmost level - keep cycling until you hit null
 		ICVSRemoteFolder folder = cvsURI.getProjectURI().toFolder();
@@ -62,7 +65,7 @@ public class CVSFileSystem extends FileSystem {
 		try {
 			RemoteLogger logger = new RemoteLogger(folder);
 
-			RemoteFolderTree remoteTree = logger.fetchTree(new SubProgressMonitor(monitor,80));
+			RemoteFolderTree remoteTree = logger.fetchTree(SubMonitor.convert(monitor,80));
 			HashMap folderMap = logger.getFolderMap();
 			HashMap logMap = logger.getLogMap();
 			folderMap.put(folder.getName(), remoteTree);

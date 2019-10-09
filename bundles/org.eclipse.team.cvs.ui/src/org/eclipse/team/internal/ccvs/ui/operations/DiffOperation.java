@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *    IBM Corporation - initial API and implementation
@@ -63,10 +66,12 @@ public abstract class DiffOperation extends SingleCommandOperation {
 			}
 		}
 		
+		@Override
 		public boolean checkError() {
 			return error || super.checkError();
 		}
 
+		@Override
 		public void println() {
 			try{
 				write(defaultLineEnding.getBytes());
@@ -75,46 +80,55 @@ public abstract class DiffOperation extends SingleCommandOperation {
 			}
 		}
 		
+		@Override
 		public void println(boolean x) {
 			print(x);
 			println();
 		}
 		
+		@Override
 		public void println(char x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(char[] x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(double x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(float x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(int x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(long x) {
 			print(x);
 			println();
 		}
 
+		@Override
 		public void println(Object x) {
 			print(x);
 			println();
 		}
 		
+		@Override
 		public void println(String x) {
 			print(x);
 			println();
@@ -131,6 +145,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		this.destination = destination;
 	}
 	
+	@Override
 	protected boolean shouldRun(){
 		if (super.shouldRun() == false){
 			return false;
@@ -152,6 +167,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		return true;
 	}
 	
+	@Override
 	public void execute(IProgressMonitor monitor) throws CVSException, InterruptedException {
 		try {
 			stream = new CustomizableEOLPrintStream(openStream());
@@ -176,6 +192,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		private int compare(IResource r1, IResource r2) {
 			return r1.getFullPath().toString().compareTo(r2.getFullPath().toString());
 		}
+		@Override
 		public int compare(Object o1, Object o2) {
 			IResource r1 = null;
 			IResource r2 = null;
@@ -192,18 +209,19 @@ public abstract class DiffOperation extends SingleCommandOperation {
 			return compare(r1, r2);
 		}
 	};
+	@Override
 	protected void execute(CVSTeamProvider provider, IResource[] resources, boolean recurse, IProgressMonitor monitor) throws CVSException, InterruptedException {
 		
 		//add this project to the total projects encountered
-		final HashSet newFiles = new HashSet(); //array of ICVSResource - need HashSet to guard for duplicate entries
-		final HashSet existingFiles = new HashSet(); //array of IResource - need HashSet to guard for duplicate entries
+		final HashSet<ICVSFile> newFiles = new HashSet<>(); // need HashSet to guard for duplicate entries
+		final HashSet<IResource> existingFiles = new HashSet<>(); // need HashSet to guard for duplicate entries
 		
 		monitor.beginTask(null,100);
 		final IProgressMonitor subMonitor = Policy.subMonitorFor(monitor,10);
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			ICVSResource cvsResource = CVSWorkspaceRoot.getCVSResourceFor(resource);
 			cvsResource.accept(new ICVSResourceVisitor() {
+				@Override
 				public void visitFile(ICVSFile file) throws CVSException {
 					if (!(file.isIgnored()))  {
 						if (!file.isManaged() || file.getSyncInfo().isAdded() ){
@@ -216,6 +234,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 					}
 				}
 				
+				@Override
 				public void visitFolder(ICVSFolder folder) throws CVSException {
 					// Even if we are not supposed to recurse we still need to go into
 					// the root directory.
@@ -229,7 +248,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 			}, recurse);
 		}
 
-		final SortedSet allFiles = new TreeSet(COMPARATOR);
+		final SortedSet<Object> allFiles = new TreeSet<>(COMPARATOR);
 		allFiles.addAll(existingFiles);
 		allFiles.addAll(newFiles);
 
@@ -241,10 +260,9 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		int format = STANDARD_FORMAT;
 	
 		LocalOption[] localoptions = getLocalOptions(recurse);
-		for (int i = 0; i < localoptions.length; i++)  {
-			LocalOption option = localoptions[i];
+		for (LocalOption option : localoptions) {
 			if (option.equals(Diff.UNIFIED_FORMAT) ||
-				isMultiPatch)  {
+					isMultiPatch)  {
 				format = UNIFIED_FORMAT;
 			} else if (option.equals(Diff.CONTEXT_FORMAT))  {
 				format = CONTEXT_FORMAT;
@@ -272,7 +290,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 			}
 		}
 		
-		List existingFilesSubList = new ArrayList();
+		List<Object> existingFilesSubList = new ArrayList<>();
 		for (Iterator iter = allFiles.iterator(); iter.hasNext();) {
 			Object file = iter.next();
 			if (existingFiles.contains(file)) {
@@ -315,18 +333,17 @@ public abstract class DiffOperation extends SingleCommandOperation {
 	 */
 	private void handleCVSException(CVSException ex) {
 		IStatus status = ex.getStatus();
-		List toShow = new ArrayList();
+		List<IStatus> toShow = new ArrayList<>();
 		IStatus children[] = status.getChildren();
 		boolean may = true;
-		for (int i = 0; i < children.length; i++) {
+		for (IStatus child : children) {
 			// ignore all errors except those found by DiffListener
-			if (children[i].getCode() == CVSStatus.BINARY_FILES_DIFFER
-					|| children[i].getCode() == CVSStatus.PROTOCOL_ERROR
-					|| children[i].getCode() == CVSStatus.ERROR_LINE) {
-				toShow.add(children[i]);
-				if (children[i].getCode() == CVSStatus.BINARY_FILES_DIFFER)
+			if (child.getCode() == CVSStatus.BINARY_FILES_DIFFER || child.getCode() == CVSStatus.PROTOCOL_ERROR || child.getCode() == CVSStatus.ERROR_LINE) {
+				toShow.add(child);
+				if (child.getCode() == CVSStatus.BINARY_FILES_DIFFER) {
 					// the patch does not contain some changes for sure
 					may = false;
+				}
 			}
 		}
 		if (toShow.size() > 0) {
@@ -336,7 +353,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 					new MultiStatus(
 							CVSProviderPlugin.ID,
 							CVSStatus.SERVER_ERROR,
-							(IStatus[]) toShow.toArray(new IStatus[toShow.size()]),
+							toShow.toArray(new IStatus[toShow.size()]),
 							CVSUIMessages.DiffOperation_ErrorsOccurredWhileCreatingThePatch,
 							null));
 			adapter.setProperty(IStatusAdapterConstants.TITLE_PROPERTY, msg);
@@ -352,6 +369,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		return CVSWorkspaceRoot.getCVSFolderFor(cvsFile.getIResource().getProject());
 	}
 	
+	@Override
 	protected IStatus executeCommand(Session session, CVSTeamProvider provider, ICVSResource[] resources, boolean recurse, IProgressMonitor monitor) throws CVSException, InterruptedException {
 		
 		DiffListener diffListener = new DiffListener(stream);
@@ -371,22 +389,23 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		return status;
 	}
 
+	@Override
 	protected String getTaskName(CVSTeamProvider provider) {
 		return NLS.bind(CVSUIMessages.DiffOperation_0, new String[]{provider.getProject().getName()});
 	}
 
+	@Override
 	protected String getTaskName() {
 		return CVSUIMessages.DiffOperation_1;
 	}
 	
+	@Override
 	Map getProviderTraversalMapping(IProgressMonitor monitor) throws CoreException {
 		Map providerTraversal = super.getProviderTraversalMapping(monitor);
-		SortedMap result = new TreeMap(new Comparator() {
-			public int compare(Object o1, Object o2) {
-				CVSTeamProvider p1 = (CVSTeamProvider) o1;
-				CVSTeamProvider p2 = (CVSTeamProvider) o2;
-				return COMPARATOR.compare(p1.getProject(), p2.getProject());
-			}
+		SortedMap result = new TreeMap((o1, o2) -> {
+			CVSTeamProvider p1 = (CVSTeamProvider) o1;
+			CVSTeamProvider p2 = (CVSTeamProvider) o2;
+			return COMPARATOR.compare(p1.getProject(), p2.getProject());
 		});
 		result.putAll(providerTraversal);
 		return result;
@@ -542,6 +561,7 @@ public abstract class DiffOperation extends SingleCommandOperation {
 				StatusManager.SHOW);
 	}
 
+	@Override
 	protected ICVSFolder getLocalRoot(CVSTeamProvider provider) throws CVSException {
 		ICVSFolder root = getPatchRootFolder();
 		if (root != null)
@@ -572,13 +592,12 @@ public abstract class DiffOperation extends SingleCommandOperation {
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#consultModelsForMappings()
-	 */
+	@Override
 	public boolean consultModelsForMappings() {
 		return false;
 	}
 	
+	@Override
 	public boolean belongsTo(Object family){
 		if(family != null && family.equals(destination))
 			return true;

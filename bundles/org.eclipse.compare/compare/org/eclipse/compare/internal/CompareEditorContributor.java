@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -66,9 +69,6 @@ public class CompareEditorContributor extends EditorActionBarContributor {
 		}
 	}
 
-	/*
-	 * @see EditorActionBarContributor#contributeToToolBar(IToolBarManager)
-	 */
 	@Override
 	public void contributeToToolBar(IToolBarManager tbm) {
 		tbm.add(new Separator(FILTER_SEPARATOR));
@@ -78,9 +78,6 @@ public class CompareEditorContributor extends EditorActionBarContributor {
 		tbm.appendToGroup(BUILTIN_SEPARATOR, fToolbarPrevious);
 	}
 
-	/*
-	 * @see EditorActionBarContributor#contributeToMenu(IMenuManager)
-	 */
 	@Override
 	public void contributeToMenu(IMenuManager menuManager) {
 		// empty implementation
@@ -125,21 +122,20 @@ public class CompareEditorContributor extends EditorActionBarContributor {
 			IContributionItem[] items = actionBars.getToolBarManager()
 					.getItems();
 			boolean inFilters = false;
-			for (int i = 0; i < items.length; i++) {
-				if (items[i].getId().equals(FILTER_SEPARATOR)) {
+			for (IContributionItem item : items) {
+				if (item.getId().equals(FILTER_SEPARATOR)) {
 					inFilters = true;
-				} else if (items[i].getId().equals(BUILTIN_SEPARATOR)) {
+				} else if (item.getId().equals(BUILTIN_SEPARATOR)) {
 					break;
 				} else if (inFilters) {
-					if (items[i] instanceof ActionContributionItem) {
-						String definitionId = ((ActionContributionItem) items[i])
-								.getAction().getActionDefinitionId();
+					if (item instanceof ActionContributionItem) {
+						String definitionId = ((ActionContributionItem) item).getAction().getActionDefinitionId();
 						if (definitionId != null) {
 							actionBars.setGlobalActionHandler(definitionId,
 									null);
 						}
 					}
-					actionBars.getToolBarManager().remove(items[i]);
+					actionBars.getToolBarManager().remove(item);
 				}
 			}
 
@@ -151,8 +147,8 @@ public class CompareEditorContributor extends EditorActionBarContributor {
 						.getProperty(
 								ChangeCompareFilterPropertyAction.COMPARE_FILTER_ACTIONS);
 				if (filterActions instanceof List
-						&& !((List) filterActions).isEmpty()) {
-					Iterator i = ((List) filterActions).iterator();
+						&& !((List<?>) filterActions).isEmpty()) {
+					Iterator<?> i = ((List<?>) filterActions).iterator();
 					while (i.hasNext()) {
 						Object next = i.next();
 						if (next instanceof ChangeCompareFilterPropertyAction) {

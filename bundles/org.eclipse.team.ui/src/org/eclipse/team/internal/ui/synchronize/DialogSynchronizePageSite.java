@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,16 +14,27 @@
 package org.eclipse.team.internal.ui.synchronize;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jface.action.*;
+import org.eclipse.core.commands.IHandler;
+import org.eclipse.core.expressions.Expression;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
-import org.eclipse.ui.*;
-import org.eclipse.ui.commands.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IKeyBindingService;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.LegacyHandlerSubmissionExpression;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerActivation;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.services.IServiceLocator;
 
 /**
@@ -34,7 +48,7 @@ public class DialogSynchronizePageSite implements ISynchronizePageSite {
 	private final boolean isModal;
 	// Keybindings enabled in the dialog, these should be removed
 	// when the dialog is closed.
-	private List<HandlerSubmission> actionHandlers = new ArrayList<>(2);
+	private List<IHandlerActivation> actionHandlers = new ArrayList<>(2);
 
 	/**
 	 * Create a site for use in a dialog
@@ -125,9 +139,9 @@ public class DialogSynchronizePageSite implements ISynchronizePageSite {
 				public void setGlobalActionHandler(String actionId, IAction action) {
 					if (actionId != null && !"".equals(actionId)) { //$NON-NLS-1$
 						IHandler handler = new ActionHandler(action);
-						HandlerSubmission handlerSubmission = new HandlerSubmission(null, shell, null, actionId, handler, Priority.MEDIUM);
-						PlatformUI.getWorkbench().getCommandSupport().addHandlerSubmission(handlerSubmission);
-						actionHandlers.add(handlerSubmission);
+						Expression expression = new LegacyHandlerSubmissionExpression(null, shell, null);
+						IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+						actionHandlers.add(handlerService.activateHandler(actionId, handler, expression));
 					}
 				}
 
@@ -146,10 +160,7 @@ public class DialogSynchronizePageSite implements ISynchronizePageSite {
 	 * Cleanup when the dialog is closed
 	 */
 	public void dispose() {
-		IWorkbenchCommandSupport cm = PlatformUI.getWorkbench().getCommandSupport();
-		for (Iterator it = actionHandlers.iterator(); it.hasNext();) {
-			HandlerSubmission handler = (HandlerSubmission) it.next();
-			cm.removeHandlerSubmission(handler);
-		}
+		IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+		actionHandlers.forEach(handlerService::deactivateHandler);
 	}
 }

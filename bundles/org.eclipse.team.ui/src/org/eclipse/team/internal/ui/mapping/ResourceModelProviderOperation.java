@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,14 +14,19 @@
 package org.eclipse.team.internal.ui.mapping;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.mapping.*;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceMappingContext;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.team.core.diff.FastDiffFilter;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
@@ -52,13 +60,9 @@ public abstract class ResourceModelProviderOperation extends SynchronizationOper
 	 */
 	private IDiff[] getFileDeltas(Object[] pathOrElements) {
 		Set<IDiff> result = new HashSet<>();
-		for (int i = 0; i < pathOrElements.length; i++) {
-			Object pathOrElement = pathOrElements[i];
+		for (Object pathOrElement : pathOrElements) {
 			IDiff[] diffs = getFileDeltas(pathOrElement);
-			for (int j = 0; j < diffs.length; j++) {
-				IDiff node = diffs[j];
-				result.add(node);
-			}
+			Collections.addAll(result, diffs);
 		}
 		return result.toArray(new IDiff[result.size()]);
 	}
@@ -71,8 +75,7 @@ public abstract class ResourceModelProviderOperation extends SynchronizationOper
 			final IResourceDiffTree diffTree = context.getDiffTree();
 			IDiff[] diffs = diffTree.getDiffs(traversals);
 			// Now filter the by the mode of the configuration
-			for (int i = 0; i < diffs.length; i++) {
-				IDiff node = diffs[i];
+			for (IDiff node : diffs) {
 				if (isVisible(node) && getDiffFilter().select(node))
 					result.add(node);
 			}
@@ -148,8 +151,7 @@ public abstract class ResourceModelProviderOperation extends SynchronizationOper
 	@Override
 	public boolean shouldRun() {
 		Object[] elements = getElements();
-		for (int i = 0; i < elements.length; i++) {
-			Object object = elements[i];
+		for (Object object : elements) {
 			if (Utils.getResourceMapping(internalGetElement(object)) != null) {
 				return true;
 			}
@@ -169,9 +171,6 @@ public abstract class ResourceModelProviderOperation extends SynchronizationOper
 		return getElements();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#canRunAsJob()
-	 */
 	@Override
 	protected boolean canRunAsJob() {
 		return true;

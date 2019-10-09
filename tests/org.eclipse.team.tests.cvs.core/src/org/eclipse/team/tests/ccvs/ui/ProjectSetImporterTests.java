@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,9 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -50,6 +50,9 @@ import org.eclipse.team.tests.ccvs.core.EclipseTest;
 import org.eclipse.team.ui.IScmUrlImportWizardPage;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.ui.PlatformUI;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 public class ProjectSetImporterTests extends EclipseTest {
 
@@ -79,6 +82,7 @@ public class ProjectSetImporterTests extends EclipseTest {
 		return new CVSTestSetup(suite);
 	}
 
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		PSF_FILE.delete();
@@ -90,10 +94,8 @@ public class ProjectSetImporterTests extends EclipseTest {
 		IProject project2 = createProject("testImportProject",
 				new String[] { "file.txt", "folder1/", "folder1/a.txt" });
 
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(PSF_FILE)),
-					true);
+		try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(PSF_FILE)),
+				true)) {
 
 			out.println(psf_header_0);
 			out.println(psf_header_1);
@@ -119,9 +121,6 @@ public class ProjectSetImporterTests extends EclipseTest {
 			fail("1.", e.getCause());
 		} catch (IOException e) {
 			fail("2.", e);
-		} finally {
-			if (out != null)
-				out.close();
 		}
 	}
 
@@ -132,11 +131,9 @@ public class ProjectSetImporterTests extends EclipseTest {
 		IProject project2 = createProject("testBug234149_aFewProviders",
 				new String[0]);
 
-		// create psf with two providers
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(PSF_FILE)),
-					true);
+		try ( // create psf with two providers
+				PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(PSF_FILE)),
+						true)) {
 
 			// add first provider to psf
 			out.println(psf_header_0);
@@ -168,9 +165,6 @@ public class ProjectSetImporterTests extends EclipseTest {
 			fail("1.", e.getCause());
 		} catch (IOException e) {
 			fail("2.", e);
-		} finally {
-			if (out != null)
-				out.close();
 		}
 	}
 
@@ -206,11 +200,11 @@ public class ProjectSetImporterTests extends EclipseTest {
 		ProjectSetCapability c = new CVSTeamProviderType().getProjectSetCapability();
 		
 		// this is what every bundle importer should do, should this be in PDE?
-		List references = new ArrayList();
-		for (int i = 0; i < selection.length; i++) {
-			references.add(c.asReference(selection[i].getUri(), selection[i].getProject()));
+		List<String> references = new ArrayList<>();
+		for (ScmUrlImportDescription element : selection) {
+			references.add(c.asReference(element.getUri(), element.getProject()));
 		}
-		c.addToWorkspace((String[]) references.toArray(new String[references.size()]), new ProjectSetSerializationContext(), null);
+		c.addToWorkspace(references.toArray(new String[references.size()]), new ProjectSetSerializationContext(), null);
 		assertExistsInWorkspace(project);
 	}
 
@@ -227,11 +221,11 @@ public class ProjectSetImporterTests extends EclipseTest {
 		ProjectSetCapability c = new CVSTeamProviderType().getProjectSetCapability();
 
 		// this is what every bundle importer should do, should this be in PDE?
-		List references = new ArrayList();
-		for (int i = 0; i < selection.length; i++) {
-			references.add(c.asReference(selection[i].getUri(), /*selection[i].getProject()*/ null));
+		List<String> references = new ArrayList<>();
+		for (ScmUrlImportDescription element : selection) {
+			references.add(c.asReference(element.getUri(), /*selection[i].getProject()*/ null));
 		}
-		c.addToWorkspace((String[]) references.toArray(new String[references.size()]), new ProjectSetSerializationContext(), null);
+		c.addToWorkspace(references.toArray(new String[references.size()]), new ProjectSetSerializationContext(), null);
 		IProject project1 = ResourcesPlugin.getWorkspace().getRoot().getProject("project1");
 		assertExistsInWorkspace(project1);
 	}
@@ -244,13 +238,14 @@ public class ProjectSetImporterTests extends EclipseTest {
 
 		final IScmUrlImportWizardPage[] pages = TeamUI.getPages("org.eclipse.team.core.cvs.importer");
 		assertEquals(1, pages.length);
-		String s = ProjectSetCapability.SCHEME_SCM + ":cvs:" + CVSTestSetup.REPOSITORY_LOCATION + ":" + project.getName() + ";tag=tag";;
+		String s = ProjectSetCapability.SCHEME_SCM + ":cvs:" + CVSTestSetup.REPOSITORY_LOCATION + ":" + project.getName() + ";tag=tag";
 		ScmUrlImportDescription d = new ScmUrlImportDescription(s, project.getName());
 		ScmUrlImportDescription[] selection = new ScmUrlImportDescription[] {d};
 		pages[0].setSelection(selection);
 
 		assertTrue(pages[0] instanceof CVSScmUrlImportWizardPage);
 		Wizard wizard = new Wizard() {
+			@Override
 			public boolean performFinish() {
 				// update SCM URLs in descriptions
 				pages[0].finish();
@@ -279,7 +274,7 @@ public class ProjectSetImporterTests extends EclipseTest {
 	}
 
 	public void testCvsBundleImporter() throws TeamException, CoreException {
-		IBundleImporter cvsBundleImporter = getBundleImporter("org.eclipse.team.core.cvs.importer");;
+		IBundleImporter cvsBundleImporter = getBundleImporter("org.eclipse.team.core.cvs.importer");
 		// CVS Bundle Importer should be available
 		assertNotNull(cvsBundleImporter);
 
@@ -290,7 +285,7 @@ public class ProjectSetImporterTests extends EclipseTest {
 		String s = ProjectSetCapability.SCHEME_SCM + ":cvs:" + CVSTestSetup.REPOSITORY_LOCATION + ":" + project.getName();
 
 		Map[] manifests = new Map[1];
-		Map map = new HashMap();
+		Map<String, String> map = new HashMap<>();
 		map.put(BundleImporterDelegate.ECLIPSE_SOURCE_REFERENCES, s);
 		manifests[0] = map;
 
@@ -303,9 +298,9 @@ public class ProjectSetImporterTests extends EclipseTest {
 
 	private static IBundleImporter getBundleImporter(final String id) {
 		IBundleImporter[] importers = Team.getBundleImporters();
-		for (int i = 0; i < importers.length; i++) {
-			if (importers[i].getId().equals(id))
-				return importers[i];
+		for (IBundleImporter importer : importers) {
+			if (importer.getId().equals(id))
+				return importer;
 		}
 		return null;
 	}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -116,6 +119,7 @@ public class CVSHistoryTableProvider {
 				PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(themeListener= new ThemeListener(provider));
 		}
 		
+		@Override
 		public void dispose() {
 			if (dateImage != null){
 				dateImage.dispose();
@@ -137,9 +141,7 @@ public class CVSHistoryTableProvider {
 			}
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.CellLabelProvider#getToolTipText(java.lang.Object)
-		 */
+		@Override
 		public String getToolTipText(Object element) {
 			if (column == COL_COMMENT && !isSingleLine(element)) {
 				IFileRevision entry = adaptToFileRevision(element);
@@ -149,9 +151,7 @@ public class CVSHistoryTableProvider {
 			return null;
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.CellLabelProvider#useNativeToolTip(java.lang.Object)
-		 */
+		@Override
 		public boolean useNativeToolTip(Object object) {
 			return column != COL_COMMENT || isSingleLine(object);
 		}
@@ -163,9 +163,7 @@ public class CVSHistoryTableProvider {
 			return true;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ColumnLabelProvider#getImage(java.lang.Object)
-		 */
+		@Override
 		public Image getImage(Object element) {
 			return getColumnImage(element, column);
 		}
@@ -201,9 +199,7 @@ public class CVSHistoryTableProvider {
 		}
 
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ColumnLabelProvider#getText(java.lang.Object)
-		 */
+		@Override
 		public String getText(Object element) {
 			return getColumnText(element, column);
 		}
@@ -232,7 +228,7 @@ public class CVSHistoryTableProvider {
 					return revision;
 				case COL_BRANCHES:
 					ITag[] branches = entry.getBranches();
-					StringBuffer resultBranches = new StringBuffer();
+					StringBuilder resultBranches = new StringBuilder();
 					for (int i = 0; i < branches.length; i++) {
 						resultBranches.append(branches[i].getName());
 						if (i < branches.length - 1) {
@@ -240,9 +236,10 @@ public class CVSHistoryTableProvider {
 						}
 					}
 					return resultBranches.toString();
+
 				case COL_TAGS:
 					ITag[] tags = entry.getTags();
-					StringBuffer result = new StringBuffer();
+					StringBuilder result = new StringBuilder();
 					for (int i = 0; i < tags.length; i++) {
 						result.append(tags[i].getName());
 						if (i < tags.length - 1) {
@@ -250,6 +247,7 @@ public class CVSHistoryTableProvider {
 						}
 					}
 					return result.toString();
+
 				case COL_DATE :
 					long date = entry.getTimestamp();
 					Date dateFromLong = new Date(date);
@@ -268,9 +266,7 @@ public class CVSHistoryTableProvider {
 			return dateFormat;
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
-		 */
+		@Override
 		public Color getForeground(Object element) {
 			if (element instanceof AbstractHistoryCategory){
 				ITheme current = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme();
@@ -285,17 +281,12 @@ public class CVSHistoryTableProvider {
 			return null;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IColorProvider#getBackground(java.lang.Object)
-		 */
+		@Override
 		public Color getBackground(Object element) {
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IFontProvider#getFont(java.lang.Object)
-		 */
+		@Override
 		public Font getFont(Object element) {
 			if (element instanceof AbstractHistoryCategory) {
 				return getCurrentRevisionFont();
@@ -326,8 +317,8 @@ public class CVSHistoryTableProvider {
 			if (currentRevisionFont == null) {
 				Font defaultFont = JFaceResources.getDefaultFont();
 				FontData[] data = defaultFont.getFontData();
-				for (int i = 0; i < data.length; i++) {
-					data[i].setStyle(SWT.BOLD);
+				for (FontData d : data) {
+					d.setStyle(SWT.BOLD);
 				}
 				currentRevisionFont = new Font(viewer.getTree().getDisplay(), data);
 			}
@@ -366,6 +357,7 @@ public class CVSHistoryTableProvider {
 		 * Compares two log entries, sorting first by the main column of this sorter,
 		 * then by subsequent columns, depending on the column sort order.
 		 */
+		@Override
 		public int compare(Viewer compareViewer, Object o1, Object o2) {
 			if (o1 instanceof AbstractHistoryCategory || o2 instanceof AbstractHistoryCategory)
 				return 0;
@@ -487,7 +479,7 @@ public class CVSHistoryTableProvider {
 		if (element instanceof IFileRevision) {
 			entry = (IFileRevision) element;
 		} else if (element instanceof IAdaptable) {
-			entry = (IFileRevision) ((IAdaptable) element).getAdapter(IFileRevision.class);
+			entry = ((IAdaptable) element).getAdapter(IFileRevision.class);
 		} else if (element instanceof AbstractHistoryCategory){
 			if (((AbstractHistoryCategory) element).hasRevisions())
 				entry = ((AbstractHistoryCategory) element).getRevisions()[0];
@@ -520,11 +512,9 @@ public class CVSHistoryTableProvider {
 		ColumnViewerToolTipSupport.enableFor(viewer);
 		viewer.refresh();
 
-		tree.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (currentRevisionFont != null) {
-					currentRevisionFont.dispose();
-				}
+		tree.addDisposeListener(e -> {
+			if (currentRevisionFont != null) {
+				currentRevisionFont.dispose();
 			}
 		});
 		
@@ -603,8 +593,8 @@ public class CVSHistoryTableProvider {
 				getSettingsInt(COL_AUTHOR_NAME),
 				getSettingsInt(COL_COMMENT_NAME) };
 		ColumnLayoutData weightData[] = getWeightData(widths);
-		for (int i = 0; i < weightData.length; i++) {
-			layout.addColumnData(weightData[i]);
+		for (ColumnLayoutData w : weightData) {
+			layout.addColumnData(w);
 		}
 
 		String sortName = settings.get(SORT_COL_NAME);
@@ -695,9 +685,8 @@ public class CVSHistoryTableProvider {
 
 	public void saveColumnLayout() {
 		TreeColumn columns[] = viewer.getTree().getColumns();
-		for (int i = 0; i < columns.length; i++) {
-			settings.put((String) columns[i].getData(COL_NAME), columns[i]
-					.getWidth());
+		for (TreeColumn column : columns) {
+			settings.put((String) column.getData(COL_NAME), column.getWidth());
 		}
 		settings.put(SORT_COL_NAME, (String) viewer.getTree().getSortColumn()
 				.getData(COL_NAME));
@@ -725,6 +714,7 @@ public class CVSHistoryTableProvider {
 			 * presses on the same column header will
 			 * toggle sorting order (ascending/descending).
 			 */
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// column selected - need to sort
 				int column = treeViewer.getTree().indexOf((TreeColumn) e.widget);
@@ -737,8 +727,8 @@ public class CVSHistoryTableProvider {
 					treeViewer.getTree().setSortDirection(oldSorter.isReversed() ? SWT.DOWN : SWT.UP);
 					treeViewer.refresh();
 				} else {
-				    treeViewer.getTree().setSortColumn(treeColumn);
-                    treeViewer.getTree().setSortDirection(SWT.UP);
+					treeViewer.getTree().setSortColumn(treeColumn);
+					treeViewer.getTree().setSortDirection(SWT.UP);
 					treeViewer.setComparator(new HistoryComparator(column));
 				}
 			}
@@ -784,6 +774,7 @@ public class CVSHistoryTableProvider {
 		ThemeListener(CVSHistoryTableProvider provider) {
 			this.provider= provider;
 		}
+		@Override
 		public void propertyChange(PropertyChangeEvent event) {
 			provider.viewer.refresh();
 		}

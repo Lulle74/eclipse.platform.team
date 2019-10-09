@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -96,8 +99,7 @@ public abstract class SynchronizeModelOperation extends TeamOperation {
 	}
 
 	private void markBusy(IDiffElement[] elements, boolean isBusy) {
-		for (int i = 0; i < elements.length; i++) {
-			IDiffElement element = elements[i];
+		for (IDiffElement element : elements) {
 			if (element instanceof ISynchronizeModelElement) {
 				((ISynchronizeModelElement)element).setPropertyToRoot(ISynchronizeModelElement.BUSY_PROPERTY, isBusy);
 			}
@@ -111,8 +113,7 @@ public abstract class SynchronizeModelOperation extends TeamOperation {
 	 */
 	private SyncInfo[] getSyncInfos() {
 		List<SyncInfo> filtered = new ArrayList<>();
-		for (int i = 0; i < elements.length; i++) {
-			IDiffElement e = elements[i];
+		for (IDiffElement e : elements) {
 			if (e instanceof SyncInfoModelElement) {
 				filtered.add(((SyncInfoModelElement)e).getSyncInfo());
 			}

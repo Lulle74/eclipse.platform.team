@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -30,7 +33,7 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class UpdateOnlyMergableOperation extends SingleCommandOperation {
 
-	List skippedFiles = new ArrayList();
+	List<IFile> skippedFiles = new ArrayList<>();
 	private final IProject project;
 	
 	public UpdateOnlyMergableOperation(IWorkbenchPart part, IProject project, IResource[] resources, LocalOption[] localOptions) {
@@ -38,9 +41,7 @@ public class UpdateOnlyMergableOperation extends SingleCommandOperation {
 		this.project = project;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.SingleCommandOperation#executeCommand(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.CVSTeamProvider, org.eclipse.core.resources.IResource[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus executeCommand(Session session, CVSTeamProvider provider, ICVSResource[] resources, boolean recurse, IProgressMonitor monitor) throws CVSException, InterruptedException {
 		UpdateMergableOnly update = new UpdateMergableOnly();
 		IStatus status = update.execute(
@@ -57,16 +58,12 @@ public class UpdateOnlyMergableOperation extends SingleCommandOperation {
 		return status;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#getTaskName()
-	 */
+	@Override
 	protected String getTaskName() {
 		return CVSUIMessages.UpdateOnlyMergeable_taskName; 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.RepositoryProviderOperation#getTaskName(org.eclipse.team.internal.ccvs.core.CVSTeamProvider)
-	 */
+	@Override
 	protected String getTaskName(CVSTeamProvider provider) {
 		return NLS.bind(CVSUIMessages.UpdateOperation_0, new String[] { provider.getProject().getName() }); 
 	}
@@ -76,16 +73,15 @@ public class UpdateOnlyMergableOperation extends SingleCommandOperation {
 	}
 	
 	public IFile[] getSkippedFiles() {
-		return (IFile[]) skippedFiles.toArray(new IFile[skippedFiles.size()]);
+		return skippedFiles.toArray(new IFile[skippedFiles.size()]);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.UpdateOperation#getResourceMappingContext()
-	 */
+	@Override
 	protected ResourceMappingContext getResourceMappingContext() {
 		return new SingleProjectSubscriberContext(CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber(), false, project);
 	}
 	
+	@Override
 	protected SynchronizationScopeManager createScopeManager(boolean consultModels) {
 		return new SingleProjectScopeManager(getJobName(), getSelectedMappings(), getResourceMappingContext(), consultModels, project);
 	}

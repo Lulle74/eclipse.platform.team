@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,13 +29,13 @@ import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
  */
 public interface ISynchronizeModelProvider {
 
-    /**
-     * Property constant used to indicate that the viewer sorter has changed.
-     * Property change notifications for the viewer sorter change do not include
-     * the old and new viewer sorter. Instead, clients should re-obtain the sorter
-     * from the provider.
-     */
-    public static final String P_VIEWER_SORTER = TeamUIPlugin.ID  + ".P_VIEWER_SORTER"; //$NON-NLS-1$
+	/**
+	 * Property constant used to indicate that the viewer sorter has changed.
+	 * Property change notifications for the viewer sorter change do not include
+	 * the old and new viewer sorter. Instead, clients should re-obtain the sorter
+	 * from the provider.
+	 */
+	public static final String P_VIEWER_SORTER = TeamUIPlugin.ID  + ".P_VIEWER_SORTER"; //$NON-NLS-1$
 
 	/**
 	 * Returns the sync set this model provider is showing.

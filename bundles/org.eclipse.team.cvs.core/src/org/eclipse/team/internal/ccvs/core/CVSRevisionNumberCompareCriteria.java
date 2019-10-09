@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,7 +24,7 @@ import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
  * CVSRevisionNumberCompareCriteria
  */
  public class CVSRevisionNumberCompareCriteria implements IResourceVariantComparator {
- 	
+	
 	private boolean isThreeWay;
 
 	public CVSRevisionNumberCompareCriteria(boolean isThreeWay) {
@@ -69,23 +72,17 @@ import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.IComparisonCriteria#compare(org.eclipse.core.resources.IResource, org.eclipse.team.core.subscribers.ISubscriberResource)
-	 */
+	@Override
 	public boolean compare(IResource local, IResourceVariant remote) {
 		return compare(local, (ICVSRemoteResource)remote);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.IComparisonCriteria#compare(org.eclipse.team.core.subscribers.ISubscriberResource, org.eclipse.team.core.subscribers.ISubscriberResource)
-	 */
+	@Override
 	public boolean compare(IResourceVariant base, IResourceVariant remote) {
 		return compare((ICVSRemoteResource)base, (ICVSRemoteResource)remote);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.ISubscriberResourceComparator#isThreeWay()
-	 */
+	@Override
 	public boolean isThreeWay() {
 		return isThreeWay;
 	}

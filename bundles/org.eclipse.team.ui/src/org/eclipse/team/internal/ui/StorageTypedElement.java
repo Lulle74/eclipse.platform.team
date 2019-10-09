@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,10 +15,18 @@ package org.eclipse.team.internal.ui;
 
 import java.io.InputStream;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.IEncodedStreamContentAccessor;
+import org.eclipse.compare.ISharedDocumentAdapter;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.SharedDocumentAdapter;
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.team.core.TeamException;
@@ -70,17 +81,11 @@ public abstract class StorageTypedElement implements ITypedElement, IEncodedStre
 		return bufferedContents;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getImage()
-	 */
 	@Override
 	public Image getImage() {
 		return CompareUI.getImage(getType());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getType()
-	 */
 	@Override
 	public String getType() {
 		String name = getName();
@@ -95,9 +100,6 @@ public abstract class StorageTypedElement implements ITypedElement, IEncodedStre
 		return ITypedElement.FOLDER_TYPE;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.IEncodedStreamContentAccessor#getCharset()
-	 */
 	@Override
 	public String getCharset() throws CoreException {
 		if (localEncoding != null)

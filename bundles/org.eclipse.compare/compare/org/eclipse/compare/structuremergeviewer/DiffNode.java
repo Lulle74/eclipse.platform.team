@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -133,8 +136,9 @@ public class DiffNode extends DiffContainer implements ICompareInput {
 	protected void fireChange() {
 		if (fListener != null) {
 			Object[] listeners= fListener.getListeners();
-			for (int i= 0; i < listeners.length; i++)
-				((ICompareInputChangeListener) listeners[i]).compareInputChanged(this);
+			for (Object listener : listeners) {
+				((ICompareInputChangeListener) listener).compareInputChanged(this);
+			}
 		}
 	}
 
@@ -314,8 +318,7 @@ public class DiffNode extends DiffContainer implements ICompareInput {
 	public int hashCode() {
 		String[] path= getPath(this, 0);
 		int hashCode= 1;
-		for (int i= 0; i < path.length; i++) {
-			String s= path[i];
+		for (String s : path) {
 			hashCode= (31 * hashCode) + (s != null ? s.hashCode() : 0);
 		}
 		return hashCode;

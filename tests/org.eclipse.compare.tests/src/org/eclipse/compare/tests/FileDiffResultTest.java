@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2005, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -194,7 +197,7 @@ public class FileDiffResultTest extends WorkspaceTest {
 		FileDiffResult fileDiffResult = new FileDiffResult(myFileDiff,
 				patchConfiguration);
 		try {
-			fileDiffResult.calculateFuzz(new ArrayList(), nullProgressMonitor);
+			fileDiffResult.calculateFuzz(new ArrayList<>(), nullProgressMonitor);
 		} catch (NullPointerException e) {
 			fail();
 		}
@@ -220,7 +223,7 @@ public class FileDiffResultTest extends WorkspaceTest {
 		protected MyFileDiff() {
 			super(null, 0, null, 0);
 			add(Hunk.createHunk(this, new int[] { 0, 0 }, new int[] { 0, 0 },
-					new ArrayList(), false, false, false));
+					new ArrayList<>(), false, false, false));
 		}
 	}
 
@@ -239,7 +242,7 @@ public class FileDiffResultTest extends WorkspaceTest {
 	 */
 	private String createPatchAddingFile(IProject project, String filename,
 			boolean sameContents) throws IOException, CoreException {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(WorkspacePatcherUI.getWorkspacePatchHeader() + "\n");
 		sb.append(WorkspacePatcherUI.getWorkspacePatchProjectHeader(project)
 				+ "\n");

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -51,8 +54,7 @@ public class NetTest {
 		setProxiesEnabled(isProxiesDefault);
 		setSystemProxiesEnabled(isSystemProxiesDefault);
 		IProxyData[] data = getProxyManager().getProxyData();
-		for (int i = 0; i < data.length; i++) {
-			IProxyData proxyData = data[i];
+		for (IProxyData proxyData : data) {
 			proxyData.disable();
 		}
 		getProxyManager().setProxyData(data);
@@ -224,8 +226,7 @@ public class NetTest {
 	private void performSettingData() throws CoreException {
 		IProxyData[] data = (IProxyData[]) dataCache.values().toArray(new IProxyData[dataCache.size()]);
 		this.getProxyManager().setProxyData(data);
-		for (int i = 0; i < data.length; i++) {
-			IProxyData proxyData = data[i];
+		for (IProxyData proxyData : data) {
 			assertProxyDataEqual(proxyData);
 		}
 		isSetEnabled = true;
@@ -238,8 +239,7 @@ public class NetTest {
 		setDataTest(IProxyData.HTTPS_PROXY_TYPE);
 		setDataTest(IProxyData.SOCKS_PROXY_TYPE);
 		IProxyData[] data = this.getProxyManager().getProxyData();
-		for (int i = 0; i < data.length; i++) {
-			IProxyData proxyData = data[i];
+		for (IProxyData proxyData : data) {
 			disableProxy(proxyData);
 		}
 	}
@@ -254,8 +254,7 @@ public class NetTest {
 
 		delaySettingData();
 		IProxyData[] data = this.getProxyManager().getProxyData();
-		for (int i = 0; i < data.length; i++) {
-			IProxyData proxyData = data[i];
+		for (IProxyData proxyData : data) {
 			disableProxy(proxyData);
 		}
 		performSettingData();
@@ -451,7 +450,7 @@ public class NetTest {
 		String sysPropNonProxyHosts = System.getProperty("http.nonProxyHosts");
 		String assertMessage = "http.nonProxyHost should contain '" + testHost + "', but its current value is '"
 				+ sysPropNonProxyHosts + "'";
-		assertTrue(assertMessage, sysPropNonProxyHosts.indexOf(testHost) > -1);
+		assertTrue(assertMessage, sysPropNonProxyHosts.contains(testHost));
 
 		this.getProxyManager().setNonProxiedHosts(oldHosts);
 	}

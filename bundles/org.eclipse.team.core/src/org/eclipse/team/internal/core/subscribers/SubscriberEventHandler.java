@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,7 +19,9 @@ import java.util.List;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.osgi.util.NLS;
@@ -25,7 +30,9 @@ import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.mapping.ISynchronizationScopeChangeListener;
 import org.eclipse.team.core.subscribers.Subscriber;
-import org.eclipse.team.internal.core.*;
+import org.eclipse.team.internal.core.BackgroundEventHandler;
+import org.eclipse.team.internal.core.Messages;
+import org.eclipse.team.internal.core.Policy;
 
 /**
  * This handler collects changes and removals to resources and calculates their
@@ -192,13 +199,10 @@ public abstract class SubscriberEventHandler extends BackgroundEventHandler {
 			try {
 				IResource[] members =
 					getSubscriber().members(resource);
-				for (int i = 0; i < members.length; i++) {
-					collect(
-						members[i],
-						depth == IResource.DEPTH_INFINITE
+				for (IResource member : members) {
+					collect(member, depth == IResource.DEPTH_INFINITE
 							? IResource.DEPTH_INFINITE
-							: IResource.DEPTH_ZERO,
-						monitor);
+							: IResource.DEPTH_ZERO, monitor);
 				}
 			} catch (TeamException e) {
 				// We only handle the exception if the resource's project is accessible.
@@ -279,11 +283,10 @@ public abstract class SubscriberEventHandler extends BackgroundEventHandler {
 	 *   optimized recalculation if supported by the subscriber.
 	 */
 	protected void reset(ResourceTraversal[] traversals, int type) {
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
-			for (int j = 0; j < resources.length; j++) {
-				queueEvent(new SubscriberEvent(resources[j], type, traversal.getDepth()), false);
+			for (IResource resource : resources) {
+				queueEvent(new SubscriberEvent(resource, type, traversal.getDepth()), false);
 			}
 		}
 	}
@@ -303,15 +306,15 @@ public abstract class SubscriberEventHandler extends BackgroundEventHandler {
 					break;
 				case SubscriberEvent.CHANGE :
 					collect(
-					    event.getResource(),
-					    ((ResourceEvent)event).getDepth(),
+						event.getResource(),
+						((ResourceEvent)event).getDepth(),
 						monitor);
 					break;
 				case SubscriberEvent.INITIALIZE :
 					monitor.subTask(NLS.bind(Messages.SubscriberEventHandler_2, new String[] { event.getResource().getFullPath().toString() }));
 					collectAll(
-					        event.getResource(),
-					        ((ResourceEvent)event).getDepth(),
+							event.getResource(),
+							((ResourceEvent)event).getDepth(),
 							Policy.subMonitorFor(monitor, 64));
 					break;
 			}

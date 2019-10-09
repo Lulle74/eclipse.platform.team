@@ -1,9 +1,12 @@
 /*******************************************************************************
  *  Copyright (c) 2000, 2011 IBM Corporation and others.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
+ *
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
  *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *  https://www.eclipse.org/legal/epl-2.0/
+ *
+ *  SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +15,10 @@ package org.eclipse.compare;
 
 import java.util.ResourceBundle;
 
-import org.eclipse.compare.internal.*;
+import org.eclipse.compare.internal.CompareUIPlugin;
+import org.eclipse.compare.internal.DocumentManager;
+import org.eclipse.compare.internal.ICompareUIConstants;
+import org.eclipse.compare.internal.StructureCreatorDescriptor;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.compare.structuremergeviewer.IStructureCreator;
 import org.eclipse.core.runtime.IAdaptable;
@@ -88,10 +94,10 @@ public final class CompareUI {
 
 	/**
 	 * Name of the title property of a compare viewer.
- 	 * If a property with this name is set
- 	 * on the top level SWT control of a viewer, it is used as a title in the pane's
- 	 * title bar.
- 	 */
+	 * If a property with this name is set
+	 * on the top level SWT control of a viewer, it is used as a title in the pane's
+	 * title bar.
+	 */
 	public static final String COMPARE_VIEWER_TITLE= "org.eclipse.compare.CompareUI.CompareViewerTitle"; //$NON-NLS-1$
 
 	private CompareUI() {
@@ -277,7 +283,7 @@ public final class CompareUI {
 	 */
 	@Deprecated
 	public static IStreamMerger createStreamMerger(IContentType type) {
-	    return CompareUIPlugin.getDefault().createStreamMerger(type);
+		return CompareUIPlugin.getDefault().createStreamMerger(type);
 	}
 
 	/**
@@ -292,7 +298,7 @@ public final class CompareUI {
 	 */
 	@Deprecated
 	public static IStreamMerger createStreamMerger(String type) {
-	    return CompareUIPlugin.getDefault().createStreamMerger(type);
+		return CompareUIPlugin.getDefault().createStreamMerger(type);
 	}
 
 	/**

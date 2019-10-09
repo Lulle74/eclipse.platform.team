@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,9 +19,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.compare.*;
 import org.eclipse.compare.structuremergeviewer.IStructureComparator;
+import org.eclipse.core.internal.dtree.IComparator;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.team.core.TeamException;
@@ -51,6 +54,7 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 	 * The content is not considered.
 	 * @see IComparator#equals
 	 */
+	@Override
 	public boolean equals(Object other) {
 		if (other instanceof ITypedElement) {
 			String otherName = ((ITypedElement)other).getName();
@@ -62,22 +66,21 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 	/**
 	 * Enumerate children of this node (if any).
 	 */
+	@Override
 	public Object[] getChildren() {
 		if (children == null) {
 			children = new ResourceEditionNode[0];
 			if (resource != null) {
 				try {
-					CVSUIPlugin.runWithProgress(null, true /*cancelable*/, new IRunnableWithProgress() {
-						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							try {
-								ICVSRemoteResource[] members = resource.members(monitor);
-								children = new ResourceEditionNode[members.length];
-								for (int i = 0; i < members.length; i++) {
-									children[i] = new ResourceEditionNode(members[i]);
-								}
-							} catch (TeamException e) {
-								throw new InvocationTargetException(e);
+					CVSUIPlugin.runWithProgress(null, true /* cancelable */, monitor -> {
+						try {
+							ICVSRemoteResource[] members = resource.members(monitor);
+							children = new ResourceEditionNode[members.length];
+							for (int i = 0; i < members.length; i++) {
+								children[i] = new ResourceEditionNode(members[i]);
 							}
+						} catch (TeamException e) {
+							throw new InvocationTargetException(e);
 						}
 					});
 				} catch (InterruptedException e) {
@@ -93,9 +96,7 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 		return children;
 	}
 
-	/**
-	 * @see IStreamContentAccessor#getContents()
-	 */
+	@Override
 	public InputStream getContents() throws CoreException {
 		IStorage storage = getStorage();
 		if (storage != null) {
@@ -104,6 +105,7 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 		return new ByteArrayInputStream(new byte[0]);
 	}
 	
+	@Override
 	public Image getImage() {
 		return CompareUI.getImage(resource);
 	}
@@ -111,6 +113,7 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 	/**
 	 * Returns the name of this node.
 	 */
+	@Override
 	public String getName() {
 		return resource == null ? "" : resource.getName(); //$NON-NLS-1$
 	}
@@ -122,6 +125,7 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 	/**
 	 * Returns the comparison type for this node.
 	 */
+	@Override
 	public String getType() {
 		if (resource == null) {
 			return UNKNOWN_TYPE;
@@ -134,16 +138,12 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 		return name.length() == 0 ? UNKNOWN_TYPE : name;
 	}
 	
-	/**
-	 * @see IComparator#equals
-	 */
+	@Override
 	public int hashCode() {
 		return getName().hashCode();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.IEncodedStreamContentAccessor#getCharset()
-	 */
+	@Override
 	public String getCharset() throws CoreException {
 		// Use the local file encoding if there is one
 		IResource local = resource.getIResource();
@@ -167,13 +167,11 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 		}
 		final IStorage[] holder = new IStorage[1];
 		try {
-			CVSUIPlugin.runWithProgress(null, true /*cancelable*/, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						holder[0] = ((IResourceVariant)resource).getStorage(monitor);
-					} catch (TeamException e) {
-						throw new InvocationTargetException(e);
-					}
+			CVSUIPlugin.runWithProgress(null, true /* cancelable */, monitor -> {
+				try {
+					holder[0] = ((IResourceVariant) resource).getStorage(monitor);
+				} catch (TeamException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -184,16 +182,19 @@ public class ResourceEditionNode implements IStructureComparator, ITypedElement,
 		return holder[0];
 	}
 
+	@Override
 	public <T> T getAdapter(Class<T> adapter) {
 		if (adapter == ISharedDocumentAdapter.class) {
 			synchronized (this) {
 				if (sharedDocumentAdapter == null)
 					sharedDocumentAdapter = new SharedDocumentAdapter() {
+						@Override
 						public IEditorInput getDocumentKey(Object element) {
 							return ResourceEditionNode.this
 									.getDocumentKey(element);
 						}
 
+						@Override
 						public void flushDocument(IDocumentProvider provider,
 								IEditorInput documentKey, IDocument document,
 								boolean overwrite) throws CoreException {

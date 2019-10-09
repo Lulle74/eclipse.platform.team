@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,9 @@ import org.eclipse.compare.internal.core.patch.FilePatch2;
 import org.eclipse.compare.internal.core.patch.HunkResult;
 import org.eclipse.compare.internal.patch.WorkspacePatcher;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
@@ -51,14 +56,15 @@ public class ApplyPatchSubscriberMergeContext extends SubscriberMergeContext {
 		Object object = PatchModelProvider.getPatchObject(resource, patcher);
 		if (object instanceof FilePatch2) {
 			HunkResult[] hunkResults = patcher.getDiffResult((FilePatch2) object).getHunkResults();
-			for (int i = 0; i < hunkResults.length; i++) {
+			for (HunkResult hunkResult : hunkResults) {
 				if (inSyncHint) {
 					// clean Merge > disable hunks that have merged
-					if (hunkResults[i].isOK())
-						patcher.setEnabled(hunkResults[i].getHunk(), false);
+					if (hunkResult.isOK()) {
+						patcher.setEnabled(hunkResult.getHunk(), false);
+					}
 				} else {
 					// Mark as Merged > mark *all* hunks from the file as manually merged
-					patcher.setManuallyMerged(hunkResults[i].getHunk(), true);
+					patcher.setManuallyMerged(hunkResult.getHunk(), true);
 				}
 			}
 		} else {
@@ -83,12 +89,12 @@ public class ApplyPatchSubscriberMergeContext extends SubscriberMergeContext {
 			Object object = PatchModelProvider.getPatchObject(resource, patcher);
 			if (object instanceof FilePatch2) {
 				HunkResult[] hunkResults = patcher.getDiffResult((FilePatch2) object).getHunkResults();
-				for (int i = 0; i < hunkResults.length; i++) {
+				for (HunkResult hunkResult : hunkResults) {
 					// ... unmark them and exclude those properly merged
-					if (patcher.isManuallyMerged(hunkResults[i].getHunk())) {
-						patcher.setManuallyMerged(hunkResults[i].getHunk(), false);
-						if (hunkResults[i].isOK()) {
-							patcher.setEnabled(hunkResults[i].getHunk(), false);
+					if (patcher.isManuallyMerged(hunkResult.getHunk())) {
+						patcher.setManuallyMerged(hunkResult.getHunk(), false);
+						if (hunkResult.isOK()) {
+							patcher.setEnabled(hunkResult.getHunk(), false);
 						}
 					}
 				}

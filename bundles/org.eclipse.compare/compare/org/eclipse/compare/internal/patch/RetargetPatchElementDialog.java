@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,17 +18,28 @@ import java.util.ArrayList;
 import org.eclipse.compare.internal.core.patch.DiffProject;
 import org.eclipse.compare.internal.core.patch.FilePatch2;
 import org.eclipse.compare.internal.core.patch.Hunk;
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.views.navigator.ResourceComparator;
@@ -35,7 +49,7 @@ class RetargetPatchElementDialog extends Dialog {
 	private static class RetargetPatchContentProvider extends BaseWorkbenchContentProvider {
 		private final PatchDiffNode node;
 		public RetargetPatchContentProvider(PatchDiffNode node) {
-			 this.node = node;
+			this.node = node;
 		}
 		@Override
 		public Object[] getChildren(Object element) {
@@ -43,9 +57,9 @@ class RetargetPatchElementDialog extends Dialog {
 				// Don't show closed projects
 				IProject[] allProjects= ((IWorkspaceRoot) element).getProjects();
 				ArrayList<IProject> accessibleProjects= new ArrayList<>();
-				for (int i= 0; i<allProjects.length; i++) {
-					if (allProjects[i].isOpen()) {
-						accessibleProjects.add(allProjects[i]);
+				for (IProject allProject : allProjects) {
+					if (allProject.isOpen()) {
+						accessibleProjects.add(allProject);
 					}
 				}
 				return accessibleProjects.toArray();
@@ -90,8 +104,8 @@ class RetargetPatchElementDialog extends Dialog {
 
 		GridLayout layout= new GridLayout();
 		layout.numColumns= 1;
-        layout.marginHeight= convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
-        layout.marginWidth= convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
+		layout.marginHeight= convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
+		layout.marginWidth= convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
 		composite.setLayout(layout);
 		final GridData data= new GridData(SWT.FILL, SWT.FILL, true, true);
 		composite.setLayoutData(data);
@@ -183,7 +197,7 @@ class RetargetPatchElementDialog extends Dialog {
 
 	void setupListeners() {
 		fViewer.addSelectionChangedListener(event -> {
-			IStructuredSelection s= (IStructuredSelection) event.getSelection();
+			IStructuredSelection s= event.getStructuredSelection();
 			Object obj= s.getFirstElement();
 			if (obj instanceof IResource){
 				fSelectedResource = (IResource) obj;

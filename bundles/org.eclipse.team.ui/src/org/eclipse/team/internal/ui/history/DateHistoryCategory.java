@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +14,10 @@
 package org.eclipse.team.internal.ui.history;
 
 import java.util.ArrayList;
-import com.ibm.icu.util.Calendar;
 
 import org.eclipse.team.core.history.IFileRevision;
+
+import com.ibm.icu.util.Calendar;
 
 public class DateHistoryCategory extends AbstractHistoryCategory {
 	private String name;
@@ -45,41 +49,38 @@ public class DateHistoryCategory extends AbstractHistoryCategory {
 		ArrayList<IFileRevision> pertinentRevisions = new ArrayList<>();
 		ArrayList<IFileRevision> nonPertinentRevisions = new ArrayList<>();
 
-		for (int i = 0; i < fileRevisions.length; i++) {
+		for (IFileRevision fileRevision : fileRevisions) {
 			//get the current file revision's date
 			Calendar fileRevDate = Calendar.getInstance();
-			fileRevDate.setTimeInMillis(fileRevisions[i].getTimestamp());
-
+			fileRevDate.setTimeInMillis(fileRevision.getTimestamp());
 			int fileRevDay = fileRevDate.get(Calendar.DAY_OF_YEAR);
 			int fileRevYear = fileRevDate.get(Calendar.YEAR);
-
-			if (fromDate == null){
+			if (fromDate == null) {
 				//check to see if this revision is within the toDate range
 				if (((fileRevDay<toDate.get(Calendar.DAY_OF_YEAR)) && (fileRevYear == toDate.get(Calendar.YEAR))) ||
-					(fileRevYear < toDate.get(Calendar.YEAR))){
-					pertinentRevisions.add(fileRevisions[i]);
+						(fileRevYear < toDate.get(Calendar.YEAR))) {
+					pertinentRevisions.add(fileRevision);
 				} else {
 					//revision is equal or later then the to date, add to rejects list
-					nonPertinentRevisions.add(fileRevisions[i]);
+					nonPertinentRevisions.add(fileRevision);
 				}
-			} else if (toDate == null){
+			} else if (toDate == null) {
 				//check to see if this revision falls on the same day as the fromDate
 				if ((fileRevDay == fromDate.get(Calendar.DAY_OF_YEAR)) &&
-					(fileRevYear == fromDate.get(Calendar.YEAR))){
-					pertinentRevisions.add(fileRevisions[i]);
+						(fileRevYear == fromDate.get(Calendar.YEAR))) {
+					pertinentRevisions.add(fileRevision);
 				} else {
-					nonPertinentRevisions.add(fileRevisions[i]);
+					nonPertinentRevisions.add(fileRevision);
 				}
 			} else {
 				//check the range
 				if ((fileRevYear >= fromDate.get(Calendar.YEAR)) &&
-					(fileRevYear <= toDate.get(Calendar.YEAR)) &&
-					(fileRevDay >= fromDate.get(Calendar.DAY_OF_YEAR)) &&
-					(fileRevDay < toDate.get(Calendar.DAY_OF_YEAR))
-				) {
-					pertinentRevisions.add(fileRevisions[i]);
+						(fileRevYear <= toDate.get(Calendar.YEAR)) &&
+						(fileRevDay >= fromDate.get(Calendar.DAY_OF_YEAR)) &&
+						(fileRevDay < toDate.get(Calendar.DAY_OF_YEAR))) {
+					pertinentRevisions.add(fileRevision);
 				} else {
-					nonPertinentRevisions.add(fileRevisions[i]);
+					nonPertinentRevisions.add(fileRevision);
 				}
 			}
 		}

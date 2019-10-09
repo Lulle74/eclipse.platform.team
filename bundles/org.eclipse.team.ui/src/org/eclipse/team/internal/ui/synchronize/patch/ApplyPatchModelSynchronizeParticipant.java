@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,15 +16,23 @@ package org.eclipse.team.internal.ui.synchronize.patch;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.resources.mapping.ModelProvider;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.team.core.mapping.provider.SynchronizationContext;
 import org.eclipse.team.internal.ui.Utils;
-import org.eclipse.team.internal.ui.mapping.*;
+import org.eclipse.team.internal.ui.mapping.FuzzFactorAction;
+import org.eclipse.team.internal.ui.mapping.GererateRejFileAction;
+import org.eclipse.team.internal.ui.mapping.IgnoreLeadingPathSegmentsAction;
+import org.eclipse.team.internal.ui.mapping.ReversePatchAction;
 import org.eclipse.team.internal.ui.synchronize.IRefreshable;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
 import org.eclipse.team.ui.mapping.SynchronizationActionProvider;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantDescriptor;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipantActionGroup;
 import org.eclipse.ui.IActionBars;
 
 public class ApplyPatchModelSynchronizeParticipant extends
@@ -107,21 +118,18 @@ public class ApplyPatchModelSynchronizeParticipant extends
 			}
 			super.fillActionBars(actionBars);
 		}
-	};
+	}
 
 	@Override
 	public ModelProvider[] getEnabledModelProviders() {
 		ModelProvider[] enabledProviders = super.getEnabledModelProviders();
 		// add Patch model provider if it's not there
-		for (int i = 0; i < enabledProviders.length; i++) {
-			ModelProvider provider = enabledProviders[i];
+		for (ModelProvider provider : enabledProviders) {
 			if (provider.getId().equals(PatchModelProvider.ID))
 				return enabledProviders;
 		}
 		ModelProvider[] extended = new ModelProvider[enabledProviders.length + 1];
-		for (int i = 0; i < enabledProviders.length; i++) {
-			extended[i] = enabledProviders[i];
-		}
+		System.arraycopy(enabledProviders, 0, extended, 0, enabledProviders.length);
 		PatchModelProvider provider = PatchModelProvider.getProvider();
 		if (provider == null)
 			return enabledProviders;

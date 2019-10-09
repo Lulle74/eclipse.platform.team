@@ -1,13 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2017 Oakland Software Incorporated and others
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2008, 2018 Oakland Software Incorporated and others
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *		Oakland Software Incorporated - initial API and implementation
  *		IBM Corporation - implementation
+ *		Red Hat - GSettings implementation and code clean up (bug 394087)
  *******************************************************************************/
 package org.eclipse.core.internal.net.proxy.unix;
 
@@ -28,8 +32,6 @@ import org.eclipse.core.net.proxy.IProxyData;
 
 public class UnixProxyProvider extends AbstractProxyProvider {
 
-	private static final String LIBRARY_GCONF2 = "gconf-2"; //$NON-NLS-1$
-
 	private static final String LIBRARY_NAME = "gnomeproxy-1.0.0"; //$NON-NLS-1$
 
 	private static final String ENABLE_GNOME = Activator.ID + ".enableGnome"; //$NON-NLS-1$
@@ -37,9 +39,7 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 	private static boolean isGnomeLibLoaded = false;
 
 	static {
-		// We have to load this here otherwise gconf seems to have problems
-		// causing hangs and various other bad behavior,
-		// please don't move this to be initialized on another thread.
+		// Load the GSettings JNI library if org.eclipse.core.net.enableGnome is specified
 		String value = System.getProperty(ENABLE_GNOME);
 		if ("".equals(value) || "true".equals(value)) { //$NON-NLS-1$ //$NON-NLS-2$
 			loadGnomeLib();
@@ -55,8 +55,8 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 		String[] nonProxyHosts = getNonProxiedHosts();
 		if (nonProxyHosts != null) {
 			String host = uri.getHost();
-			for (int npIndex = 0; npIndex < nonProxyHosts.length; npIndex++) {
-				if (StringUtil.hostMatchesFilter(host, nonProxyHosts[npIndex])) {
+			for (String nonProxyHost : nonProxyHosts) {
+				if (StringUtil.hostMatchesFilter(host, nonProxyHost)) {
 					return new IProxyData[0];
 				}
 			}
@@ -70,8 +70,9 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 		}
 		if (Policy.DEBUG) {
 			Policy.debug("UnixProxyProvider#select result for [" + uri + "]"); //$NON-NLS-1$ //$NON-NLS-2$
-			for (int i = 0; i < proxies.length; i++)
-				System.out.println("	" + proxies[i]); //$NON-NLS-1$
+			for (IProxyData proxy : proxies) {
+				System.out.println("	" + proxy); //$NON-NLS-1$
+			}
 		}
 		return proxies;
 	}
@@ -85,8 +86,7 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 
 	private IProxyData[] getProxyForTypes(String[] types) {
 		ArrayList<IProxyData> allData = new ArrayList<>();
-		for (int i = 0; i < types.length; i++) {
-			String type = types[i];
+		for (String type : types) {
 			ProxyData pd = getSystemProxyInfo(type);
 			if (pd != null && pd.getHost() != null) {
 				allData.add(pd);
@@ -117,7 +117,7 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 
 		if (isGnomeLibLoaded) {
 			try {
-				npHosts = getGConfNonProxyHosts();
+				npHosts = getGSettingsNonProxyHosts();
 				if (npHosts != null && npHosts.length > 0) {
 					if (Policy.DEBUG_SYSTEM_PROVIDERS) {
 						Policy.debug("Got Gnome no_proxy"); //$NON-NLS-1$
@@ -193,7 +193,7 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 		if (isGnomeLibLoaded) {
 			try {
 				// Then ask Gnome
-				pd = getGConfProxyInfo(protocol);
+				pd = getGSettingsProxyInfo(protocol);
 				if (pd != null) {
 					if (Policy.DEBUG_SYSTEM_PROVIDERS)
 						Policy.debug("Got Gnome proxy: " + pd); //$NON-NLS-1$
@@ -243,16 +243,6 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 
 	private static void loadGnomeLib() {
 		try {
-			System.loadLibrary(LIBRARY_GCONF2);
-		} catch (final UnsatisfiedLinkError e) {
-			// Expected on systems that are missing Gnome
-			if (Policy.DEBUG_SYSTEM_PROVIDERS)
-				Policy.debug("Could not load library: " //$NON-NLS-1$
-						+ System.mapLibraryName(LIBRARY_GCONF2));
-			return;
-		}
-
-		try {
 			System.loadLibrary(LIBRARY_NAME);
 			isGnomeLibLoaded = true;
 			if (Policy.DEBUG_SYSTEM_PROVIDERS)
@@ -266,15 +256,14 @@ public class UnixProxyProvider extends AbstractProxyProvider {
 		}
 	}
 
-
 	private void debugPrint(String[] strs) {
 		for (int i = 0; i < strs.length; i++)
 			System.out.println(i + ": " + strs[i]); //$NON-NLS-1$
 	}
 
-	protected static native void gconfInit();
+	protected static native void gsettingsInit();
 
-	protected static native ProxyData getGConfProxyInfo(String protocol);
+	protected static native ProxyData getGSettingsProxyInfo(String protocol);
 
-	protected static native String[] getGConfNonProxyHosts();
+	protected static native String[] getGSettingsNonProxyHosts();
 }

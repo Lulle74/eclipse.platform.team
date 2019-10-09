@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,27 +15,57 @@ package org.eclipse.team.ui.synchronize;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceMappingContext;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.team.core.mapping.*;
-import org.eclipse.team.core.mapping.provider.*;
+import org.eclipse.team.core.mapping.IMergeContext;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScope;
+import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
+import org.eclipse.team.core.mapping.provider.MergeContext;
+import org.eclipse.team.core.mapping.provider.SynchronizationContext;
+import org.eclipse.team.core.mapping.provider.SynchronizationScopeManager;
 import org.eclipse.team.internal.core.subscribers.SubscriberDiffTreeEventHandler;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.mapping.ModelEnablementPreferencePage;
 import org.eclipse.team.internal.ui.mapping.ModelSynchronizePage;
 import org.eclipse.team.internal.ui.preferences.SyncViewerPreferencePage;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.team.internal.ui.synchronize.IRefreshSubscriberListener;
+import org.eclipse.team.internal.ui.synchronize.IRefreshable;
+import org.eclipse.team.internal.ui.synchronize.RefreshModelParticipantJob;
+import org.eclipse.team.internal.ui.synchronize.RefreshParticipantJob;
+import org.eclipse.team.internal.ui.synchronize.RefreshUserNotificationPolicy;
+import org.eclipse.team.internal.ui.synchronize.StartupPreferencePage;
+import org.eclipse.team.internal.ui.synchronize.SubscriberRefreshSchedule;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.mapping.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
+import org.eclipse.team.ui.mapping.ISynchronizationCompareInput;
+import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
+import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
+import org.eclipse.team.ui.mapping.SaveableComparison;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.progress.IProgressConstants2;
 
@@ -181,7 +214,7 @@ public class ModelSynchronizeParticipant extends
 	 * @since 3.1
 	 */
 	protected final String getShortName() {
-	    return super.getName();
+		return super.getName();
 	}
 
 	@Override
@@ -333,9 +366,9 @@ public class ModelSynchronizeParticipant extends
 
 	private void internalRefresh(ResourceMapping[] mappings, String jobName, String taskName, IWorkbenchSite site, IRefreshSubscriberListener listener) {
 		if (jobName == null)
-		    jobName = getShortTaskName();
+			jobName = getShortTaskName();
 		if (taskName == null)
-		    taskName = getLongTaskName(mappings);
+			taskName = getLongTaskName(mappings);
 		Job.getJobManager().cancel(this);
 		RefreshParticipantJob job = new RefreshModelParticipantJob(this, jobName, taskName, mappings, listener);
 		job.setUser(true);
@@ -369,22 +402,22 @@ public class ModelSynchronizeParticipant extends
 	 * @return the long task name
 	 * @since 3.1
 	 */
-    protected String getLongTaskName(ResourceMapping[] mappings) {
-        if (mappings == null) {
-        	// If the mappings are null, assume we are refreshing everything
-            mappings = getContext().getScope().getMappings();
-        }
-        int mappingCount = mappings.length;
-        if (mappingCount == getContext().getScope().getMappings().length) {
-        	// Assume we are refreshing everything and only use the input mapping count
-        	mappings = getContext().getScope().getInputMappings();
-        	mappingCount = mappings.length;
-        }
-        if (mappingCount == 1) {
-            return NLS.bind(TeamUIMessages.Participant_synchronizingMoreDetails, new String[] { getShortName(), Utils.getLabel(mappings[0]) });
-        }
-        return NLS.bind(TeamUIMessages.Participant_synchronizingResources, new String[] { getShortName(), Integer.toString(mappingCount) });
-    }
+	protected String getLongTaskName(ResourceMapping[] mappings) {
+		if (mappings == null) {
+			// If the mappings are null, assume we are refreshing everything
+			mappings = getContext().getScope().getMappings();
+		}
+		int mappingCount = mappings.length;
+		if (mappingCount == getContext().getScope().getMappings().length) {
+			// Assume we are refreshing everything and only use the input mapping count
+			mappings = getContext().getScope().getInputMappings();
+			mappingCount = mappings.length;
+		}
+		if (mappingCount == 1) {
+			return NLS.bind(TeamUIMessages.Participant_synchronizingMoreDetails, new String[] { getShortName(), Utils.getLabel(mappings[0]) });
+		}
+		return NLS.bind(TeamUIMessages.Participant_synchronizingResources, new String[] { getShortName(), Integer.toString(mappingCount) });
+	}
 
 	private IRefreshable createRefreshable() {
 		return new IRefreshable() {
@@ -441,8 +474,7 @@ public class ModelSynchronizeParticipant extends
 	private void saveMappings(IMemento settings) {
 		ISynchronizationScope inputScope = getContext().getScope().asInputScope();
 		ModelProvider[] providers = inputScope.getModelProviders();
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			ISynchronizationCompareAdapter adapter = Utils.getCompareAdapter(provider);
 			if (adapter != null) {
 				IMemento child = settings.createChild(CTX_PARTICIPANT_MAPPINGS);
@@ -479,8 +511,7 @@ public class ModelSynchronizeParticipant extends
 	private ResourceMapping[] loadMappings(IMemento settings) throws PartInitException {
 		List<ResourceMapping> result = new ArrayList<>();
 		IMemento[] children = settings.getChildren(CTX_PARTICIPANT_MAPPINGS);
-		for (int i = 0; i < children.length; i++) {
-			IMemento memento = children[i];
+		for (IMemento memento : children) {
 			String id = memento.getString(CTX_MODEL_PROVIDER_ID);
 			if (id != null) {
 				IModelProviderDescriptor desc = ModelProvider.getModelProviderDescriptor(id);
@@ -489,10 +520,7 @@ public class ModelSynchronizeParticipant extends
 					ISynchronizationCompareAdapter adapter = Utils.getCompareAdapter(provider);
 					if (adapter != null) {
 						ResourceMapping[] mappings = adapter.restore(memento.getChild(CTX_MODEL_PROVIDER_MAPPINGS));
-						for (int j = 0; j < mappings.length; j++) {
-							ResourceMapping mapping = mappings[j];
-							result.add(mapping);
-						}
+						Collections.addAll(result, mappings);
 					}
 				} catch (CoreException e) {
 					TeamUIPlugin.log(e);
@@ -544,10 +572,10 @@ public class ModelSynchronizeParticipant extends
 			if (refreshSchedule != null) {
 				refreshSchedule.dispose();
 			}
-	        this.refreshSchedule = schedule;
+			this.refreshSchedule = schedule;
 		}
 		// Always fir the event since the schedule may have been changed
-        firePropertyChange(this, AbstractSynchronizeParticipant.P_SCHEDULED, schedule, schedule);
+		firePropertyChange(this, AbstractSynchronizeParticipant.P_SCHEDULED, schedule, schedule);
 	}
 
 	/**
@@ -625,8 +653,7 @@ public class ModelSynchronizeParticipant extends
 		pages.add(syncViewerPreferencePage);
 		pages.add(new ModelEnablementPreferencePage());
 		ITeamContentProviderDescriptor[] descriptors = TeamUI.getTeamContentProviderManager().getDescriptors();
-		for (int i = 0; i < descriptors.length; i++) {
-			ITeamContentProviderDescriptor descriptor = descriptors[i];
+		for (ITeamContentProviderDescriptor descriptor : descriptors) {
 			if (isIncluded(descriptor)) {
 				try {
 					PreferencePage page = (PreferencePage)descriptor.createPreferencePage();
@@ -646,8 +673,7 @@ public class ModelSynchronizeParticipant extends
 
 	private boolean isIncluded(ITeamContentProviderDescriptor descriptor) {
 		ModelProvider[] providers = getEnabledModelProviders();
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			if (provider.getId().equals(descriptor.getModelProviderId())) {
 				return true;
 			}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -41,9 +44,7 @@ public class CacheBaseContentsOperation extends CacheTreeContentsOperation {
 		super(part, mappings, tree);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#getRemoteFileState(org.eclipse.team.core.diff.IThreeWayDiff)
-	 */
+	@Override
 	protected IFileRevision getRemoteFileState(IThreeWayDiff twd) {
 		IResourceDiff diff = (IResourceDiff)twd.getRemoteChange();
 		if (diff == null)
@@ -52,20 +53,17 @@ public class CacheBaseContentsOperation extends CacheTreeContentsOperation {
 		return base;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#isEnabledForDirection(int)
-	 */
+	@Override
 	protected boolean isEnabledForDirection(int direction) {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CacheTreeContentsOperation#buildTree(org.eclipse.team.internal.ccvs.core.CVSTeamProvider)
-	 */
+	@Override
 	protected ICVSRemoteResource buildTree(CVSTeamProvider provider) throws TeamException {
 		return CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber().buildBaseTree(provider.getProject(), true, new NullProgressMonitor());
 	}
 	
+	@Override
 	protected void execute(CVSTeamProvider provider, IResource[] resources, boolean recurse, IProgressMonitor monitor) throws CVSException, InterruptedException {
 		IResource[] localChanges = getFilesWithLocalChanges(resources, recurse);
 		super.execute(provider, resources, recurse, monitor);
@@ -76,18 +74,16 @@ public class CacheBaseContentsOperation extends CacheTreeContentsOperation {
 	}
 	
 	private IResource[] getFilesWithLocalChanges(IResource[] resources, boolean recurse) {
-		ArrayList result = new ArrayList();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		ArrayList<IResource> result = new ArrayList<>();
+		for (IResource resource : resources) {
 			IDiff[] nodes = getTree().getDiffs(resource, recurse ? IResource.DEPTH_INFINITE: IResource.DEPTH_ONE);
-			for (int j = 0; j < nodes.length; j++) {
-				IDiff node = nodes[j];
+			for (IDiff node : nodes) {
 				if (isFileWithLocalChange(node)) {
 					result.add(getTree().getResource(node));
 				}
 			}
 		}
-		return (IResource[]) result.toArray(new IResource[result.size()]);
+		return result.toArray(new IResource[result.size()]);
 	}
 
 	private boolean isFileWithLocalChange(IDiff node) {
@@ -101,22 +97,21 @@ public class CacheBaseContentsOperation extends CacheTreeContentsOperation {
 	
 	private void performCleanTimestamps(IProject project, final IResource[] resources, IProgressMonitor monitor) throws CVSException {
 		ICVSFolder folder = CVSWorkspaceRoot.getCVSFolderFor(project);
-        final ContentComparisonSyncInfoFilter comparator = new SyncInfoFilter.ContentComparisonSyncInfoFilter(false);
-		folder.run(new ICVSRunnable() {
-			public void run(IProgressMonitor monitor) throws CVSException {
-				monitor.beginTask(null, resources.length * 100);
-				for (int i = 0; i < resources.length; i++) {
-					IResource resource = resources[i];
-					if (resource.exists() && resource.getType() == IResource.FILE) {
-						IResourceVariant remoteResource = (IResourceVariant)CVSWorkspaceRoot.getRemoteResourceFor(resource);
-						if (remoteResource != null && comparator.compareContents((IFile)resource, remoteResource, Policy.subMonitorFor(monitor, 100))) {
-							ICVSFile cvsFile = CVSWorkspaceRoot.getCVSFileFor((IFile)resource);
-							cvsFile.checkedIn(null, false /* not a commit */);
-						}
+		final ContentComparisonSyncInfoFilter comparator = new SyncInfoFilter.ContentComparisonSyncInfoFilter(false);
+		folder.run(monitor1 -> {
+			monitor1.beginTask(null, resources.length * 100);
+			for (IResource resource : resources) {
+				if (resource.exists() && resource.getType() == IResource.FILE) {
+					IResourceVariant remoteResource = (IResourceVariant) CVSWorkspaceRoot
+							.getRemoteResourceFor(resource);
+					if (remoteResource != null && comparator.compareContents((IFile) resource, remoteResource,
+							Policy.subMonitorFor(monitor1, 100))) {
+						ICVSFile cvsFile = CVSWorkspaceRoot.getCVSFileFor((IFile) resource);
+						cvsFile.checkedIn(null, false /* not a commit */);
 					}
 				}
-				monitor.done();
 			}
+			monitor1.done();
 		}, Policy.subMonitorFor(monitor, 100));
 	}
 

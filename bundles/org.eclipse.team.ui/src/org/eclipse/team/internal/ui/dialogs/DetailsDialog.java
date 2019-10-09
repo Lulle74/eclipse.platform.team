@@ -1,24 +1,32 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.dialogs;
 
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -79,8 +87,7 @@ abstract public class DetailsDialog extends TrayDialog {
 		setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
+	/*
 	 * Handles the pressing of the Ok or Details button in this dialog.
 	 * If the Ok button was pressed then close this dialog.  If the Details
 	 * button was pressed then toggle the displaying of the error details area.
@@ -96,22 +103,16 @@ abstract public class DetailsDialog extends TrayDialog {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * Method declared in Window.
-	 */
 	@Override
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setText(title);
-        String helpContextId = getHelpContextId();
-        if (helpContextId != null) {
-            PlatformUI.getWorkbench().getHelpSystem().setHelp(shell, helpContextId);
-        }
+		String helpContextId = getHelpContextId();
+		if (helpContextId != null) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(shell, helpContextId);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		// create OK and Details buttons
@@ -135,8 +136,7 @@ abstract public class DetailsDialog extends TrayDialog {
 		return IDialogConstants.HIDE_DETAILS_LABEL;
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
+	/*
 	 * Creates and returns the contents of the upper part
 	 * of the dialog (above the button bar).
 	 */
@@ -149,13 +149,13 @@ abstract public class DetailsDialog extends TrayDialog {
 		// create composite
 		Composite composite = (Composite)super.createDialogArea(parent);
 		if (!isMainGrabVertical()) {
-		    composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		}
 
-        String helpContextId = getHelpContextId();
-        if (helpContextId != null) {
-            PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, helpContextId);
-        }
+		String helpContextId = getHelpContextId();
+		if (helpContextId != null) {
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, helpContextId);
+		}
 
 		// create image
 		String key = getImageKey();
@@ -194,7 +194,7 @@ abstract public class DetailsDialog extends TrayDialog {
 			right.setLayoutData(new GridData(GridData.FILL_BOTH));
 			createMainDialogArea(right);
 		} else {
-		    createMainDialogArea(composite);
+			createMainDialogArea(composite);
 		}
 
 		if(includeErrorMessage()) {
@@ -205,32 +205,32 @@ abstract public class DetailsDialog extends TrayDialog {
 			errorMessageLabel.setForeground(getShell().getDisplay().getSystemColor(SWT.COLOR_RED));
 		}
 
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 		return composite;
 	}
 
-    /**
-     * Return the help context id to be used for the dialog.
-     * This context Id will be registered by this class.
-     * By default, this method returns <code>null</code>.
-     * @return the help context id to be used for the dialog.
-     */
+	/**
+	 * Return the help context id to be used for the dialog.
+	 * This context Id will be registered by this class.
+	 * By default, this method returns <code>null</code>.
+	 * @return the help context id to be used for the dialog.
+	 */
 	protected String getHelpContextId() {
-        return null;
-    }
+		return null;
+	}
 
-    /**
+	/**
 	 * Return whether the main area should grab excess vertical space.
 	 * The default is <code>true</code> but subclasses can override
 	 * in cases where the main is more or less fixed but the details
 	 * needs to grab.
-     * @return whether the main area should grab excess vertical space
-     */
-    protected boolean isMainGrabVertical() {
-        return true;
-    }
+	 * @return whether the main area should grab excess vertical space
+	 */
+	protected boolean isMainGrabVertical() {
+		return true;
+	}
 
-    /**
+	/**
 	 * Creates the dialog's top composite
 	 *
 	 * @param parent the parent composite
@@ -262,7 +262,7 @@ abstract public class DetailsDialog extends TrayDialog {
 			detailsCreated = true;
 			detailsButton.setText(getDetailsButtonLabelHide());
 		}
-        Dialog.applyDialogFont(getContents());
+		Dialog.applyDialogFont(getContents());
 		Point newSize = getContents().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 
 		getShell().setSize(new Point(windowSize.x, windowSize.y + (newSize.y - oldSize.y)));

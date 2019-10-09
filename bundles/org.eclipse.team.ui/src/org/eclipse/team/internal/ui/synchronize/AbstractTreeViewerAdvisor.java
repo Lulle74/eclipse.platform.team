@@ -1,25 +1,44 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.CompareNavigator;
+import org.eclipse.compare.ICompareNavigator;
+import org.eclipse.compare.INavigatable;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.team.core.synchronize.SyncInfo;
 import org.eclipse.team.internal.ui.synchronize.actions.OpenInCompareAction;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.IWorkbenchSite;
 
 /**
  * Abstract superclass for tree viewer advisors
@@ -59,7 +78,7 @@ public abstract class AbstractTreeViewerAdvisor extends StructuredViewerAdvisor 
 			if (!noNextChange) {
 				// Check to see if the selected element can be opened.
 				// If it can't, try the next one
-				Object selectedObject = AbstractTreeViewerAdvisor.this.getFirstElement((IStructuredSelection)getViewer().getSelection());
+				Object selectedObject = AbstractTreeViewerAdvisor.this.getFirstElement(getViewer().getStructuredSelection());
 				if (!hasCompareInput(selectedObject)) {
 					return selectChange(next);
 				}
@@ -101,7 +120,7 @@ public abstract class AbstractTreeViewerAdvisor extends StructuredViewerAdvisor 
 		private CompareNavigator getSubNavigator() {
 			IWorkbenchSite ws = AbstractTreeViewerAdvisor.this.getConfiguration().getSite().getWorkbenchSite();
 			if (ws instanceof IWorkbenchPartSite) {
-				Object selectedObject = AbstractTreeViewerAdvisor.this.getFirstElement((IStructuredSelection)getViewer().getSelection());
+				Object selectedObject = AbstractTreeViewerAdvisor.this.getFirstElement(getViewer().getStructuredSelection());
 				IEditorPart editor = OpenInCompareAction.findOpenCompareEditor((IWorkbenchPartSite)ws, selectedObject, getConfiguration().getParticipant());
 				if(editor != null) {
 					// if an existing editor is open on the current selection, use it
@@ -339,9 +358,9 @@ public abstract class AbstractTreeViewerAdvisor extends StructuredViewerAdvisor 
 		return hasChange((TreeViewer)getViewer(), next);
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * Allow adding an advisor to the PartNavigator and support coordinated
- 	 * navigation between several objects.
+	 * navigation between several objects.
 	 * @see org.eclipse.core.runtime.IAdaptable#getAdapter(java.lang.Class)
 	 */
 	@SuppressWarnings("unchecked")

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,8 +88,7 @@ public class ResourceScope extends AbstractSynchronizeScope {
 	@Override
 	public void saveState(IMemento memento) {
 		if (resources != null) {
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				IMemento rootNode = memento.createChild(CTX_ROOT);
 				rootNode.putString(CTX_ROOT_PATH, resource.getFullPath().toString());
 			}
@@ -98,8 +100,7 @@ public class ResourceScope extends AbstractSynchronizeScope {
 		IMemento[] rootNodes = memento.getChildren(CTX_ROOT);
 		if(rootNodes != null) {
 			List<IResource> resources = new ArrayList<>();
-			for (int i = 0; i < rootNodes.length; i++) {
-				IMemento rootNode = rootNodes[i];
+			for (IMemento rootNode : rootNodes) {
 				IPath path = new Path(rootNode.getString(CTX_ROOT_PATH));
 				IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path, true /* include phantoms */);
 				if(resource != null) {

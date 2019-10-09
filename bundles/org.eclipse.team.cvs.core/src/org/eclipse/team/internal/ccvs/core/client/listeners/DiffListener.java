@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -48,8 +51,8 @@ public class DiffListener extends CommandOutputListener {
 		
 		// Special handling to avoid getting duplicate CRs when generating a patch on windows.  
 		// If the remote file has CR/LF in it, then the line will have a CR at the end.
-        // We need to remove it so we don't end up with two CRs (since the printStream will also add one).
-        // On *nix, we want to include the CR since it will not be added by the printStream (see bug 92162).
+		// We need to remove it so we don't end up with two CRs (since the printStream will also add one).
+		// On *nix, we want to include the CR since it will not be added by the printStream (see bug 92162).
 		if (Session.IS_CRLF_PLATFORM && line.length() > 0 && line.charAt(line.length() - 1) == '\r') {
 			line = line.substring(0, line.length() - 1);
 		}
@@ -81,7 +84,7 @@ public class DiffListener extends CommandOutputListener {
 		}
 		
 		//Check to see if this is a no such directory message
-		if (line.indexOf(ERR_NOSUCHDIRECTORY) != -1){
+		if (line.contains(ERR_NOSUCHDIRECTORY)){
 			return OK;
 		}
 		return super.errorLine(line, location, commandRoot, monitor);

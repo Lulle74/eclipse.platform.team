@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -81,8 +84,8 @@ public class DocLineComparator implements ITokenComparator {
 		boolean cacheFilteredLines = false;
 		if (compareFilters != null && compareFilters.length > 0) {
 			cacheFilteredLines = true;
-			for (int i = 0; i < compareFilters.length; i++) {
-				if (!compareFilters[i].canCacheFilteredRegions()) {
+			for (ICompareFilter compareFilter : compareFilters) {
+				if (!compareFilter.canCacheFilteredRegions()) {
 					cacheFilteredLines = false;
 					break;
 				}
@@ -248,7 +251,7 @@ public class DocLineComparator implements ITokenComparator {
 	 * Extract a single line from the underlying document.
 	 *
 	 * @param line the number of the line to extract
-     * @param whether to include the line separator
+	 * @param whether to include the line separator
 	 * @return the contents of the line as a String
 	 */
 	private String extract(int line, boolean includeSeparator) {

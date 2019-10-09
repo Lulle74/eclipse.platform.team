@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,7 +25,7 @@ public class CVSAuthenticationException extends CVSException {
 	
 	private int retryStatus = 0;
 
-    /**
+	/**
 	 * Code indicating that authentication can be retried after 
 	 * prompting the user for corrected authentication information
 	 */
@@ -64,7 +67,7 @@ public class CVSAuthenticationException extends CVSException {
 		this(new CVSStatus(IStatus.ERROR, CVSStatus.AUTHENTICATION_FAILURE,NLS.bind(CVSMessages.CVSAuthenticationException_detail, (new Object[] { detail })),cvsLocation)); //
 		this.retryStatus = retryStatus;
 	}	
-    
+	
 	/**
 	 * Creates a new <code>CVSAuthenticationException</code>
 	 * 
@@ -73,10 +76,10 @@ public class CVSAuthenticationException extends CVSException {
 	 * @param the location of the CVS server
 	 * @param the exception 
 	 */	
-    public CVSAuthenticationException(String detail, int retryStatus,ICVSRepositoryLocation cvsLocation, Exception e) {
-        this(new CVSStatus(IStatus.ERROR, CVSStatus.AUTHENTICATION_FAILURE , NLS.bind(CVSMessages.CVSAuthenticationException_detail, (new Object[] { detail })), e, cvsLocation)); //
-        this.retryStatus = retryStatus;
-    }
+	public CVSAuthenticationException(String detail, int retryStatus,ICVSRepositoryLocation cvsLocation, Exception e) {
+		this(new CVSStatus(IStatus.ERROR, CVSStatus.AUTHENTICATION_FAILURE , NLS.bind(CVSMessages.CVSAuthenticationException_detail, (new Object[] { detail })), e, cvsLocation)); //
+		this.retryStatus = retryStatus;
+	}
 
 	public int getRetryStatus() {
 		return retryStatus;

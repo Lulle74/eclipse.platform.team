@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,18 +34,21 @@ public class CVSFileElement extends CVSResourceElement {
 	/**
 	 * Initial implementation: return null;
 	 */
+	@Override
 	public Object[] fetchChildren(Object o, IProgressMonitor monitor) {
 		return new Object[0];
 	}
 	/**
 	 * Initial implementation: return null.
 	 */
+	@Override
 	public ImageDescriptor getImageDescriptor(Object object) {
 		return PlatformUI.getWorkbench().getEditorRegistry().getImageDescriptor(file.getName());
 	}
 	/**
 	 * Initial implementation: return the file's name and version
 	 */
+	@Override
 	public String getLabel(Object o) {
 		try {
 			ResourceSyncInfo info = file.getSyncInfo();
@@ -56,9 +62,8 @@ public class CVSFileElement extends CVSResourceElement {
 			return null;
 		}
 	}
-	/**
-	 * @see IWorkbenchAdapter#getParent(Object)
-	 */
+
+	@Override
 	public Object getParent(Object o) {
 		return null;
 	}
@@ -66,9 +71,8 @@ public class CVSFileElement extends CVSResourceElement {
 	public ICVSFile getCVSFile() {
 		return file;
 	}
-	/**
-	 * @see CVSResourceElement#getCVSResource()
-	 */
+
+	@Override
 	public ICVSResource getCVSResource() {
 		return file;
 	}

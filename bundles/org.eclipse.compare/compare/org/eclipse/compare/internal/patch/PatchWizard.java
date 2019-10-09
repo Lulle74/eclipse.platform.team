@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,29 +16,25 @@ package org.eclipse.compare.internal.patch;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.internal.CompareUIPlugin;
+import org.eclipse.compare.internal.ExceptionHandler;
+import org.eclipse.compare.internal.Utilities;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.resources.ResourcesPlugin;
-
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
-
-import org.eclipse.compare.CompareConfiguration;
-import org.eclipse.compare.internal.CompareUIPlugin;
-import org.eclipse.compare.internal.ExceptionHandler;
-import org.eclipse.compare.internal.Utilities;
 
 public class PatchWizard extends Wizard {
 
@@ -102,9 +101,6 @@ public class PatchWizard extends Wizard {
 		return fPatcher.getTarget();
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on IWizard.
-	 */
 	@Override
 	public void addPages() {
 		if (patch == null)
@@ -117,9 +113,6 @@ public class PatchWizard extends Wizard {
 		addPage(fPreviewPage2);
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on IWizard.
-	 */
 	@Override
 	public boolean performFinish() {
 

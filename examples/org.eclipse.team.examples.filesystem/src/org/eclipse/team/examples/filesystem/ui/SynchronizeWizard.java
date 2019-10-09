@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,9 +35,7 @@ public class SynchronizeWizard extends ModelParticipantWizard {
 		super();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ModelParticipantWizard#createParticipant(org.eclipse.core.resources.mapping.ResourceMapping[])
-	 */
+	@Override
 	protected ISynchronizeParticipant createParticipant(ResourceMapping[] selectedMappings) {
 		SubscriberScopeManager manager = FileSystemOperation.createScopeManager(FileSystemSubscriber.getInstance().getName(), selectedMappings);
 		FileSystemMergeContext context = new FileSystemMergeContext(manager);
@@ -42,9 +43,7 @@ public class SynchronizeWizard extends ModelParticipantWizard {
 		return participant;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#getImportWizard()
-	 */
+	@Override
 	protected IWizard getImportWizard() {
 		// We don't have an import wizard for the file system example but
 		// if we did, we could return it here and it would be used if the
@@ -52,16 +51,12 @@ public class SynchronizeWizard extends ModelParticipantWizard {
 		return importWizard;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#getPageTitle()
-	 */
+	@Override
 	protected String getPageTitle() {
 		return "Synchronize File System Example";
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ParticipantSynchronizeWizard#getRootResources()
-	 */
+	@Override
 	protected IResource[] getRootResources() {
 		return FileSystemSubscriber.getInstance().roots();
 	}

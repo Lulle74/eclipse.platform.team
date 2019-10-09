@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -118,9 +121,8 @@ public class FileContentCachingService {
 	 */
 	private String[] getUncachedFiles() {
 		if (fileDiffs.length == 0) return fileDiffs;
-		List existing = new ArrayList();
-		for (int i = 0; i < fileDiffs.length; i++) {
-			String filePath = fileDiffs[i];
+		List<String> existing = new ArrayList<>();
+		for (String filePath : fileDiffs) {
 			try {
 				ICVSFile file = remoteRoot.getFile(filePath);
 				if (file instanceof RemoteFile) {
@@ -132,6 +134,6 @@ public class FileContentCachingService {
 				// The child does not exists so exclude it
 			}
 		}
-		return (String[]) existing.toArray(new String[existing.size()]);
+		return existing.toArray(new String[existing.size()]);
 	}
 }

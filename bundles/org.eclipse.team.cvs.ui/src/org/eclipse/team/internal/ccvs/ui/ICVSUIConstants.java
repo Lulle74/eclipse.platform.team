@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,8 +48,8 @@ public interface ICVSUIConstants {
 	public final String IMG_CHANGELOG = "obj16/changelog_obj.gif"; //$NON-NLS-1$
 	
 	public final String IMG_LOCALREVISION_TABLE = "obj16/local_entry_tbl.gif"; //$NON-NLS-1$
-    public final String IMG_REMOTEREVISION_TABLE = "obj16/remote_entry_tbl.gif"; //$NON-NLS-1$
-    
+	public final String IMG_REMOTEREVISION_TABLE = "obj16/remote_entry_tbl.gif"; //$NON-NLS-1$
+	
 	// toolbar
 	public final String IMG_REFRESH = "elcl16/refresh.gif"; //$NON-NLS-1$
 	public final String IMG_CLEAR = "elcl16/clear_co.gif"; //$NON-NLS-1$
@@ -72,7 +75,7 @@ public interface ICVSUIConstants {
 	public final String IMG_LINK_WITH_EDITOR_ENABLED = "elcl16/synced.gif"; //$NON-NLS-1$
 	
 	//history page toolbar
-	public final String IMG_FILTER_HISTORY = "elcl16/filter_history.gif";  //$NON-NLS-1$
+	public final String IMG_FILTER_HISTORY = "elcl16/filter_history.png"; //$NON-NLS-1$
 	
 	// wizards
 	public final String IMG_NEWLOCATION = "etool16/newlocation_wiz.gif"; //$NON-NLS-1$
@@ -116,17 +119,17 @@ public interface ICVSUIConstants {
 	public final String PREF_SHOW_AUTHOR_IN_EDITOR = "pref_show_author_in_editor"; //$NON-NLS-1$
 	public final String PREF_COMMIT_SET_DEFAULT_ENABLEMENT = "pref_enable_commit_sets"; //$NON-NLS-1$
 	public final String PREF_AUTO_REFRESH_TAGS_IN_TAG_SELECTION_DIALOG = "pref_auto_refresh_tags_in_tag_selection_dialog"; //$NON-NLS-1$
-    public final String PREF_COMMIT_FILES_DISPLAY_THRESHOLD = "pref_commit_files_display_threshold"; //$NON-NLS-1$
-    public final String PREF_COMMIT_COMMENTS_MAX_HISTORY = "pref_commit_comments_max_history"; //$NON-NLS-1$
-    public final String PREF_AUTO_SHARE_ON_IMPORT = "pref_auto_share_on_import"; //$NON-NLS-1$
+	public final String PREF_COMMIT_FILES_DISPLAY_THRESHOLD = "pref_commit_files_display_threshold"; //$NON-NLS-1$
+	public final String PREF_COMMIT_COMMENTS_MAX_HISTORY = "pref_commit_comments_max_history"; //$NON-NLS-1$
+	public final String PREF_AUTO_SHARE_ON_IMPORT = "pref_auto_share_on_import"; //$NON-NLS-1$
 	public final String PREF_ENABLE_WATCH_ON_EDIT = "pref_enable_watch_on_edit"; //$NON-NLS-1$ 
-    public final String PREF_USE_PROJECT_NAME_ON_CHECKOUT = "pref_use_project_name_on_checkout"; //$NON-NLS-1$
-    public final String PREF_INCLUDE_CHANGE_SETS_IN_COMMIT = "pref_include_change_sets"; //$NON-NLS-1$
-    public final String PREF_ANNOTATE_PROMPTFORBINARY = "pref_annotate_promptforbinary"; //$NON-NLS-1$
-    public final String PREF_ALLOW_COMMIT_WITH_WARNINGS = "pref_commit_with_warning"; //$NON-NLS-1$
-    public final String PREF_ALLOW_COMMIT_WITH_ERRORS = "pref_commit_with_errors"; //$NON-NLS-1$
-    
-    
+	public final String PREF_USE_PROJECT_NAME_ON_CHECKOUT = "pref_use_project_name_on_checkout"; //$NON-NLS-1$
+	public final String PREF_INCLUDE_CHANGE_SETS_IN_COMMIT = "pref_include_change_sets"; //$NON-NLS-1$
+	public final String PREF_ANNOTATE_PROMPTFORBINARY = "pref_annotate_promptforbinary"; //$NON-NLS-1$
+	public final String PREF_ALLOW_COMMIT_WITH_WARNINGS = "pref_commit_with_warning"; //$NON-NLS-1$
+	public final String PREF_ALLOW_COMMIT_WITH_ERRORS = "pref_commit_with_errors"; //$NON-NLS-1$
+	
+	
 	// console preferences
 	public final String PREF_CONSOLE_COMMAND_COLOR = "pref_console_command_color"; //$NON-NLS-1$
 	public final String PREF_CONSOLE_MESSAGE_COLOR = "pref_console_message_color"; //$NON-NLS-1$
@@ -159,17 +162,17 @@ public interface ICVSUIConstants {
 	public final String PREF_EDIT_ACTION = "pref_edit_action"; //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT_EDIT = "edit"; //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT_HIGHJACK = "highjack"; //$NON-NLS-1$
-    public final String PREF_EDIT_IN_BACKGROUND = "editInBackground"; //$NON-NLS-1$
+	public final String PREF_EDIT_IN_BACKGROUND = "editInBackground"; //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT = "pref_edit_prompt"; //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT_NEVER = "never"; //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT_ALWAYS = "always";	 //$NON-NLS-1$
 	public final String PREF_EDIT_PROMPT_IF_EDITORS = "only";	 //$NON-NLS-1$
-    
-    // update preferences
-    public final String PREF_UPDATE_PROMPT = "pref_update_prompt"; //$NON-NLS-1$
-    public final String PREF_UPDATE_PROMPT_NEVER = "never";    //$NON-NLS-1$
-    public final String PREF_UPDATE_PROMPT_AUTO = "auto"; //$NON-NLS-1$
-    public final String PREF_UPDATE_PROMPT_IF_OUTDATED = "only";  //$NON-NLS-1$
+	
+	// update preferences
+	public final String PREF_UPDATE_PROMPT = "pref_update_prompt"; //$NON-NLS-1$
+	public final String PREF_UPDATE_PROMPT_NEVER = "never";    //$NON-NLS-1$
+	public final String PREF_UPDATE_PROMPT_AUTO = "auto"; //$NON-NLS-1$
+	public final String PREF_UPDATE_PROMPT_IF_OUTDATED = "only";  //$NON-NLS-1$
 	
 	// Repositories view preferences
 	public final String PREF_GROUP_VERSIONS_BY_PROJECT = "pref_group_versions_by_project"; //$NON-NLS-1$
@@ -189,7 +192,7 @@ public interface ICVSUIConstants {
 	
 	public final String PREF_ENABLE_MODEL_SYNC = "enableModelSync"; //$NON-NLS-1$
 	public final String PREF_OPEN_COMPARE_EDITOR_FOR_SINGLE_FILE = "openCompareEditorForSingleFile"; //$NON-NLS-1$
-	    
+		
 	// Wizard banners
 	public final String IMG_WIZBAN_SHARE = "wizban/newconnect_wizban.png";	 //$NON-NLS-1$
 	public final String IMG_WIZBAN_MERGE = "wizban/mergestream_wizban.png";	 //$NON-NLS-1$

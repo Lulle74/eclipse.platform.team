@@ -1,29 +1,53 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.resources.mapping.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreePathContentProvider;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.team.core.diff.*;
-import org.eclipse.team.core.mapping.*;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffChangeEvent;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.mapping.IResourceDiffTree;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.mapping.provider.ResourceDiffTree;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
 import org.eclipse.team.ui.mapping.SynchronizationContentProvider;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
@@ -82,8 +106,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 		if (!resource.isAccessible())
 			return false;
 		IResource[] roots = scope.getRoots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource root = roots[i];
+		for (IResource root : roots) {
 			if (resource.getFullPath().isPrefixOf(root.getFullPath()))
 				return true;
 		}
@@ -133,8 +156,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 
 	private Object[] internalGetChildren(ISynchronizationContext context, Object parent, Object[] children) {
 		List<Object> result = new ArrayList<>(children.length);
-		for (int i = 0; i < children.length; i++) {
-			Object object = children[i];
+		for (Object object : children) {
 			// If the parent is a TreePath then the subclass is
 			// TreePath aware and we can send a TrePath to the
 			// isVisible method
@@ -169,8 +191,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 				if(traversals == null) {
 					return result.toArray(new ResourceTraversal[result.size()]);
 				}
-				for (int i = 0; i < traversals.length; i++) {
-					ResourceTraversal traversal = traversals[i];
+				for (ResourceTraversal traversal : traversals) {
 					if (traversal.contains(resource)) {
 						boolean include = false;
 						int depth = traversal.getDepth();
@@ -178,8 +199,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 							include = true;
 						} else {
 							IResource[] roots = traversal.getResources();
-							for (int j = 0; j < roots.length; j++) {
-								IResource root = roots[j];
+							for (IResource root : roots) {
 								if (root.equals(resource)) {
 									include = true;
 									break;
@@ -203,8 +223,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 				// TODO: fails due to use of roots
 				ResourceMapping[] mappings = scope.getMappings(ModelProvider.RESOURCE_MODEL_PROVIDER_ID);
 				List<ResourceTraversal> result = new ArrayList<>();
-				for (int i = 0; i < mappings.length; i++) {
-					ResourceMapping resourceMapping = mappings[i];
+				for (ResourceMapping resourceMapping : mappings) {
 					Object element = resourceMapping.getModelObject();
 					IResource root = getResource(element);
 					if (root != null) {
@@ -249,8 +268,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 
 	private IResource[] getResources(ISynchronizationContext context, IPath[] paths) {
 		List<IResource> resources = new ArrayList<>();
-		for (int i = 0; i < paths.length; i++) {
-			IPath path = paths[i];
+		for (IPath path : paths) {
 			IResource resource = getResource(context, path);
 			if (resource != null)
 				resources.add(resource);
@@ -395,8 +413,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 		if (isFlatPresentation()) {
 			Set existingResources = getVisibleResources();
 			IResource[] changedResources = getChangedResources(event, existingResources);
-			for (int i = 0; i < changedResources.length; i++) {
-				IResource resource = changedResources[i];
+			for (IResource resource : changedResources) {
 				if (event.getTree().getDiff(resource.getFullPath()) != null) {
 					if (existingResources.contains(resource)) {
 						refreshes.add(resource);
@@ -411,8 +428,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 		} else {
 			IProject[] changedProjects = getChangedProjects(event);
 			Set existingProjects = getVisibleProjects();
-			for (int i = 0; i < changedProjects.length; i++) {
-				IProject project = changedProjects[i];
+			for (IProject project : changedProjects) {
 				if (hasVisibleChanges(event.getTree(), project)) {
 					if (existingProjects.contains(project)) {
 						refreshes.add(project);
@@ -467,24 +483,21 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 	private IProject[] getChangedProjects(IDiffChangeEvent event) {
 		Set<IResource> result = new HashSet<>();
 		IDiff[] changes = event.getChanges();
-		for (int i = 0; i < changes.length; i++) {
-			IDiff diff = changes[i];
+		for (IDiff diff : changes) {
 			IResource resource = ResourceDiffTree.getResourceFor(diff);
 			if (resource != null) {
 				result.add(resource.getProject());
 			}
 		}
 		IDiff[] additions = event.getAdditions();
-		for (int i = 0; i < additions.length; i++) {
-			IDiff diff = additions[i];
+		for (IDiff diff : additions) {
 			IResource resource = ResourceDiffTree.getResourceFor(diff);
 			if (resource != null) {
 				result.add(resource.getProject());
 			}
 		}
 		IPath[] removals = event.getRemovals();
-		for (int i = 0; i < removals.length; i++) {
-			IPath path = removals[i];
+		for (IPath path : removals) {
 			if (path.segmentCount() > 0) {
 				IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
 				result.add(project);
@@ -498,8 +511,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 		Tree tree = viewer.getTree();
 		TreeItem[] children = tree.getItems();
 		Set<IResource> result = new HashSet<>();
-		for (int i = 0; i < children.length; i++) {
-			TreeItem control = children[i];
+		for (TreeItem control : children) {
 			Object data = control.getData();
 			IResource resource = Utils.getResource(data);
 			if (resource != null && resource.getType() == IResource.PROJECT) {
@@ -514,8 +526,7 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 		Tree tree = viewer.getTree();
 		TreeItem[] children = tree.getItems();
 		Set<IResource> result = new HashSet<>();
-		for (int i = 0; i < children.length; i++) {
-			TreeItem control = children[i];
+		for (TreeItem control : children) {
 			Object data = control.getData();
 			IResource resource = Utils.getResource(data);
 			if (resource != null) {
@@ -528,24 +539,21 @@ public class ResourceModelContentProvider extends SynchronizationContentProvider
 	private IResource[] getChangedResources(IDiffChangeEvent event, Set existingResources) {
 		Set<IResource> result = new HashSet<>();
 		IDiff[] changes = event.getChanges();
-		for (int i = 0; i < changes.length; i++) {
-			IDiff diff = changes[i];
+		for (IDiff diff : changes) {
 			IResource resource = ResourceDiffTree.getResourceFor(diff);
 			if (resource != null) {
 				result.add(resource);
 			}
 		}
 		IDiff[] additions = event.getAdditions();
-		for (int i = 0; i < additions.length; i++) {
-			IDiff diff = additions[i];
+		for (IDiff diff : additions) {
 			IResource resource = ResourceDiffTree.getResourceFor(diff);
 			if (resource != null) {
 				result.add(resource);
 			}
 		}
 		IPath[] removals = event.getRemovals();
-		for (int i = 0; i < removals.length; i++) {
-			IPath path = removals[i];
+		for (IPath path : removals) {
 			if (path.segmentCount() > 0) {
 				IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 				if (resource != null) {

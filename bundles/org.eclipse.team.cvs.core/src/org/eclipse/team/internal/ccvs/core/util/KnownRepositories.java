@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -201,8 +204,7 @@ public class KnownRepositories implements INodeChangeListener, IPreferenceChange
 			prefs.addNodeChangeListener(this);
 			try {
 				String[] keys = prefs.childrenNames();
-				for (int i = 0; i < keys.length; i++) {
-					String key = keys[i];
+				for (String key : keys) {
 					try {
 						IEclipsePreferences node = (IEclipsePreferences) prefs.node(key);
 						node.addPreferenceChangeListener(this);
@@ -235,10 +237,10 @@ public class KnownRepositories implements INodeChangeListener, IPreferenceChange
 		// If the file did not exist, then prime the list of repositories with
 		// the providers with which the projects in the workspace are shared.
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < projects.length; i++) {
-			RepositoryProvider provider = RepositoryProvider.getProvider(projects[i], CVSProviderPlugin.getTypeId());
+		for (IProject project : projects) {
+			RepositoryProvider provider = RepositoryProvider.getProvider(project, CVSProviderPlugin.getTypeId());
 			if (provider!=null) {
-				ICVSFolder folder = (ICVSFolder)CVSWorkspaceRoot.getCVSResourceFor(projects[i]);
+				ICVSFolder folder = (ICVSFolder) CVSWorkspaceRoot.getCVSResourceFor(project);
 				FolderSyncInfo info = folder.getFolderSyncInfo();
 				if (info != null) {
 					addRepository(getRepository(info.getRoot()), false);
@@ -257,8 +259,7 @@ public class KnownRepositories implements INodeChangeListener, IPreferenceChange
 		// Get a snapshot of the listeners so the list doesn't change while we're firing
 		ICVSListener[] listeners = getListeners();
 		// Notify each listener in a safe manner (i.e. so their exceptions don't kill us)
-		for (int i = 0; i < listeners.length; i++) {
-			ICVSListener listener = listeners[i];
+		for (ICVSListener listener : listeners) {
 			notification.run(listener);
 		}
 	}

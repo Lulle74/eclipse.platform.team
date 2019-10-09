@@ -1,26 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.repo;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 import org.eclipse.core.runtime.Path;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.internal.ccvs.core.*;
 import org.eclipse.team.internal.ccvs.core.util.KnownRepositories;
 import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
-import org.xml.sax.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class RepositoriesViewContentHandler extends DefaultHandler {
@@ -59,22 +60,18 @@ public class RepositoriesViewContentHandler extends DefaultHandler {
 	private List autoRefreshFiles;
 	private boolean ignoreElements;
 
-    private long lastAccessTime;
+	private long lastAccessTime;
 
 	public RepositoriesViewContentHandler(RepositoryManager manager) {
 		this.manager = manager;
 	}
 	
-	/**
-	 * @see ContentHandler#characters(char[], int, int)
-	 */
+	@Override
 	public void characters(char[] chars, int startIndex, int length) throws SAXException {
 		buffer.append(chars, startIndex, length);
 	}
 
-	/**
-	 * @see ContentHandler#endElement(java.lang.String, java.lang.String, java.lang.String)
-	 */
+	@Override
 	public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
 		
 		String elementName = getElementName(namespaceURI, localName, qName);
@@ -100,7 +97,7 @@ public class RepositoriesViewContentHandler extends DefaultHandler {
 				currentRepositoryRoot.addTags(currentRemotePath, 
 					(CVSTag[]) tags.toArray(new CVSTag[tags.size()]));
 				if (lastAccessTime > 0)
-				    currentRepositoryRoot.setLastAccessedTime(currentRemotePath, lastAccessTime);
+					currentRepositoryRoot.setLastAccessedTime(currentRemotePath, lastAccessTime);
 				currentRepositoryRoot.setAutoRefreshFiles(currentRemotePath,
 					(String[]) autoRefreshFiles.toArray(new String[autoRefreshFiles.size()]));
 			}
@@ -116,9 +113,7 @@ public class RepositoriesViewContentHandler extends DefaultHandler {
 		tagStack.pop();
 	}
 		
-	/**
-	 * @see ContentHandler#startElement(java.lang.String, java.lang.String, java.lang.String, org.xml.sax.Attributes)
-	 */
+	@Override
 	public void startElement(
 			String namespaceURI,
 			String localName,
@@ -176,12 +171,12 @@ public class RepositoriesViewContentHandler extends DefaultHandler {
 			long cachedTime = 0;
 			String cachedTimeString = atts.getValue(LAST_ACCESS_TIME_ATTRIBUTE);
 			if (cachedTimeString != null) {
-			    try {
-			        Long time = Long.valueOf(cachedTimeString);
-			        cachedTime = time.longValue();
-                } catch (NumberFormatException e) {
-                    // Ignore
-                }
+				try {
+					Long time = Long.valueOf(cachedTimeString);
+					cachedTime = time.longValue();
+				} catch (NumberFormatException e) {
+					// Ignore
+				}
 			}
 			startModule(path, cachedTime);
 		} else if (elementName.equals(TAG_TAG)) {

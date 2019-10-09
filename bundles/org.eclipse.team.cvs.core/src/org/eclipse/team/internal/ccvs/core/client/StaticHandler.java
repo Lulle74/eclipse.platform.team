@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,20 +61,20 @@ class StaticHandler extends ResponseHandler {
 		Assert.isTrue(repositoryDir.endsWith("/")); //$NON-NLS-1$
 		repositoryDir = repositoryDir.substring(0, repositoryDir.length() - 1);
 		try {
-            ICVSFolder folder = createFolder(session, localDir, repositoryDir);
-            FolderSyncInfo syncInfo = folder.getFolderSyncInfo();
-            // Added to ignore sync info for workspace root
-            if (syncInfo == null) return;
-            MutableFolderSyncInfo newInfo = syncInfo.cloneMutable();
-            newInfo.setStatic(setStaticDirectory);
-            // only set the sync info if it has changed
-            if (!syncInfo.equals(newInfo))
-            	folder.setFolderSyncInfo(newInfo);
-        } catch (CVSException e) {
-            if (!handleInvalidResourceName(session, session.getLocalRoot().getFolder(localDir), e)) {
-                throw e;
-            }
-        }
+			ICVSFolder folder = createFolder(session, localDir, repositoryDir);
+			FolderSyncInfo syncInfo = folder.getFolderSyncInfo();
+			// Added to ignore sync info for workspace root
+			if (syncInfo == null) return;
+			MutableFolderSyncInfo newInfo = syncInfo.cloneMutable();
+			newInfo.setStatic(setStaticDirectory);
+			// only set the sync info if it has changed
+			if (!syncInfo.equals(newInfo))
+				folder.setFolderSyncInfo(newInfo);
+		} catch (CVSException e) {
+			if (!handleInvalidResourceName(session, session.getLocalRoot().getFolder(localDir), e)) {
+				throw e;
+			}
+		}
 	}
 }
 

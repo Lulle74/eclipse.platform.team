@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -38,9 +41,7 @@ public abstract class CVSFieldEditorPreferencePage extends FieldEditorPreference
 			setDescription(description);
 	}
 
-	/**
-	 * @see org.eclipse.jface.preference.PreferencePage#createContents(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		Control control = super.createContents(parent);
 		String id = getPageHelpContextId();
@@ -50,9 +51,7 @@ public abstract class CVSFieldEditorPreferencePage extends FieldEditorPreference
 		return control;
 	}
 
-	/**
-	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
-	 */
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 
@@ -71,9 +70,7 @@ public abstract class CVSFieldEditorPreferencePage extends FieldEditorPreference
 	 */
 	protected abstract String getPageDescription();
 
-	/**
-	 * @see org.eclipse.jface.preference.IPreferencePage#performOk()
-	 */
+	@Override
 	public boolean performOk() {
 		if (!super.performOk()) return false;
 		pushPreferences();

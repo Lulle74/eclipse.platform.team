@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -43,7 +46,7 @@ public class FilePatch2 implements IFilePatch2 {
 
 	private IPath fOldPath, fNewPath;
 	private long oldDate, newDate;
-	private List<Hunk> fHunks= new ArrayList<Hunk>();
+	private List<Hunk> fHunks= new ArrayList<>();
 	private DiffProject fProject; //the project that contains this diff
 	private String header;
 	private int addedLines, removedLines;
@@ -55,17 +58,17 @@ public class FilePatch2 implements IFilePatch2 {
 	 * @param newPath the path of the after state
 	 * @param newDate the timestamp of the after state
 	 */
- 	public FilePatch2(IPath oldPath, long oldDate, IPath newPath, long newDate) {
+	public FilePatch2(IPath oldPath, long oldDate, IPath newPath, long newDate) {
 		this.fOldPath= oldPath;
 		this.oldDate = oldDate;
 		this.fNewPath= newPath;
 		this.newDate = newDate;
 	}
 
- 	/**
- 	 * Return the parent project or <code>null</code> if there isn't one.
- 	 * @return the parent project or <code>null</code>
- 	 */
+	/**
+	 * Return the parent project or <code>null</code> if there isn't one.
+	 * @return the parent project or <code>null</code>
+	 */
 	public DiffProject getProject() {
 		return this.fProject;
 	}
@@ -220,8 +223,7 @@ public class FilePatch2 implements IFilePatch2 {
 			adjustedNewPath = new Path(null, this.fProject.getName()).append(this.fNewPath);
 		}
 		FilePatch2 diff = create(adjustedOldPath, 0, adjustedNewPath, 0);
-		for (Iterator<Hunk> iterator = this.fHunks.iterator(); iterator.hasNext();) {
-			Hunk hunk = iterator.next();
+		for (Hunk hunk : this.fHunks) {
 			// Creating the hunk adds it to the parent diff
 			new Hunk(diff, hunk);
 		}

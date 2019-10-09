@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -25,12 +28,34 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import com.ibm.icu.text.MessageFormat;
-
+import org.eclipse.compare.internal.ICompareContextIds;
+import org.eclipse.compare.internal.Utilities;
+import org.eclipse.compare.patch.IFilePatch2;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,33 +67,12 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.wizard.IWizardPage;
-import org.eclipse.jface.wizard.WizardPage;
-
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.views.navigator.ResourceComparator;
 
-import org.eclipse.compare.internal.ICompareContextIds;
-import org.eclipse.compare.internal.Utilities;
-import org.eclipse.compare.patch.IFilePatch2;
+import com.ibm.icu.text.MessageFormat;
 
 public class InputPatchPage extends WizardPage {
 
@@ -90,8 +94,6 @@ public class InputPatchPage extends WizardPage {
 	protected final static int URL= 4;
 
 	protected final static String INPUTPATCHPAGE_NAME= "InputPatchPage"; //$NON-NLS-1$
-
-	static final char SEPARATOR= System.getProperty("file.separator").charAt(0); //$NON-NLS-1$
 
 	private boolean fShowError= false;
 	private String fPatchSource;
@@ -285,11 +287,7 @@ public class InputPatchPage extends WizardPage {
 								patchFileURL), getContainer());
 						if (contents != null)
 							reader = new StringReader(contents);
-					} catch (MalformedURLException e) {
-						// ignore as we tested it with modify listener on combo
-					} catch (InvocationTargetException e) { // ignore
-					} catch (OperationCanceledException e) { // ignore
-					} catch (InterruptedException e) { // ignore
+					} catch (MalformedURLException | InvocationTargetException | OperationCanceledException | InterruptedException e) { // ignore
 					}
 				}
 				fPatchSource= PatchMessages.InputPatchPage_URL_title;
@@ -298,13 +296,15 @@ public class InputPatchPage extends WizardPage {
 				IResource[] resources= Utilities.getResources(fTreeViewer.getSelection());
 				IResource patchFile= resources[0];
 				if (patchFile != null) {
-					try {
-						reader= new FileReader(patchFile.getLocation().toFile());
-					} catch (FileNotFoundException ex) {
+					if (patchFile.getLocation() == null) {
 						MessageDialog.openError(null, PatchMessages.InputPatchPage_PatchErrorDialog_title, PatchMessages.InputPatchPage_PatchFileNotFound_message);
-					} catch (NullPointerException nex) {
-						//in case the path doesn't exist (eg. getLocation() returned null)
-						MessageDialog.openError(null, PatchMessages.InputPatchPage_PatchErrorDialog_title, PatchMessages.InputPatchPage_PatchFileNotFound_message);
+					} else {
+						try {
+							reader = new FileReader(patchFile.getLocation().toFile());
+						} catch (FileNotFoundException ex) {
+							MessageDialog.openError(null, PatchMessages.InputPatchPage_PatchErrorDialog_title,
+									PatchMessages.InputPatchPage_PatchFileNotFound_message);
+						}
 					}
 				}
 				fPatchSource= PatchMessages.InputPatchPage_WorkspacePatch_title;
@@ -333,9 +333,6 @@ public class InputPatchPage extends WizardPage {
 		}
 	}
 
-	/* (non-JavaDoc)
-	 * Method declared in IWizardPage.
-	 */
 	@Override
 	public boolean canFlipToNextPage() {
 		// we can't call getNextPage to determine if flipping is allowed since computing
@@ -534,7 +531,9 @@ public class InputPatchPage extends WizardPage {
 		fWorkspaceSelectLabel.setText(PatchMessages.InputPatchPage_WorkspaceSelectPatch_text);
 
 		fTreeViewer= new TreeViewer(newComp, SWT.BORDER);
-		fTreeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		layoutData.heightHint = 300;
+		fTreeViewer.getTree().setLayoutData(layoutData);
 
 		fTreeViewer.setLabelProvider(new WorkbenchLabelProvider());
 		fTreeViewer.setContentProvider(new WorkbenchContentProvider());
@@ -624,7 +623,7 @@ public class InputPatchPage extends WizardPage {
 		dialog.setText(PatchMessages.InputPatchPage_SelectPatchFileDialog_title);
 		String patchFilePath= getPatchFilePath();
 		if (patchFilePath != null) {
-			int lastSegment= patchFilePath.lastIndexOf(SEPARATOR);
+			int lastSegment= patchFilePath.lastIndexOf(File.separatorChar);
 			if (lastSegment > 0) {
 				patchFilePath= patchFilePath.substring(0, lastSegment);
 			}
@@ -729,9 +728,11 @@ public class InputPatchPage extends WizardPage {
 			// set filenames history
 			String[] sourceNames= settings.getArray(STORE_PATCH_FILES_ID);
 			if (sourceNames != null)
-				for (int i= 0; i < sourceNames.length; i++)
-					if (sourceNames[i] != null && sourceNames[i].length() > 0)
-						fPatchFileNameField.add(sourceNames[i]);
+				for (String sourceName : sourceNames) {
+					if (sourceName != null && sourceName.length() > 0) {
+						fPatchFileNameField.add(sourceName);
+					}
+				}
 
 			// set patch file path
 			String patchFilePath= settings.get(STORE_PATCH_FILES_ID);
@@ -741,9 +742,11 @@ public class InputPatchPage extends WizardPage {
 			// set URLs history
 			String[] sourceURLs= settings.getArray(STORE_PATCH_URLS_ID);
 			if (sourceURLs != null)
-				for (int i= 0; i < sourceURLs.length; i++)
-					if (sourceURLs[i] != null && sourceURLs[i].length() > 0)
-						fPatchURLField.add(sourceURLs[i]);
+				for (String sourceURL : sourceURLs) {
+					if (sourceURL != null && sourceURL.length() > 0) {
+						fPatchURLField.add(sourceURL);
+					}
+				}
 
 			// If the previous apply patch was used with a clipboard, we need to check
 			// if there is a valid patch on the clipboard. This will be done in adjustToCurrentTarget()
@@ -840,7 +843,7 @@ public class InputPatchPage extends WizardPage {
 		// readjust selection if there is a patch selected in the workspace or on the clipboard
 		// check workspace first
 		IResource patchTarget= fPatchWizard.getTarget();
-		if (patchTarget instanceof IFile) {
+		if (patchTarget instanceof IFile && patchTarget.getLocation() != null) {
 			Reader reader= null;
 			try {
 				try {
@@ -856,10 +859,7 @@ public class InputPatchPage extends WizardPage {
 					}
 				} catch (FileNotFoundException ex) {
 					// silently ignored
-				} catch (NullPointerException nex) {
-					// silently ignored
 				}
-
 			} finally {
 				if (reader != null) {
 					try {

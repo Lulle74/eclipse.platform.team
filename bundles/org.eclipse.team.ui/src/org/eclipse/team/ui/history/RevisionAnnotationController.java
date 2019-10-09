@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -17,14 +20,32 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.Adapters;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.revisions.*;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.text.revisions.IRevisionRulerColumn;
+import org.eclipse.jface.text.revisions.IRevisionRulerColumnExtension;
+import org.eclipse.jface.text.revisions.Revision;
+import org.eclipse.jface.text.revisions.RevisionInformation;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.variants.IResourceVariant;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.history.FileRevisionEditorInput;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IEditorRegistry;
+import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -95,12 +116,12 @@ public abstract class RevisionAnnotationController {
 
 		// No existing editor references found, try to open a new editor for the file
 		try {
-			IEditorDescriptor descrptr = IDE.getEditorDescriptor(file);
+			IEditorDescriptor descrptr = IDE.getEditorDescriptor(file, true, true);
 			// Try to open the associated editor only if its an internal editor
 			// Also, if a non-text editor is already open, there is no need to try and open
 			// an editor since the open will find the non-text editor
 			if (descrptr.isInternal() && openEditors.length == 0){
-				IEditorPart part = page.openEditor(input, IDE.getEditorDescriptor(file).getId(), true, IWorkbenchPage.MATCH_INPUT);
+				IEditorPart part = page.openEditor(input, IDE.getEditorDescriptor(file, true, true).getId(), true, IWorkbenchPage.MATCH_INPUT);
 				AbstractDecoratedTextEditor te = findTextEditorPart(page, part, input);
 				if (te != null)
 					return te;
@@ -117,7 +138,7 @@ public abstract class RevisionAnnotationController {
 		} catch (PartInitException e) {
 		}
 
-        return null;
+		return null;
 	}
 
 	/**
@@ -144,29 +165,29 @@ public abstract class RevisionAnnotationController {
 	}
 
 
-    private static ITextEditor getEditor(String id, Object fileRevision, IStorage storage) throws PartInitException {
-        final IWorkbench workbench= PlatformUI.getWorkbench();
-        final IWorkbenchWindow window= workbench.getActiveWorkbenchWindow();
-        IWorkbenchPage page= window.getActivePage();
+	private static ITextEditor getEditor(String id, Object fileRevision, IStorage storage) throws PartInitException {
+		final IWorkbench workbench= PlatformUI.getWorkbench();
+		final IWorkbenchWindow window= workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage page= window.getActivePage();
 		IEditorPart part = page.openEditor(new FileRevisionEditorInput(fileRevision, storage), id);
-    	if (part instanceof ITextEditor) {
-    		return (ITextEditor)part;
-    	} else {
-    		// We asked for a text editor but didn't get one
-    		// so open a vanilla text editor
-    		page.closeEditor(part, false);
-    		part = page.openEditor(new FileRevisionEditorInput(fileRevision, storage), EditorsUI.DEFAULT_TEXT_EDITOR_ID);
-    		if (part instanceof ITextEditor) {
-    			return (ITextEditor)part;
-    		} else {
-    			// There is something really wrong so just bail
-    			throw new PartInitException(TeamUIMessages.RevisionAnnotationController_0);
-    		}
-    	}
-    }
+		if (part instanceof ITextEditor) {
+			return (ITextEditor)part;
+		} else {
+			// We asked for a text editor but didn't get one
+			// so open a vanilla text editor
+			page.closeEditor(part, false);
+			part = page.openEditor(new FileRevisionEditorInput(fileRevision, storage), EditorsUI.DEFAULT_TEXT_EDITOR_ID);
+			if (part instanceof ITextEditor) {
+				return (ITextEditor)part;
+			} else {
+				// There is something really wrong so just bail
+				throw new PartInitException(TeamUIMessages.RevisionAnnotationController_0);
+			}
+		}
+	}
 
-    private static String getEditorId(IStorage storage) {
-        String id;
+	private static String getEditorId(IStorage storage) {
+		String id;
 		IEditorRegistry registry = PlatformUI.getWorkbench().getEditorRegistry();
 		IEditorDescriptor descriptor = registry.getDefaultEditor(storage.getName());
 		if (descriptor == null || !descriptor.isInternal()) {
@@ -182,8 +203,8 @@ public abstract class RevisionAnnotationController {
 				id = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
 			}
 		}
-        return id;
-    }
+		return id;
+	}
 
 
 
@@ -191,13 +212,12 @@ public abstract class RevisionAnnotationController {
 		if (file == null)
 			return null;
 		FileEditorInput input = new FileEditorInput(file);
-        IEditorPart[] editors = findOpenEditorsForFile(page, input);
+		IEditorPart[] editors = findOpenEditorsForFile(page, input);
 		return findTextEditor(page, editors, input);
 	}
 
 	private static AbstractDecoratedTextEditor findTextEditor(IWorkbenchPage page, IEditorPart[] editors, IEditorInput input) {
-		for (int i = 0; i < editors.length; i++) {
-			IEditorPart editor = editors[i];
+		for (IEditorPart editor : editors) {
 			AbstractDecoratedTextEditor te = findTextEditorPart(page, editor, input);
 			if (te != null)
 				return te;
@@ -211,11 +231,10 @@ public abstract class RevisionAnnotationController {
 		if (editor instanceof MultiPageEditorPart) {
 			MultiPageEditorPart mpep = (MultiPageEditorPart) editor;
 			IEditorPart[] parts = mpep.findEditors(input);
-			for (int i = 0; i < parts.length; i++) {
-				IEditorPart editorPart = parts[i];
+			for (IEditorPart editorPart : parts) {
 				if (editorPart instanceof AbstractDecoratedTextEditor) {
-			        page.activate(mpep);
-			        mpep.setActiveEditor(editorPart);
+					page.activate(mpep);
+					mpep.setActiveEditor(editorPart);
 					return (AbstractDecoratedTextEditor) editorPart;
 				}
 			}
@@ -224,15 +243,14 @@ public abstract class RevisionAnnotationController {
 	}
 
 	private static IEditorPart[] findOpenEditorsForFile(IWorkbenchPage page, FileEditorInput input) {
-        final IEditorReference[] references= page.findEditors(input, null, IWorkbenchPage.MATCH_INPUT);
-        final List<IEditorPart> editors = new ArrayList<>();
-		for (int i= 0; i < references.length; i++) {
-			IEditorReference reference= references[i];
+		final IEditorReference[] references= page.findEditors(input, null, IWorkbenchPage.MATCH_INPUT);
+		final List<IEditorPart> editors = new ArrayList<>();
+		for (IEditorReference reference : references) {
 			IEditorPart editor= reference.getEditor(false);
 			editors.add(editor);
 		}
 
-        return editors.toArray(new IEditorPart[editors.size()]);
+		return editors.toArray(new IEditorPart[editors.size()]);
 	}
 
 	private static AbstractDecoratedTextEditor findOpenTextEditorFor(IWorkbenchPage page, Object object) {
@@ -242,11 +260,10 @@ public abstract class RevisionAnnotationController {
 			IFile file = (IFile) object;
 			return findOpenTextEditorForFile(page, file);
 		}
-        final IWorkbench workbench= PlatformUI.getWorkbench();
-        final IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-        IEditorReference[] references= window.getActivePage().getEditorReferences();
-		for (int i= 0; i < references.length; i++) {
-			IEditorReference reference= references[i];
+		final IWorkbench workbench= PlatformUI.getWorkbench();
+		final IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+		IEditorReference[] references= window.getActivePage().getEditorReferences();
+		for (IEditorReference reference : references) {
 			try {
 				if (object.equals(reference.getEditorInput())) {
 					IEditorPart editor= reference.getEditor(false);
@@ -258,7 +275,7 @@ public abstract class RevisionAnnotationController {
 			}
 		}
 
-        return null;
+		return null;
 	}
 
 	private static IRevisionRulerColumnExtension findEditorRevisonRulerColumn(IWorkbenchPage page, Object object) {

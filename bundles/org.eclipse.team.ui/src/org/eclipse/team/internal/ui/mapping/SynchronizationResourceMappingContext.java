@@ -1,22 +1,34 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.mapping.RemoteResourceMappingContext;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.IResourceDiff;
@@ -111,13 +123,9 @@ public final class SynchronizationResourceMappingContext extends
 	public IResource[] fetchMembers(IContainer container, IProgressMonitor monitor) throws CoreException {
 		Set<IResource> result = new HashSet<>();
 		IResource[] children = container.members();
-		for (int i = 0; i < children.length; i++) {
-			IResource resource = children[i];
-			result.add(resource);
-		}
+		Collections.addAll(result, children);
 		IPath[] childPaths = context.getDiffTree().getChildren(container.getFullPath());
-		for (int i = 0; i < childPaths.length; i++) {
-			IPath path = childPaths[i];
+		for (IPath path : childPaths) {
 			IDiff delta = context.getDiffTree().getDiff(path);
 			IResource child;
 			if (delta == null) {
@@ -148,8 +156,7 @@ public final class SynchronizationResourceMappingContext extends
 	public IProject[] getProjects() {
 		Set<IProject> projects = new HashSet<>();
 		IResource[] roots = context.getScope().getRoots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			projects.add(resource.getProject());
 		}
 		return projects.toArray(new IProject[projects.size()]);

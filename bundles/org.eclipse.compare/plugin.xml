@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <!--
-    Copyright (c) 2001, 2012 IBM Corporation and others.
-    All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
+    Copyright (c) 2001, 2019 IBM Corporation and others.
+
+    This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         IBM Corporation - initial API and implementation
@@ -73,6 +76,33 @@
             %compareFontDefiniton.description
          </description>
       </fontDefinition>
+      <colorDefinition
+            categoryId="org.eclipse.compare.contentmergeviewer.TextMergeViewer"
+            id="DELETION_COLOR"
+            label="%compareDeletionColor.label"
+            value="COLOR_RED">
+         <description>
+            %compareDeletionColor.description
+         </description>
+      </colorDefinition>
+      <colorDefinition
+            categoryId="org.eclipse.compare.contentmergeviewer.TextMergeViewer"
+            id="EDITION_COLOR"
+            label="%compareEditionColor.label"
+            value="COLOR_BLACK">
+         <description>
+            %compareEditionColor.description
+         </description>
+      </colorDefinition>
+      <colorDefinition
+            categoryId="org.eclipse.compare.contentmergeviewer.TextMergeViewer"
+            id="ADDITION_COLOR"
+            label="%compareAdditionColor.label"
+            value="COLOR_DARK_GREEN">
+         <description>
+            %compareAdditionColor.description
+         </description>
+      </colorDefinition>
    </extension>
 
    <extension
@@ -95,6 +125,16 @@
             class="org.eclipse.compare.internal.CompareEditor"
             id="org.eclipse.compare.CompareEditor">
       </editor>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation
+            targetID="org.eclipse.ui.edit.text.actionSet.presentation">
+         <part
+               id="org.eclipse.compare.CompareEditor">
+         </part>
+      </actionSetPartAssociation>
    </extension>
 
    <extension
@@ -362,6 +402,29 @@
                type="org.eclipse.ui.IContributorResourceAdapter">
          </adapter>
       </factory>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+      <viewerContentBinding
+            viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+      <includes>
+      <contentExtension
+            pattern="org.eclipse.compare.linkHelper">
+      </contentExtension>
+      </includes>
+      </viewerContentBinding>
+      
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.linkHelper">
+      <linkHelper
+            class="org.eclipse.compare.internal.CompareLinkHelper"
+            id="org.eclipse.compare.linkHelper">
+         <editorInputEnablement>
+             <instanceof value="org.eclipse.compare.CompareEditorInput"/>
+         </editorInputEnablement>
+      </linkHelper>
    </extension>
 
 </plugin>

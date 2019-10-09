@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,18 +15,37 @@
 package org.eclipse.compare.internal.merge;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.ICompareFilter;
 import org.eclipse.compare.contentmergeviewer.ITokenComparator;
-import org.eclipse.compare.internal.*;
+import org.eclipse.compare.internal.CompareContentViewerSwitchingPane;
+import org.eclipse.compare.internal.CompareMessages;
+import org.eclipse.compare.internal.ComparePreferencePage;
+import org.eclipse.compare.internal.CompareUIPlugin;
+import org.eclipse.compare.internal.DocLineComparator;
+import org.eclipse.compare.internal.MergeViewerContentProvider;
+import org.eclipse.compare.internal.Utilities;
 import org.eclipse.compare.internal.core.LCS;
-import org.eclipse.compare.rangedifferencer.*;
+import org.eclipse.compare.rangedifferencer.IRangeComparator;
+import org.eclipse.compare.rangedifferencer.RangeDifference;
+import org.eclipse.compare.rangedifferencer.RangeDifferencer;
 import org.eclipse.compare.structuremergeviewer.Differencer;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPositionCategoryException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
@@ -279,8 +301,7 @@ public class DocumentMerger {
 		public Diff[] getChangeDiffs(int contributor, IRegion region) {
 			if (fDiffs != null && intersectsRegion(contributor, region)) {
 				List<Diff> result = new ArrayList<>();
-				for (Iterator<Diff> iterator = fDiffs.iterator(); iterator.hasNext();) {
-					Diff diff = iterator.next();
+				for (Diff diff : fDiffs) {
 					if (diff.intersectsRegion(contributor, region)) {
 						result.add(diff);
 					}
@@ -427,9 +448,7 @@ public class DocumentMerger {
 					Boolean.FALSE);
 
 		ArrayList<Diff> newAllDiffs = new ArrayList<>();
-		for (int i= 0; i < e.length; i++) {
-			RangeDifference es= e[i];
-
+		for (RangeDifference es : e) {
 			int ancestorStart= 0;
 			int ancestorEnd= 0;
 			if (sancestor != null) {
@@ -566,9 +585,7 @@ public class DocumentMerger {
 
 
 		if (e != null) {
-			for (int i= 0; i < e.length; i++) {
-				RangeDifference es= e[i];
-
+			for (RangeDifference es : e) {
 				int kind= es.kind();
 
 				int ancestorStart= 0;
@@ -841,8 +858,7 @@ public class DocumentMerger {
 		ITokenComparator sy= createTokenComparator(s);
 
 		RangeDifference[] e= RangeDifferencer.findRanges(sa, sy, sm);
-		for (int i= 0; i < e.length; i++) {
-			RangeDifference es= e[i];
+		for (RangeDifference es : e) {
 			int kind= es.kind();
 			if (kind != RangeDifference.NOCHANGE) {
 
@@ -954,8 +970,7 @@ public class DocumentMerger {
 	}
 
     public Diff findDiff(Position p, boolean left) {
-		for (Iterator<Diff> iterator = fAllDiffs.iterator(); iterator.hasNext();) {
-			Diff diff = iterator.next();
+		for (Diff diff : fAllDiffs) {
 			Position diffPos;
 			if (left) {
 				diffPos = diff.fLeftPos;
@@ -1104,13 +1119,9 @@ public class DocumentMerger {
 		if (fChangeDiffs == null)
 			return new Diff[0];
 		List<Diff> intersectingDiffs = new ArrayList<>();
-		for (Iterator<Diff> iterator = fChangeDiffs.iterator(); iterator.hasNext();) {
-			Diff diff = iterator.next();
+		for (Diff diff : fChangeDiffs) {
 			Diff[] changeDiffs = diff.getChangeDiffs(contributor, region);
-			for (int i = 0; i < changeDiffs.length; i++) {
-				Diff changeDiff = changeDiffs[i];
-				intersectingDiffs.add(changeDiff);
-			}
+			Collections.addAll(intersectingDiffs, changeDiffs);
 		}
 		return intersectingDiffs.toArray(new Diff[intersectingDiffs.size()]);
 	}

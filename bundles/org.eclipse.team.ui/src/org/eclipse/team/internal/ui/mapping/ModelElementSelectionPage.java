@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,13 +14,19 @@
 package org.eclipse.team.internal.ui.mapping;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.mapping.*;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceMappingContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.events.TreeListener;
@@ -26,7 +35,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
 import org.eclipse.team.core.mapping.provider.SynchronizationScopeManager;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.GlobalRefreshElementSelectionPage;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
@@ -34,7 +45,10 @@ import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerCheckedTreeViewer;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.INavigatorContentExtension;
+import org.eclipse.ui.navigator.INavigatorContentService;
+import org.eclipse.ui.navigator.INavigatorContentServiceListener;
+import org.eclipse.ui.navigator.NavigatorContentServiceFactory;
 import org.eclipse.ui.views.navigator.ResourceComparator;
 
 public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage implements INavigatorContentServiceListener {
@@ -49,8 +63,7 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 		setDescription(TeamUIMessages.GlobalRefreshResourceSelectionPage_2);
 		setTitle(TeamUIMessages.GlobalRefreshResourceSelectionPage_3);
 		List<ResourceMapping> result = new ArrayList<>();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			result.add(Utils.getResourceMapping(resource));
 		}
 		manager = new SynchronizationScopeManager(TeamUIMessages.ModelElementSelectionPage_0, result.toArray(new ResourceMapping[result.size()]),
@@ -110,8 +123,7 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 		if (isWorkingSetSelected()) {
 			List<ResourceMapping> result = new ArrayList<>();
 			IWorkingSet[] sets = getWorkingSets();
-			for (int i = 0; i < sets.length; i++) {
-				IWorkingSet set = sets[i];
+			for (IWorkingSet set : sets) {
 				result.add(Utils.getResourceMapping(set));
 			}
 			return result.toArray(new ResourceMapping[result.size()]);
@@ -132,8 +144,7 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 		}
 		List<ResourceMapping> result = new ArrayList<>();
 		Object[] objects = getRootElement();
-		for (int i = 0; i < objects.length; i++) {
-			Object object = objects[i];
+		for (Object object : objects) {
 			ResourceMapping mapping = Utils.getResourceMapping(object);
 			if (mapping != null) {
 				result.add(mapping);
@@ -157,8 +168,7 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 	protected boolean checkWorkingSetElements() {
 		List allWorkingSetElements = new ArrayList();
 		IWorkingSet[] workingSets = getWorkingSets();
-		for (int i = 0; i < workingSets.length; i++) {
-			IWorkingSet set = workingSets[i];
+		for (IWorkingSet set : workingSets) {
 			allWorkingSetElements.addAll(computeSelectedResources(new StructuredSelection(set.getElements())));
 		}
 		getViewer().setCheckedElements(allWorkingSetElements.toArray());
@@ -179,8 +189,7 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 
 	private boolean scopeContainsMapping(ResourceMapping mapping) {
 		ResourceMapping[] mappings = manager.getScope().getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping m = mappings[i];
+		for (ResourceMapping m : mappings) {
 			if (m.contains(mapping)) {
 				return true;
 			}
@@ -203,8 +212,8 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 				ISynchronizationScope syncScope = manager.getScope();
 				ModelProvider[] providers = syncScope.getModelProviders();
 				boolean foundEnabledModelProvider = false;
-				for (int i = 0; i < providers.length; i++) {
-					if (isEnabled(providers[i])){
+				for (ModelProvider provider : providers) {
+					if (isEnabled(provider)) {
 						foundEnabledModelProvider = true;
 						break;
 					}
@@ -213,8 +222,9 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 				if (!foundEnabledModelProvider){
 					if (MessageDialog.openConfirm(getShell(), TeamUIMessages.ModelElementSelectionPage_AllModelsDisabledTitle, TeamUIMessages.ModelElementSelectionPage_AllModelsDisabledMessage)) {
 						ArrayList<ITeamContentProviderDescriptor> teamProviderDescriptors = new ArrayList<>();
-						for (int i = 0; i < providers.length; i++)
-							teamProviderDescriptors.add(TeamUI.getTeamContentProviderManager().getDescriptor(providers[i].getId()));
+						for (ModelProvider provider : providers) {
+							teamProviderDescriptors.add(TeamUI.getTeamContentProviderManager().getDescriptor(provider.getId()));
+						}
 
 						ITeamContentProviderDescriptor[] desc = teamProviderDescriptors.toArray(new ITeamContentProviderDescriptor[teamProviderDescriptors.size()]);
 						TeamUI.getTeamContentProviderManager().setEnabledDescriptors(desc);
@@ -255,9 +265,9 @@ public class ModelElementSelectionPage extends GlobalRefreshElementSelectionPage
 		if (!isSelectedResourcesSelected()) {
 			ModelProvider[] providers = manager.getScope().getModelProviders();
 			ArrayList<ModelProvider> disabledProviders = new ArrayList<>();
-			for (int i = 0; i < providers.length; i++) {
-				if (!providers[i].getId().equals(modelProviderId)) {
-					disabledProviders.add(providers[i]);
+			for (ModelProvider provider : providers) {
+				if (!provider.getId().equals(modelProviderId)) {
+					disabledProviders.add(provider);
 				}
 			}
 

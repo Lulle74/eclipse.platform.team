@@ -1,16 +1,23 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.registry;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.internal.ui.TeamUIMessages;
@@ -51,10 +58,10 @@ public class TeamDecoratorDescription {
 				if (flags == null) {
 					decoratedDirection = IThreeWayDiff.INCOMING | IThreeWayDiff.OUTGOING;
 				} else {
-					if (flags.indexOf(INCOMING_FLAG) != -1) {
+					if (flags.contains(INCOMING_FLAG)) {
 						decoratedDirection |= IThreeWayDiff.INCOMING;
 					}
-					if (flags.indexOf(OUTGOING_FLAG) != -1) {
+					if (flags.contains(OUTGOING_FLAG)) {
 						decoratedDirection |= IThreeWayDiff.OUTGOING;
 					}
 					if (decoratedDirection == 0) {

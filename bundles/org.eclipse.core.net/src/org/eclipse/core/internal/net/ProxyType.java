@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,27 +57,27 @@ public class ProxyType implements INodeChangeListener, IPreferenceChangeListener
 	public static final int NEVER_SET = 2;
 	public static int socksSystemPropertySetting;
 
-    /**
-     * Absolute path to the node for the cached proxy information
-     */
-    private static final String PREFERENCES_CONTEXT = "/org.eclipse.core.net.proxy.auth"; //$NON-NLS-1$
+	/**
+	 * Absolute path to the node for the cached proxy information
+	 */
+	private static final String PREFERENCES_CONTEXT = "/org.eclipse.core.net.proxy.auth"; //$NON-NLS-1$
 	/*
 	 * Fields used to cache authentication information in the keyring
 	 */
-    private static final String INFO_PROXY_USER = "user"; //$NON-NLS-1$
-    private static final String INFO_PROXY_PASS = "pass"; //$NON-NLS-1$
-    static {
-        String value = System.getProperty(PROP_SOCKS_SYSTEM_PROPERTY_HANDLING);
-        if (value == null) {
-        	socksSystemPropertySetting = ONLY_SET_FOR_1_5_OR_LATER;
-        } else if (value.equals("always")) { //$NON-NLS-1$
-        	socksSystemPropertySetting = ALWAYS_SET;
-        } else if (value.equals("never")) { //$NON-NLS-1$
-        	socksSystemPropertySetting = NEVER_SET;
-        } else {
-        	socksSystemPropertySetting = ONLY_SET_FOR_1_5_OR_LATER;
-        }
-    }
+	private static final String INFO_PROXY_USER = "user"; //$NON-NLS-1$
+	private static final String INFO_PROXY_PASS = "pass"; //$NON-NLS-1$
+	static {
+		String value = System.getProperty(PROP_SOCKS_SYSTEM_PROPERTY_HANDLING);
+		if (value == null) {
+			socksSystemPropertySetting = ONLY_SET_FOR_1_5_OR_LATER;
+		} else if (value.equals("always")) { //$NON-NLS-1$
+			socksSystemPropertySetting = ALWAYS_SET;
+		} else if (value.equals("never")) { //$NON-NLS-1$
+			socksSystemPropertySetting = NEVER_SET;
+		} else {
+			socksSystemPropertySetting = ONLY_SET_FOR_1_5_OR_LATER;
+		}
+	}
 
 	private String name;
 	private boolean updatingPreferences;
@@ -101,9 +104,9 @@ public class ProxyType implements INodeChangeListener, IPreferenceChangeListener
 	public static String[] convertPropertyStringToHosts(String property) {
 		String hosts[] = StringUtil.split(property, new String[] { "|" }); //$NON-NLS-1$
 		ArrayList<String> ret = new ArrayList<>();
-		for (int i = 0; i < hosts.length; i++) {
-			if (hosts[i].length() != 0) {
-				ret.add(hosts[i]);
+		for (String host : hosts) {
+			if (host.length() != 0) {
+				ret.add(host);
 			}
 		}
 		return ret.toArray(new String[0]);
@@ -433,9 +436,9 @@ public class ProxyType implements INodeChangeListener, IPreferenceChangeListener
 	private IProxyData getProxyData(String type) {
 		IProxyData data[] = ProxySelector.getProxyData(ProxySelector
 				.getDefaultProvider());
-		for (int i = 0; i < data.length; i++) {
-			if (data[i].getType().equalsIgnoreCase(type)) {
-				return data[i];
+		for (IProxyData d : data) {
+			if (d.getType().equalsIgnoreCase(type)) {
+				return d;
 			}
 		}
 		return new ProxyData(type, null, -1, false, null);
@@ -529,7 +532,7 @@ public class ProxyType implements INodeChangeListener, IPreferenceChangeListener
 		return node;
 	}
 
-    private void loadProxyAuth(IProxyData data) {
+	private void loadProxyAuth(IProxyData data) {
 		ISecurePreferences node = getNode();
 		if (node == null)
 			return;

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -70,6 +73,7 @@ public class UnmanageAction extends WorkspaceAction {
 			}
 		}
 		
+		@Override
 		protected Control createCustomArea(Composite parent) {
 			Composite composite = new Composite(parent, SWT.NONE);
 			composite.setLayout(new GridLayout());
@@ -87,12 +91,13 @@ public class UnmanageAction extends WorkspaceAction {
 			radio1.setSelection(deleteContent);
 			radio2.setSelection(!deleteContent);
 			
-            PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.DISCONNECT_ACTION);
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.DISCONNECT_ACTION);
 			
 			return composite;
 		}
 		
 		private SelectionListener selectionListener = new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Button button = (Button) e.widget;
 				if (button.getSelection()) {
@@ -108,9 +113,7 @@ public class UnmanageAction extends WorkspaceAction {
 	
 	private boolean deleteContent = false;
 	
-	/*
-	 * @see IActionDelegate#run(IAction)
-	 */
+	@Override
 	public void execute(IAction action) throws InterruptedException, InvocationTargetException {
 		if(confirmDeleteProjects()) {
 			new DisconnectOperation(getTargetPart(), getSelectedProjects(), deleteContent)
@@ -122,25 +125,17 @@ public class UnmanageAction extends WorkspaceAction {
 		final int[] result = new int[] { Window.OK };
 		IProject[] projects = getSelectedProjects();
 		final DeleteProjectDialog dialog = new DeleteProjectDialog(getShell(), projects);
-		getShell().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				result[0] = dialog.open();
-			}
-		});		
+		getShell().getDisplay().syncExec(() -> result[0] = dialog.open());
 		deleteContent = dialog.getDeleteContent();
 		return result[0] == 0;  // YES
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#getErrorTitle()
-	 */
+	@Override
 	protected String getErrorTitle() {
 		return CVSUIMessages.Unmanage_unmanagingError;
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForCVSResource(org.eclipse.team.internal.ccvs.core.ICVSResource)
-	 */
+	@Override
 	protected boolean isEnabledForCVSResource(ICVSResource cvsResource) throws CVSException {
 		IResource resource = cvsResource.getIResource();
 		return resource != null && resource.getType() == IResource.PROJECT;

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2010, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -17,11 +20,17 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.ui.PlatformUI;
 
@@ -74,9 +83,9 @@ public class FuzzFactorDialog extends Dialog {
 		Button guessButton = new Button(composite, SWT.NONE);
 		guessButton.setText(TeamUIMessages.FuzzFactorDialog_guess);
 		data = new GridData();
-        int widthHint = convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-        Point minSize = guessButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-        data.widthHint = Math.max(widthHint, minSize.x);
+		int widthHint = convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+		Point minSize = guessButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		data.widthHint = Math.max(widthHint, minSize.x);
 		guessButton.setLayoutData(data);
 		guessButton.addSelectionListener(new SelectionAdapter() {
 			@Override

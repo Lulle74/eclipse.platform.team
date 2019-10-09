@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,14 +16,29 @@ package org.eclipse.team.internal.ui.mapping;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreePathLabelProvider;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.ViewerLabel;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.ImageManager;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
 import org.eclipse.team.ui.mapping.SynchronizationLabelProvider;
@@ -143,21 +161,20 @@ public class ResourceModelLabelProvider extends
 
 		// Accumulate all distinct resources that have had problem marker
 		// changes
-		for (int idx = 0; idx < markerTypes.length; idx++) {
-			IMarkerDelta[] markerDeltas = event.findMarkerDeltas(markerTypes[idx], true);
-				for (int i = 0; i < markerDeltas.length; i++) {
-					IMarkerDelta delta = markerDeltas[i];
-					IResource resource = delta.getResource();
-					while (resource != null && resource.getType() != IResource.ROOT && !handledResources.contains(resource)) {
-						handledResources.add(resource);
-						resource = resource.getParent();
-					}
+		for (String markerType : markerTypes) {
+			IMarkerDelta[] markerDeltas = event.findMarkerDeltas(markerType, true);
+			for (IMarkerDelta delta : markerDeltas) {
+				IResource resource = delta.getResource();
+				while (resource != null && resource.getType() != IResource.ROOT && !handledResources.contains(resource)) {
+					handledResources.add(resource);
+					resource = resource.getParent();
 				}
 			}
+		}
 
 		if (!handledResources.isEmpty()) {
 			final IResource[] resources = handledResources.toArray(new IResource[handledResources.size()]);
-		    updateLabels(resources);
+			updateLabels(resources);
 		}
 	}
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,7 +29,14 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -210,8 +220,7 @@ public class CompareContentViewerSwitchingPane extends CompareViewerSwitchingPan
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// Add others
-		for (int i = 0; i < vd.length; i++) {
-			final ViewerDescriptor vdi = vd[i];
+		for (ViewerDescriptor vdi : vd) {
 			label = vdi.getLabel();
 			if (label == null || label.isEmpty()) {
 				String l = CompareUIPlugin.getDefault().findContentTypeNameOrType((ICompareInput) getInput(),

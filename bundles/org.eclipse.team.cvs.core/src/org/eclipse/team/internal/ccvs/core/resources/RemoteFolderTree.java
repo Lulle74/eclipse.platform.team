@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -61,14 +64,11 @@ public class RemoteFolderTree extends RemoteFolder  {
 		super.setChildren(children);
 	}
 	
-	/*
-	 * @see ICVSFolder#acceptChildren(ICVSResourceVisitor)
-	 */
 	public void acceptChildren(ICVSResourceVisitor visitor) throws CVSException {
 		ICVSRemoteResource[] children = getChildren();
 		if (children == null) return;
-		for (int i=0; i<children.length; i++) {
-			((ICVSResource)children[i]).accept(visitor);
+		for (ICVSRemoteResource c : children) {
+			((ICVSResource) c).accept(visitor);
 		}
 	}
 }

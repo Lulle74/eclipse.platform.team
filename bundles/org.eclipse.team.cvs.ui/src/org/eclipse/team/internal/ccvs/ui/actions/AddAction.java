@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,21 +30,19 @@ import org.eclipse.team.internal.ccvs.ui.wizards.AddWizard;
  * container is selected, its children are recursively added.
  */
 public class AddAction extends WorkspaceTraversalAction {
-    
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#execute(org.eclipse.jface.action.IAction)
-	 */
+	
+	@Override
 	public void execute(IAction action) throws InterruptedException, InvocationTargetException {
-        if (!promptForAddOfIgnored()) return;
-        if (!promptForAdd()) return;
-        AddOperation op = new AddOperation(getTargetPart(), getCVSResourceMappings());
-        AddWizard.run(getShell(), op);
+		if (!promptForAddOfIgnored()) return;
+		if (!promptForAdd()) return;
+		AddOperation op = new AddOperation(getTargetPart(), getCVSResourceMappings());
+		AddWizard.run(getShell(), op);
 	}
 
 	/*
 	 * Prompt the user to avoid accidental adding a resource to version control
 	 */
-    private boolean promptForAdd() {
+	private boolean promptForAdd() {
 		return MessageDialog.openQuestion(getShell(), 
 				CVSUIMessages.AddAction_confirmAddingResourcesTitle,
 				CVSUIMessages.AddAction_confirmAddingResourcesMessage);
@@ -51,12 +52,12 @@ public class AddAction extends WorkspaceTraversalAction {
 	 * Prompt whether explicitly selected ignored resources should be added
 	 */
 	private boolean promptForAddOfIgnored() {
-	    // Prompt if any of the traversal roots are ignored
-	    // TODO: What about non-root resources that are part of the model but would be ignored?
+		// Prompt if any of the traversal roots are ignored
+		// TODO: What about non-root resources that are part of the model but would be ignored?
 		IResource[] resources = getSelectedResourcesWithOverlap();
 		boolean prompt = false;
-		for (int i = 0; i < resources.length; i++) {
-			ICVSResource resource = getCVSResourceFor(resources[i]);
+		for (IResource r : resources) {
+			ICVSResource resource = getCVSResourceFor(r);
 			try {
 				if (resource.isIgnored()) {
 					prompt = true;
@@ -72,30 +73,22 @@ public class AddAction extends WorkspaceTraversalAction {
 		return true;
 	}
 	
-    /**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForManagedResources()
-	 */
+	@Override
 	protected boolean isEnabledForManagedResources() {
 		return false;
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForUnmanagedResources()
-	 */
+	@Override
 	protected boolean isEnabledForUnmanagedResources() {
 		return true;
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForIgnoredResources()
-	 */
+	@Override
 	protected boolean isEnabledForIgnoredResources() {
 		return true;
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForCVSResource(org.eclipse.team.internal.ccvs.core.ICVSResource)
-	 */
+	@Override
 	protected boolean isEnabledForCVSResource(ICVSResource cvsResource) throws CVSException {
 		// Add to version control should never be enabled for linked resources
 		IResource resource = cvsResource.getIResource();
@@ -103,9 +96,7 @@ public class AddAction extends WorkspaceTraversalAction {
 		return super.isEnabledForCVSResource(cvsResource);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#getId()
-	 */
+	@Override
 	public String getId() {
 		return ICVSUIConstants.CMD_ADD;
 	}

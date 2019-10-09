@@ -1,27 +1,46 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.mapping.provider;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceMappingContext;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.team.core.mapping.ISynchronizationScope;
 import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
 import org.eclipse.team.core.subscribers.SubscriberScopeManager;
 import org.eclipse.team.internal.core.Policy;
-import org.eclipse.team.internal.core.mapping.*;
+import org.eclipse.team.internal.core.mapping.CompoundResourceTraversal;
+import org.eclipse.team.internal.core.mapping.ResourceMappingScope;
+import org.eclipse.team.internal.core.mapping.ScopeChangeEvent;
+import org.eclipse.team.internal.core.mapping.ScopeManagerEventHandler;
 
 /**
  * Class for translating a set of <code>ResourceMapping</code> objects
@@ -81,8 +100,7 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 		Set<ResourceMapping> result = new HashSet<>();
 		IModelProviderDescriptor[] descriptors = ModelProvider
 				.getModelProviderDescriptors();
-		for (int i = 0; i < descriptors.length; i++) {
-			IModelProviderDescriptor descriptor = descriptors[i];
+		for (IModelProviderDescriptor descriptor : descriptors) {
 			ResourceMapping[] mappings = getMappings(descriptor, traversals,
 					context, monitor);
 			result.addAll(Arrays.asList(mappings));
@@ -135,8 +153,7 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 	public ISchedulingRule getSchedulingRule() {
 		Set<IProject> projects = new HashSet<>();
 		ResourceMapping[] mappings = scope.getInputMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			Object modelObject = mapping.getModelObject();
 			if (modelObject instanceof IResource) {
 				IResource resource = (IResource) modelObject;
@@ -158,12 +175,8 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 	@Override
 	public void initialize(
 			IProgressMonitor monitor) throws CoreException {
-		ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				internalPrepareContext(monitor);
-			}
-		}, getSchedulingRule(), IResource.NONE, monitor);
+		ResourcesPlugin.getWorkspace().run((IWorkspaceRunnable) monitor1 -> internalPrepareContext(monitor1),
+				getSchedulingRule(), IResource.NONE, monitor);
 	}
 
 	@Override
@@ -171,12 +184,8 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 		// We need to lock the workspace when building the scope
 		final ResourceTraversal[][] traversals = new ResourceTraversal[][] { new ResourceTraversal[0] };
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		workspace.run(new IWorkspaceRunnable() {
-			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				traversals[0] = internalRefreshScope(mappings, true, monitor);
-			}
-		}, getSchedulingRule(), IResource.NONE, monitor);
+		workspace.run((IWorkspaceRunnable) monitor1 -> traversals[0] = internalRefreshScope(mappings, true, monitor1),
+				getSchedulingRule(), IResource.NONE, monitor);
 		return traversals[0];
 	}
 
@@ -219,8 +228,7 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 		ScopeChangeEvent change = new ScopeChangeEvent(scope);
 		CompoundResourceTraversal refreshTraversals = new CompoundResourceTraversal();
 		CompoundResourceTraversal removedTraversals = new CompoundResourceTraversal();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			ResourceTraversal[] previousTraversals = scope.getTraversals(mapping);
 			ResourceTraversal[] mappingTraversals = mapping.getTraversals(
 					context, Policy.subMonitorFor(monitor, 100));
@@ -279,8 +287,7 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 
 	private ResourceMapping findAncestor(ResourceMapping mapping) {
 		ResourceMapping[] mappings = scope.getMappings(mapping.getModelProviderId());
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping m = mappings[i];
+		for (ResourceMapping m : mappings) {
 			if (m.contains(mapping)) {
 				return m;
 			}
@@ -379,8 +386,7 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 			IProgressMonitor monitor) throws CoreException {
 		CompoundResourceTraversal result = new CompoundResourceTraversal();
 		ResourceMappingContext context = this.context;
-		for (int i = 0; i < targetMappings.length; i++) {
-			ResourceMapping mapping = targetMappings[i];
+		for (ResourceMapping mapping : targetMappings) {
 			if (scope.getTraversals(mapping) == null) {
 				ResourceTraversal[] traversals = mapping.getTraversals(context,
 						Policy.subMonitorFor(monitor, 100));
@@ -411,12 +417,8 @@ public class SynchronizationScopeManager extends PlatformObject implements ISync
 		ResourceMapping[] mappings = scope.getMappings();
 		if (inputMappings.length == mappings.length) {
 			Set<ResourceMapping> testSet = new HashSet<>();
-			for (int i = 0; i < mappings.length; i++) {
-				ResourceMapping mapping = mappings[i];
-				testSet.add(mapping);
-			}
-			for (int i = 0; i < inputMappings.length; i++) {
-				ResourceMapping mapping = inputMappings[i];
+			Collections.addAll(testSet, mappings);
+			for (ResourceMapping mapping : inputMappings) {
 				if (!testSet.contains(mapping)) {
 					return true;
 				}

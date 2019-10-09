@@ -1,22 +1,31 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.importing;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.RepositoryProviderType;
 import org.eclipse.team.core.ScmUrlImportDescription;
-import org.eclipse.team.core.importing.provisional.*;
+import org.eclipse.team.core.importing.provisional.BundleImporterDelegate;
+import org.eclipse.team.core.importing.provisional.IBundleImporter;
+import org.eclipse.team.core.importing.provisional.IBundleImporterDelegate;
 import org.eclipse.team.internal.core.TeamPlugin;
 
 /**
@@ -64,8 +73,8 @@ public class BundleImporterExtension implements IBundleImporter {
 					if (supportedValues == null) {
 						IConfigurationElement[] supported = element.getChildren("supports"); //$NON-NLS-1$
 						supportedValues = new HashSet<>(supported.length);
-						for (int i = 0; i < supported.length; i++) {
-							supportedValues.add(supported[i].getAttribute("prefix")); //$NON-NLS-1$
+						for (IConfigurationElement s : supported) {
+							supportedValues.add(s.getAttribute("prefix")); //$NON-NLS-1$
 						}
 					}
 					return supportedValues;

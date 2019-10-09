@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,8 +16,6 @@ package org.eclipse.compare.examples.xml;
 import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -81,12 +82,7 @@ public class XMLCompareEditCopyIdMapDialog extends StatusDialog {
 
 		fIdMapText= new Text(inner, SWT.BORDER);
 		fIdMapText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fIdMapText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e){
-				doValidation();
-			}
-		});
+		fIdMapText.addModifyListener(e -> doValidation());
 
 		fIdMapText.setFocus();
 		

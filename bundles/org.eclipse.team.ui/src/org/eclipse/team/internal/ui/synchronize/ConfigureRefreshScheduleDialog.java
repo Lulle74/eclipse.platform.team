@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,9 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.dialogs.DetailsDialog;
 
 /**
@@ -32,9 +37,6 @@ public class ConfigureRefreshScheduleDialog extends DetailsDialog {
 		this.schedule = schedule;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
-	 */
 	@Override
 	protected void createMainDialogArea(Composite parent) {
 		IPageValidator validator = new IPageValidator() {
@@ -48,40 +50,28 @@ public class ConfigureRefreshScheduleDialog extends DetailsDialog {
 		Dialog.applyDialogFont(parent);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#okPressed()
-	 */
 	@Override
 	protected void okPressed() {
 		scheduleComposite.saveValues();
 		super.okPressed();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#includeDetailsButton()
-	 */
 	@Override
 	protected boolean includeDetailsButton() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#createDropDownDialogArea(org.eclipse.swt.widgets.Composite)
-	 */
 	@Override
 	protected Composite createDropDownDialogArea(Composite parent) {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#updateEnablements()
-	 */
 	@Override
 	protected void updateEnablements() {
 	}
 
-    @Override
+	@Override
 	protected String getHelpContextId() {
-        return IHelpContextIds.CONFIGURE_REFRESH_SCHEDULE_DIALOG;
-    }
+		return IHelpContextIds.CONFIGURE_REFRESH_SCHEDULE_DIALOG;
+	}
 }

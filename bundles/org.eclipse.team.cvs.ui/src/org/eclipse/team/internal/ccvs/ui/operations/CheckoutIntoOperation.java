@@ -1,19 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.operations;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -27,7 +27,7 @@ import org.eclipse.team.internal.ccvs.core.client.Command.LocalOption;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.resources.EclipseSynchronizer;
 import org.eclipse.team.internal.ccvs.core.syncinfo.FolderSyncInfo;
-import org.eclipse.team.internal.ccvs.ui.*;
+import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
 import org.eclipse.team.internal.ccvs.ui.Policy;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -61,9 +61,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 		this.localFolderName = localFolder.getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CheckoutOperation#getTaskName()
-	 */
+	@Override
 	protected String getTaskName() {
 		ICVSRemoteFolder[] remoteFolders = getRemoteFolders();
 		String localFolderName = ""; //$NON-NLS-1$
@@ -85,9 +83,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 		return recursive;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CheckoutOperation#checkout(org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus checkout(final ICVSRemoteFolder folder, IProgressMonitor monitor) throws CVSException {
 		final IStatus[] result = new IStatus[] { null };
 		try {
@@ -97,32 +93,25 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			// orphaned (i.e. unmanaged) subtrees and we will
 			// purposely create some which we subsequently manage
 			// from their parent (see manageFolders())
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					result[0] = checkout(folder, getLocalFolder(), isRecursive(), monitor);
-				}
-			}, getSchedulingRule(), 0, monitor);
+			ResourcesPlugin.getWorkspace().run((IWorkspaceRunnable) monitor1 -> result[0] = checkout(folder,
+					getLocalFolder(), isRecursive(), monitor1), getSchedulingRule(), 0, monitor);
 		} catch (CoreException e) {
 			result[0] = CVSException.wrapException(e).getStatus();
 		}
 		return result[0];
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CheckoutOperation#checkout(org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void checkout(final ICVSRemoteFolder[] folders, IProgressMonitor monitor) throws CVSException {
 		// Batch sync info changes with the CVS synchronizer to optimize cache writing
-		EclipseSynchronizer.getInstance().run(getSchedulingRule(), new ICVSRunnable() {
-			public void run(IProgressMonitor monitor) throws CVSException {
-				monitor.beginTask(null, 100);
-				try {
-					//	Obtain a scheduling rule on the projects were about to overwrite
-					CheckoutIntoOperation.super.checkout(folders, Policy.subMonitorFor(monitor, 90));
-					refreshRoot(getLocalRoot(getLocalFolder()), Policy.subMonitorFor(monitor, 10));
-				} finally {
-					monitor.done();
-				}
+		EclipseSynchronizer.getInstance().run(getSchedulingRule(), monitor1 -> {
+			monitor1.beginTask(null, 100);
+			try {
+				// Obtain a scheduling rule on the projects were about to overwrite
+				CheckoutIntoOperation.super.checkout(folders, Policy.subMonitorFor(monitor1, 90));
+				refreshRoot(getLocalRoot(getLocalFolder()), Policy.subMonitorFor(monitor1, 10));
+			} finally {
+				monitor1.done();
 			}
 		}, Policy.monitorFor(monitor));
 	}
@@ -133,7 +122,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 	 * could expand to multiple local folders witinb the given parent folder.
 	 */
 	private ICVSFolder[] prepareLocalFolders(Session session, ICVSRemoteFolder remoteFolder, ICVSFolder parentFolder, String localFolderName, IProgressMonitor monitor) throws CVSException {
-		Set targetFolderSet = new HashSet();
+		Set<ICVSFolder> targetFolderSet = new HashSet<>();
 		monitor.beginTask(null, 30);
 		if (localFolderName == null) {
 			
@@ -146,8 +135,8 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			
 			// Convert the module expansions to target folders
 			String[] expansions = session.getModuleExpansions();
-			for (int j = 0; j < expansions.length; j++) {
-				String childPath = new Path(null, expansions[j]).segment(0);
+			for (String expansion : expansions) {
+				String childPath = new Path(null, expansion).segment(0);
 				ICVSResource resource = parentFolder.getChild(childPath);
 				if (resource != null && !resource.isFolder()) {
 					// The target folder conflicts with an existing file
@@ -161,7 +150,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			targetFolderSet.add(parentFolder.getFolder(localFolderName));
 		}
 		
-		final ICVSFolder[] targetFolders = (ICVSFolder[]) targetFolderSet.toArray(new ICVSFolder[targetFolderSet.size()]);
+		final ICVSFolder[] targetFolders = targetFolderSet.toArray(new ICVSFolder[targetFolderSet.size()]);
 		
 		// Ensure that the checkout will not conflict with existing resources
 		IStatus status = validateTargetFolders(remoteFolder, targetFolders, Policy.subMonitorFor(monitor, 10));
@@ -185,8 +174,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 	 * Ensure that the new folders will not conflict with existing folders (even those that are pruned).
 	 */
 	private IStatus validateTargetFolders(ICVSRemoteFolder remoteFolder, ICVSFolder[] targetFolders, IProgressMonitor monitor) throws CVSException {
-		for (int i = 0; i < targetFolders.length; i++) {
-			ICVSFolder targetFolder = targetFolders[i];
+		for (ICVSFolder targetFolder : targetFolders) {
 			FolderSyncInfo localInfo = targetFolder.getFolderSyncInfo();
 			FolderSyncInfo remoteInfo = remoteFolder.getFolderSyncInfo();
 			
@@ -249,9 +237,11 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 		ICVSFolder cvsFolder = CVSWorkspaceRoot.getCVSFolderFor(root);
 		try {
 			cvsFolder.accept(new ICVSResourceVisitor() {
+				@Override
 				public void visitFile(ICVSFile file) throws CVSException {
 					// do nothing
 				}
+				@Override
 				public void visitFolder(ICVSFolder folder) throws CVSException {
 					if (!folder.isCVSFolder()) return;
 					IResource resource = folder.getIResource();
@@ -259,10 +249,10 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 					FolderSyncInfo info = folder.getFolderSyncInfo();
 					if (info.isSameMapping(remoteInfo)) {
 						throw new CVSException(NLS.bind(CVSUIMessages.CheckoutIntoOperation_mappingAlreadyExists, (new Object[] {
-                        	remoteFolder.getName(), 
-                        	targetFolder.getIResource().getFullPath().toString(),
-                        	resource.getFullPath().toString()
-                        })));
+							remoteFolder.getName(), 
+							targetFolder.getIResource().getFullPath().toString(),
+							resource.getFullPath().toString()
+						})));
 					}
 					folder.acceptChildren(this);
 				}
@@ -283,15 +273,13 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 		if (targetFolders.length > 1) {
 			setInvolvesMultipleResources(true);
 		}
-		for (int i=0;i<targetFolders.length;i++) {
-			ICVSFolder targetFolder = targetFolders[i];
+		for (ICVSFolder targetFolder : targetFolders) {
 			if (needsPromptForOverwrite(targetFolder, Policy.subMonitorFor(monitor, 50)) && !promptToOverwrite(targetFolder)) {
 				return new CVSStatus(IStatus.INFO, NLS.bind(CVSUIMessages.CheckoutIntoOperation_cancelled, new String[] { remoteFolder.getName() })); 
 			}
 		}
-		
-		for (int i = 0; i < targetFolders.length; i++) {
-			IStatus status = scrubFolder(targetFolders[i], Policy.subMonitorFor(monitor, 50));
+		for (ICVSFolder targetFolder : targetFolders) {
+			IStatus status = scrubFolder(targetFolder, Policy.subMonitorFor(monitor, 50));
 			if (!status.isOK()) return status;
 		}
 		monitor.done();
@@ -341,7 +329,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			}
 			
 			// Add recurse option
-			List localOptions = new ArrayList();
+			List<LocalOption> localOptions = new ArrayList<>();
 			if (!recurse)
 				localOptions.add(Command.DO_NOT_RECURSE);
 			if (localName != null) {
@@ -362,7 +350,7 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			// Perform the checkout
 			IStatus status = Command.CHECKOUT.execute(session,
 				Command.NO_GLOBAL_OPTIONS,
-				(LocalOption[])localOptions.toArray(new LocalOption[localOptions.size()]),
+				localOptions.toArray(new LocalOption[localOptions.size()]),
 				new String[] { remoteFolder.getRepositoryRelativePath() },
 				null,
 				Policy.subMonitorFor(monitor, 80));
@@ -380,8 +368,8 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 	}
 
 	private void manageFolders(ICVSFolder[] targetFolders, String root) throws CVSException {
-		for (int i = 0; i < targetFolders.length; i++) {
-			manageFolder(targetFolders[i], root);
+		for (ICVSFolder targetFolder : targetFolders) {
+			manageFolder(targetFolder, root);
 		}
 	}
 	
@@ -422,16 +410,14 @@ public class CheckoutIntoOperation extends CheckoutOperation {
 			}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#getSchedulingRule()
-	 */
+	@Override
 	protected ISchedulingRule getSchedulingRule() {
 		//use the modfiy rule for the time being
 		//TODO: Just lock the project not the entire workspace (so can't use modifyRule)
 		//since the project already exists 
-		 IProject tempProject = getLocalFolder().getIResource().getProject();
-		 IResourceRuleFactory ruleFactory = ResourcesPlugin.getWorkspace().getRuleFactory();
-		 return ruleFactory.modifyRule(tempProject);
+		IProject tempProject = getLocalFolder().getIResource().getProject();
+		IResourceRuleFactory ruleFactory = ResourcesPlugin.getWorkspace().getRuleFactory();
+		return ruleFactory.modifyRule(tempProject);
 	}
 
 }

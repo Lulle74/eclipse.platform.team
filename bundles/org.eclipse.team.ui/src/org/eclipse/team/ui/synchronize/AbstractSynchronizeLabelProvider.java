@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,19 +21,31 @@ import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.core.synchronize.SyncInfo;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.mapping.ResourceDiffCompareInput;
 import org.eclipse.team.internal.ui.synchronize.ImageManager;
 import org.eclipse.team.ui.ISharedImages;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.mapping.*;
+import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
+import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
+import org.eclipse.team.ui.mapping.SynchronizationLabelProvider;
 
 /**
  * A label provider wrapper that adds synchronization image and/or text decorations
@@ -42,9 +57,6 @@ public abstract class AbstractSynchronizeLabelProvider implements ILabelProvider
 
 	private ImageManager localImageManager;
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ILabelProvider#getImage(java.lang.Object)
-	 */
 	@Override
 	public Image getImage(Object element) {
 		Image base = getDelegateImage(element);
@@ -134,9 +146,6 @@ public abstract class AbstractSynchronizeLabelProvider implements ILabelProvider
 		return ResourceDiffCompareInput.getCompareKind(node);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ILabelProvider#getText(java.lang.Object)
-	 */
 	@Override
 	public String getText(Object element) {
 		String base = getDelegateText(element);
@@ -183,34 +192,22 @@ public abstract class AbstractSynchronizeLabelProvider implements ILabelProvider
 		return base;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.jface.viewers.ILabelProviderListener)
-	 */
 	@Override
 	public void addListener(ILabelProviderListener listener) {
 		getDelegateLabelProvider().addListener(listener);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#dispose()
-	 */
 	@Override
 	public void dispose() {
 		if (localImageManager != null)
 			localImageManager.dispose();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#isLabelProperty(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		return getDelegateLabelProvider().isLabelProperty(internalGetElement(element), property);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#removeListener(org.eclipse.jface.viewers.ILabelProviderListener)
-	 */
 	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		getDelegateLabelProvider().removeListener(listener);
@@ -322,8 +319,7 @@ public abstract class AbstractSynchronizeLabelProvider implements ILabelProvider
 		if (mapping != null) {
 			try {
 				IMarker[] markers = mapping.findMarkers(IMarker.PROBLEM, true, null);
-				for (int i = 0; i < markers.length; i++) {
-					IMarker marker = markers[i];
+				for (IMarker marker : markers) {
 					Integer severity = (Integer) marker.getAttribute(IMarker.SEVERITY);
 					if (severity != null) {
 						if (severity.intValue() == IMarker.SEVERITY_ERROR) {

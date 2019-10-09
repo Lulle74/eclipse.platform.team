@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,14 +15,23 @@ package org.eclipse.team.ui.synchronize;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceMappingContext;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.RepositoryProviderType;
 import org.eclipse.team.core.diff.IDiff;
-import org.eclipse.team.core.subscribers.*;
+import org.eclipse.team.core.subscribers.ISubscriberChangeEvent;
+import org.eclipse.team.core.subscribers.ISubscriberChangeListener;
+import org.eclipse.team.core.subscribers.Subscriber;
+import org.eclipse.team.core.subscribers.SubscriberResourceMappingContext;
 import org.eclipse.team.internal.ui.Policy;
 import org.eclipse.team.internal.ui.Utils;
-import org.eclipse.team.ui.mapping.*;
+import org.eclipse.team.ui.mapping.ISynchronizationCompareAdapter;
+import org.eclipse.team.ui.mapping.ITeamStateDescription;
+import org.eclipse.team.ui.mapping.ITeamStateProvider;
 
 /**
  * A team state provider that makes use of a {@link Subscriber} to determine the synchronization
@@ -52,11 +64,9 @@ public class SubscriberTeamStateProvider extends TeamStateProvider implements IS
 		if (mapping != null) {
 			ResourceTraversal[] traversals = mapping.getTraversals(
 					ResourceMappingContext.LOCAL_CONTEXT, null);
-			for (int i = 0; i < traversals.length; i++) {
-				ResourceTraversal traversal = traversals[i];
+			for (ResourceTraversal traversal : traversals) {
 				IResource[] resources = traversal.getResources();
-				for (int j = 0; j < resources.length; j++) {
-					IResource resource = resources[j];
+				for (IResource resource : resources) {
 					if (getSubscriber().isSupervised(resource))
 						return true;
 				}
@@ -98,8 +108,7 @@ public class SubscriberTeamStateProvider extends TeamStateProvider implements IS
 			return getSubscriber().getState(mapping, stateMask, monitor);
 		} catch (CoreException e) {
 			IProject[] projects = mapping.getProjects();
-			for (int i = 0; i < projects.length; i++) {
-				IProject project = projects[i];
+			for (IProject project : projects) {
 				// Only through the exception if the project for the mapping
 				// is accessible
 				if (project.isAccessible()) {

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -36,13 +39,10 @@ public class WorkspaceUpdateOperation extends SafeUpdateOperation {
 		super(configuration, elements, promptBeforeUpdate);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#runUpdateDeletions(org.eclipse.team.core.synchronize.SyncInfo[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void runUpdateDeletions(SyncInfo[] nodes, IProgressMonitor monitor) throws TeamException {
 		monitor.beginTask(null, nodes.length * 100);
-		for (int i = 0; i < nodes.length; i++) {
-			SyncInfo node = nodes[i];
+		for (SyncInfo node : nodes) {
 			unmanage(node, Policy.subMonitorFor(monitor, 50));
 			deleteAndKeepHistory(node.getLocal(), Policy.subMonitorFor(monitor, 50));
 		}
@@ -50,16 +50,12 @@ public class WorkspaceUpdateOperation extends SafeUpdateOperation {
 		monitor.done();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#runSafeUpdate(org.eclipse.team.core.synchronize.SyncInfo[], org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void runSafeUpdate(IProject project, SyncInfo[] nodes, IProgressMonitor monitor) throws TeamException {
 		safeUpdate(project, getIResourcesFrom(nodes), new LocalOption[] { Command.DO_NOT_RECURSE }, monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#overwriteUpdate(org.eclipse.team.core.synchronize.SyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void overwriteUpdate(SyncInfoSet syncSet, IProgressMonitor monitor) throws TeamException {
 		try {
 			new ReplaceOperation(getPart(), syncSet.getResources(), null /* tag */, false /* recurse */)
@@ -73,9 +69,7 @@ public class WorkspaceUpdateOperation extends SafeUpdateOperation {
 	}
 	
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#updated(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	protected void updated(IResource[] resources) throws TeamException {
 		// Do nothing
 	}

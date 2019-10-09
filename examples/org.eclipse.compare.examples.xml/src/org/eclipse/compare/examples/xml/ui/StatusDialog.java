@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -85,9 +88,6 @@ public abstract class StatusDialog extends Dialog {
 			fOkButton.setEnabled(!status.matches(IStatus.ERROR));
 	}
 	
-	/* 
-	 * @see Window#create(Shell)
-	 */
 	@Override
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
@@ -95,9 +95,6 @@ public abstract class StatusDialog extends Dialog {
 			shell.setText(fTitle);
 	}
 
-	/*
-	 * @see Window#create()
-	 */	
 	@Override
 	public void create() {
 		super.create();
@@ -112,18 +109,12 @@ public abstract class StatusDialog extends Dialog {
 		}
 	}
 
-	/*
-	 * @see Dialog#createButtonsForButtonBar(Composite)
-	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		fOkButton= createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 	
-	/*
-	 * @see Dialog#createButtonBar(Composite)
-	 */				
 	@Override
 	protected Control createButtonBar(Composite parent) {
 		Composite composite= new Composite(parent, SWT.NULL);

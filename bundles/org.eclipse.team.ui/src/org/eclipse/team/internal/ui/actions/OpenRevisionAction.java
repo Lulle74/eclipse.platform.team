@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -45,8 +48,7 @@ public class OpenRevisionAction extends BaseSelectionListenerAction {
 
 		Object[] objArray = structSel.toArray();
 
-		for (int i = 0; i < objArray.length; i++) {
-			Object tempRevision = objArray[i];
+		for (Object tempRevision : objArray) {
 			//If not a revision, don't try opening
 			if (tempRevision instanceof AbstractHistoryCategory)
 				continue;
@@ -72,7 +74,6 @@ public class OpenRevisionAction extends BaseSelectionListenerAction {
 				} catch (InterruptedException e) {
 				}
 			}
-
 		}
 	}
 
@@ -89,12 +90,12 @@ public class OpenRevisionAction extends BaseSelectionListenerAction {
 		if (objArray.length == 0)
 			return false;
 
-		for (int i = 0; i < objArray.length; i++) {
+		for (Object obj : objArray) {
 			//Don't bother showing if this a category
-			if (objArray[i] instanceof AbstractHistoryCategory)
+			if (obj instanceof AbstractHistoryCategory) {
 				return false;
-
-			IFileRevision revision = (IFileRevision) objArray[i];
+			}
+			IFileRevision revision = (IFileRevision) obj;
 			//check to see if any of the selected revisions are deleted revisions
 			if (revision != null && !revision.exists())
 				return false;

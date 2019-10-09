@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -68,6 +71,7 @@ public class ModuleTest extends EclipseTest {
 	
 	private static RemoteModule[] remoteModules;
 	
+	@Override
 	public void setUp() throws TeamException, CoreException, IOException {
 		if (isSetUp) return;
 		
@@ -78,11 +82,8 @@ public class ModuleTest extends EclipseTest {
 		waitMsec(1000);
 
 		IProject cvsroot = checkoutProject(null, "CVSROOT", null);
-		InputStream in = url.openStream();
-		try {
+		try (InputStream in = url.openStream()) {
 			cvsroot.getFile("modules").setContents(in, false, false, DEFAULT_MONITOR);
-		} finally {
-			in.close();
 		}
 		commitProject(cvsroot);
 		
@@ -267,8 +268,7 @@ public class ModuleTest extends EclipseTest {
 	}
 	
 	public RemoteModule getRemoteModule(String moduleName) {
-		for (int i = 0; i < remoteModules.length; i++) {
-			RemoteModule module = remoteModules[i];
+		for (RemoteModule module : remoteModules) {
 			// XXX shouldn't be getName
 			if (module.getName().equals(moduleName))
 				return module;

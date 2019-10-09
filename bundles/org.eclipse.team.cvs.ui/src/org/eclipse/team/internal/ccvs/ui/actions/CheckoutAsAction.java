@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,9 +25,7 @@ import org.eclipse.team.internal.ccvs.ui.wizards.CheckoutAsWizard;
 
 public class CheckoutAsAction extends CVSAction {
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#execute(org.eclipse.jface.action.IAction)
-	 */
+	@Override
 	public void execute(IAction action) throws InvocationTargetException, InterruptedException {
 		ICVSRemoteFolder[] folders = getSelectedRemoteFolders();
 		boolean withName = CVSUIPlugin.getPlugin().isUseProjectNameOnCheckout();
@@ -43,9 +44,7 @@ public class CheckoutAsAction extends CVSAction {
 		dialog.open();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.actions.TeamAction#isEnabled()
-	 */
+	@Override
 	public boolean isEnabled() {
 		return getSelectedRemoteFolders().length > 0;
 	}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,10 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.team.core.subscribers.Subscriber;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoFilter;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
+import org.eclipse.team.core.synchronize.SyncInfoTree;
 import org.eclipse.team.internal.core.Policy;
 
 /**
@@ -45,7 +51,7 @@ public final class SubscriberSyncInfoCollector extends SubscriberResourceCollect
 	 * @param roots the roots of the out-of-sync resources to be collected
 	 */
 	public SubscriberSyncInfoCollector(Subscriber subscriber, IResource[] roots) {
-	    super(subscriber);
+		super(subscriber);
 		this.roots = roots;
 		this.eventHandler = new SubscriberSyncInfoEventHandler(subscriber, roots);
 		this.subscriberInput = eventHandler.getSyncSetInput();
@@ -190,18 +196,18 @@ public final class SubscriberSyncInfoCollector extends SubscriberResourceCollect
 		reset();
 	}
 
-    @Override
+	@Override
 	protected boolean hasMembers(IResource resource) {
-        return getSubscriberSyncInfoSet().hasMembers(resource);
-    }
+		return getSubscriberSyncInfoSet().hasMembers(resource);
+	}
 
-    @Override
+	@Override
 	protected void remove(IResource resource) {
-        eventHandler.remove(resource);
-    }
+		eventHandler.remove(resource);
+	}
 
-    @Override
+	@Override
 	protected void change(IResource resource, int depth) {
-        eventHandler.change(resource, depth);
-    }
+		eventHandler.change(resource, depth);
+	}
 }

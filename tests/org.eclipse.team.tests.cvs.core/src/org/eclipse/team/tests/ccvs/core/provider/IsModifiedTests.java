@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,9 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.util.Util;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ccvs.core.CVSException;
 import org.eclipse.team.internal.ccvs.core.ICVSFile;
@@ -34,17 +43,8 @@ import org.eclipse.team.tests.ccvs.core.CVSTestSetup;
 import org.eclipse.team.tests.ccvs.core.EclipseTest;
 import org.eclipse.team.tests.ccvs.core.TeamCVSTestPlugin;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-
-import org.eclipse.jface.util.Util;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 /**
  * Test isModified on file, folders and projects.
@@ -54,10 +54,10 @@ public class IsModifiedTests extends EclipseTest {
 	Set previouslyModified = new HashSet();
 	Map changedResources = new HashMap();
 	IResourceStateChangeListener listener = new IResourceStateChangeListener() {
+		@Override
 		public void resourceSyncInfoChanged(IResource[] changedResources) {
 			try {
-				for (int i = 0; i < changedResources.length; i++) {
-					IResource resource = changedResources[i];
+				for (IResource resource : changedResources) {
 					ICVSResource cvsResource = CVSWorkspaceRoot.getCVSResourceFor(resource);
 					recordModificationState(cvsResource);
 					recordParents(cvsResource);
@@ -69,15 +69,18 @@ public class IsModifiedTests extends EclipseTest {
 				fail(e.getMessage());
 			}
 		}
+		@Override
 		public void externalSyncInfoChange(IResource[] changedResources) {
 			resourceSyncInfoChanged(changedResources);	
 		}
 		private void recordChildren(ICVSFolder folder) {
 			try {
 				folder.accept(new ICVSResourceVisitor() {
+					@Override
 					public void visitFile(ICVSFile file) throws CVSException {
 						recordModificationState(file);
 					}
+					@Override
 					public void visitFolder(ICVSFolder folder) throws CVSException {
 						recordModificationState(folder);
 						folder.acceptChildren(this);
@@ -95,10 +98,10 @@ public class IsModifiedTests extends EclipseTest {
 		private void recordModificationState(ICVSResource cvsResource) throws CVSException {
 			IsModifiedTests.this.changedResources.put(cvsResource.getIResource(), cvsResource.isModified(null) ? Boolean.TRUE : Boolean.FALSE);
 		}
+		@Override
 		public void resourceModified(IResource[] changedResources) {
 			try {
-				for (int i = 0; i < changedResources.length; i++) {
-					IResource resource = changedResources[i];
+				for (IResource resource : changedResources) {
 					ICVSResource cvsResource = CVSWorkspaceRoot.getCVSResourceFor(resource);
 					IsModifiedTests.this.changedResources.put(resource, cvsResource.isModified(null) ? Boolean.TRUE : Boolean.FALSE);
 					recordParents(cvsResource);
@@ -110,8 +113,10 @@ public class IsModifiedTests extends EclipseTest {
 				fail(e.getMessage());
 			}
 		}
+		@Override
 		public void projectConfigured(IProject project) {
 		}
+		@Override
 		public void projectDeconfigured(IProject project) {
 		}
 	};
@@ -140,9 +145,7 @@ public class IsModifiedTests extends EclipseTest {
 		}
 	}
 
-	/**
-	 * @see junit.framework.TestCase#setUp()
-	 */
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		previouslyModified.clear();
@@ -150,9 +153,7 @@ public class IsModifiedTests extends EclipseTest {
 		ResourceStateChangeListeners.getListener().addResourceStateChangeListener(listener);
 	}
 
-	/**
-	 * @see junit.framework.TestCase#tearDown()
-	 */
+	@Override
 	protected void tearDown() throws Exception {
 		previouslyModified.clear();
 		changedResources.clear();
@@ -166,19 +167,20 @@ public class IsModifiedTests extends EclipseTest {
 	 */
 	private void assertModificationState(IContainer container, String[] resources, final boolean listedResourcesShouldBeModified) throws CVSException {
 		final ICVSFolder rootFolder = CVSWorkspaceRoot.getCVSFolderFor(container);
-		final List resourceList = new ArrayList();
+		final List<Path> resourceList = new ArrayList<>();
 		final Set modifiedResources = new HashSet();
 		if (resources != null) {
-			for (int i = 0; i < resources.length; i++) {
-				String string = resources[i];
+			for (String string : resources) {
 				resourceList.add(new Path(string));
 			}
 		}
 		waitForIgnoreFileHandling();
 		rootFolder.accept(new ICVSResourceVisitor() {
+			@Override
 			public void visitFile(ICVSFile file) throws CVSException {
 				assertModificationState(file);
 			}
+			@Override
 			public void visitFolder(ICVSFolder folder) throws CVSException {
 				// find the deepest mistake
 				folder.acceptChildren(this);
@@ -235,6 +237,7 @@ public class IsModifiedTests extends EclipseTest {
 	 * 
 	 * @see org.eclipse.team.tests.ccvs.core.EclipseTest#createProject(java.lang.String, java.lang.String)
 	 */
+	@Override
 	protected IProject createProject(String prefix, String[] resources) throws CoreException, TeamException {
 		IProject project = super.createProject(prefix, resources);
 		assertModificationState(project, null, true);

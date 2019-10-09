@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,14 +20,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.TeamException;
 
  /**
-  * This interface represents a file in a repository.
-  * Instances of this interface can be used to fetch the contents
-  * of the remote file.
-  * 
-  * In the future, additional information should be available (tags, revisions, etc.)
-  * 
-  * Clients are not expected to implement this interface.
-  */
+ * This interface represents a file in a repository.
+ * Instances of this interface can be used to fetch the contents
+ * of the remote file.
+ * 
+ * In the future, additional information should be available (tags, revisions, etc.)
+ * 
+ * Clients are not expected to implement this interface.
+ */
 public interface ICVSRemoteFile extends ICVSRemoteResource, ICVSFile {
 
 	/**

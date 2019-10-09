@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,8 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.team.core.synchronize.FastSyncInfoFilter;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement;
 import org.eclipse.ui.actions.BaseSelectionListenerAction;
@@ -93,18 +101,18 @@ public abstract class SynchronizeModelAction extends BaseSelectionListenerAction
 		}
 	}
 
-    /**
-     * Create and run the operation for this action. By default, the operation is created
-     * by calling <code>getSubscriberOperation</code> and then run. Subclasses may
-     * override.
-     *
-     * @throws InvocationTargetException
-     * @throws InterruptedException
-     * @since 3.1
-     */
-    protected void runOperation() throws InvocationTargetException, InterruptedException {
-        getSubscriberOperation(configuration, getFilteredDiffElements()).run();
-    }
+	/**
+	 * Create and run the operation for this action. By default, the operation is created
+	 * by calling <code>getSubscriberOperation</code> and then run. Subclasses may
+	 * override.
+	 *
+	 * @throws InvocationTargetException
+	 * @throws InterruptedException
+	 * @since 3.1
+	 */
+	protected void runOperation() throws InvocationTargetException, InterruptedException {
+		getSubscriberOperation(configuration, getFilteredDiffElements()).run();
+	}
 
 	/**
 	 * Return whether dirty editor should be saved before this action is run.
@@ -151,9 +159,6 @@ public abstract class SynchronizeModelAction extends BaseSelectionListenerAction
 		Utils.handle(e);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.actions.BaseSelectionListenerAction#updateSelection(org.eclipse.jface.viewers.IStructuredSelection)
-	 */
 	@Override
 	protected boolean updateSelection(IStructuredSelection selection) {
 		super.updateSelection(selection);
@@ -193,8 +198,7 @@ public abstract class SynchronizeModelAction extends BaseSelectionListenerAction
 	protected final IDiffElement[] getFilteredDiffElements() {
 		IDiffElement[] elements = getSelectedDiffElements();
 		List<IDiffElement> filtered = new ArrayList<>();
-		for (int i = 0; i < elements.length; i++) {
-			IDiffElement e = elements[i];
+		for (IDiffElement e : elements) {
 			if (e instanceof SyncInfoModelElement) {
 				SyncInfo info = ((SyncInfoModelElement) e).getSyncInfo();
 				if (info != null && getSyncInfoFilter().select(info)) {

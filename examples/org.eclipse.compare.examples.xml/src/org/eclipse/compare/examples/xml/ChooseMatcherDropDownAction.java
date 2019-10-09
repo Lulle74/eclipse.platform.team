@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -55,19 +58,19 @@ class ChooseMatcherDropDownAction extends Action implements IMenuCreator {
 
 		Set keySetIdMaps = IdMaps.keySet();
 		Set keySetIdMapsInternal = IdMapsInternal.keySet();
-		ArrayList internalIdMapsAL= new ArrayList();
+		ArrayList<String> internalIdMapsAL= new ArrayList<>();
 		for (Iterator iter_internal = keySetIdMapsInternal.iterator(); iter_internal.hasNext(); ) {
 			String idmap_name = (String)iter_internal.next();
 			internalIdMapsAL.add(idmap_name);
 		}
 		Object[] internalIdMapsA= internalIdMapsAL.toArray();
 		Arrays.sort(internalIdMapsA);
-		for (int i= 0; i < internalIdMapsA.length; i++) {
-			addActionToMenu(menu, new SelectMatcherAction((String)internalIdMapsA[i], fViewer));
+		for (Object internalIdA : internalIdMapsA) {
+			addActionToMenu(menu, new SelectMatcherAction((String) internalIdA, fViewer));
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 
-		ArrayList userIdMapsAL= new ArrayList();
+		ArrayList<String> userIdMapsAL= new ArrayList<>();
 		for (Iterator iter_idmaps = keySetIdMaps.iterator(); iter_idmaps.hasNext(); ) {
 			String idmap_name = (String)iter_idmaps.next();
 			userIdMapsAL.add(idmap_name);
@@ -84,8 +87,8 @@ class ChooseMatcherDropDownAction extends Action implements IMenuCreator {
 
 		Object[] userIdMapsA= userIdMapsAL.toArray();
 		Arrays.sort(userIdMapsA);
-		for (int i= 0; i < userIdMapsA.length; i++) {
-			addActionToMenu(menu, new SelectMatcherAction((String)userIdMapsA[i], fViewer));
+		for (Object userIdA : userIdMapsA) {
+			addActionToMenu(menu, new SelectMatcherAction((String) userIdA, fViewer));
 		}
 		
 		return menu;

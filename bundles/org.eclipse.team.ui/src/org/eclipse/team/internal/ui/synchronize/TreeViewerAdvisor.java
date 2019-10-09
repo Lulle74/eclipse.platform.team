@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,9 +16,20 @@ package org.eclipse.team.internal.ui.synchronize;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IStatusLineManager;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.OpenEvent;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
@@ -23,8 +37,12 @@ import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.actions.StatusLineContributionGroup;
 import org.eclipse.team.internal.ui.synchronize.actions.SyncInfoSetStatusLineContributionGroup;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.dialogs.ContainerCheckedTreeViewer;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.part.ResourceTransfer;
@@ -148,16 +166,16 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 	 * @param configuration
 	 */
 	protected SynchronizeModelManager createModelManager(ISynchronizePageConfiguration configuration) {
-        ISynchronizeParticipant participant = configuration.getParticipant();
-        if (participant instanceof IChangeSetProvider) {
-            IChangeSetProvider provider = (IChangeSetProvider) participant;
-    	    ChangeSetCapability changeSetCapability = provider.getChangeSetCapability();
-            if (changeSetCapability != null) {
-    	        if (changeSetCapability.supportsActiveChangeSets() || changeSetCapability.supportsCheckedInChangeSets()) {
-    	            return new ChangeSetModelManager(configuration);
-    	        }
-    	    }
-        }
+		ISynchronizeParticipant participant = configuration.getParticipant();
+		if (participant instanceof IChangeSetProvider) {
+			IChangeSetProvider provider = (IChangeSetProvider) participant;
+			ChangeSetCapability changeSetCapability = provider.getChangeSetCapability();
+			if (changeSetCapability != null) {
+				if (changeSetCapability.supportsActiveChangeSets() || changeSetCapability.supportsCheckedInChangeSets()) {
+					return new ChangeSetModelManager(configuration);
+				}
+			}
+		}
 		return new HierarchicalModelManager(configuration);
 	}
 
@@ -169,21 +187,15 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 		return modelManager;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.viewers.StructuredViewerAdvisor#initializeViewer(org.eclipse.jface.viewers.StructuredViewer)
-	 */
 	@Override
 	public boolean validateViewer(StructuredViewer viewer) {
 		return viewer instanceof AbstractTreeViewer;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.viewers.StructuredViewerAdvisor#initializeListeners(org.eclipse.jface.viewers.StructuredViewer)
-	 */
 	@Override
 	protected void initializeListeners(final StructuredViewer viewer) {
 		super.initializeListeners(viewer);
-		viewer.addSelectionChangedListener(event -> updateStatusLine((IStructuredSelection) event.getSelection()));
+		viewer.addSelectionChangedListener(event -> updateStatusLine(event.getStructuredSelection()));
 	}
 
 	/* private */ void updateStatusLine(IStructuredSelection selection) {
@@ -228,21 +240,21 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 			viewer.setSorter(modelProvider.getViewerSorter());
 			viewer.setInput(modelRoot);
 			modelProvider.addPropertyChangeListener(event -> {
-			    if (event.getProperty() == ISynchronizeModelProvider.P_VIEWER_SORTER) {
-			        if (viewer != null && !viewer.getControl().isDisposed()) {
-			            viewer.getControl().getDisplay().syncExec(() -> {
-						    if (viewer != null && !viewer.getControl().isDisposed()) {
-						        ViewerSorter newSorter = modelProvider.getViewerSorter();
-						        ViewerSorter oldSorter = viewer.getSorter();
-						        if (newSorter == oldSorter) {
-						            viewer.refresh();
-						        } else {
-						            viewer.setSorter(newSorter);
-						        }
-						    }
+				if (event.getProperty() == ISynchronizeModelProvider.P_VIEWER_SORTER) {
+					if (viewer != null && !viewer.getControl().isDisposed()) {
+						viewer.getControl().getDisplay().syncExec(() -> {
+							if (viewer != null && !viewer.getControl().isDisposed()) {
+								ViewerSorter newSorter = modelProvider.getViewerSorter();
+								ViewerSorter oldSorter = viewer.getSorter();
+								if (newSorter == oldSorter) {
+									viewer.refresh();
+								} else {
+									viewer.setSorter(newSorter);
+								}
+							}
 						});
-			        }
-			    }
+					}
+				}
 			});
 		}
 	}
@@ -259,24 +271,24 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 
 		final DragSourceListener listener = new DragSourceListener() {
 
-            @Override
+			@Override
 			public void dragStart(DragSourceEvent event) {
-				final IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
-                final Object [] array= selection.toArray();
-                event.doit= Utils.getResources(array).length > 0;
+				final IStructuredSelection selection = viewer.getStructuredSelection();
+				final Object [] array= selection.toArray();
+				event.doit= Utils.getResources(array).length > 0;
 			}
 
-            @Override
+			@Override
 			public void dragSetData(DragSourceEvent event) {
 
-                if (ResourceTransfer.getInstance().isSupportedType(event.dataType)) {
-                    final IStructuredSelection selection= (IStructuredSelection)viewer.getSelection();
-                    final Object [] array= selection.toArray();
-                    event.data= Utils.getResources(array);
-                }
-            }
+				if (ResourceTransfer.getInstance().isSupportedType(event.dataType)) {
+					final IStructuredSelection selection= viewer.getStructuredSelection();
+					final Object [] array= selection.toArray();
+					event.data= Utils.getResources(array);
+				}
+			}
 
-            @Override
+			@Override
 			public void dragFinished(DragSourceEvent event) {}
 		};
 
@@ -314,9 +326,6 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 		return new DecoratingColorLabelProvider(provider, decorators);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.synchronize.StructuredViewerAdvisor#dispose()
-	 */
 	@Override
 	public void dispose() {
 		if (statusLine != null) {
@@ -325,9 +334,6 @@ public class TreeViewerAdvisor extends AbstractTreeViewerAdvisor {
 		super.dispose();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.synchronize.StructuredViewerAdvisor#initializeStatusLine(org.eclipse.ui.IActionBars)
-	 */
 	@Override
 	protected void initializeStatusLine(IActionBars actionBars) {
 		statusLine = new SyncInfoSetStatusLineContributionGroup(

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +34,7 @@ public interface ISynchronizeScope {
 
 	/**
 	 * Property used to indicate when the name of the scope has changed.
-     * @since 3.1
+	 * @since 3.1
 	 */
 	public static final String NAME = "prop_name"; //$NON-NLS-1$
 
@@ -55,7 +58,7 @@ public interface ISynchronizeScope {
 	 * Add a property change listener that will get invoked when a
 	 * property of the receiver changes.
 	 *
-	 * @param listener
+	 * @param listener The listener to add.
 	 */
 	public void addPropertyChangeListener(IPropertyChangeListener listener);
 
@@ -63,7 +66,7 @@ public interface ISynchronizeScope {
 	 * Remove a property change listener. Removing an unregistered listener
 	 * has no effect.
 	 *
-	 * @param listener
+	 * @param listener The listener to remove.
 	 */
 	public void removePropertyChangeListener(IPropertyChangeListener listener);
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,9 +19,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.*;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.osgi.util.NLS;
@@ -27,8 +33,13 @@ import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeManager;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantReference;
+import org.eclipse.team.ui.synchronize.ISynchronizeView;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.model.WorkbenchPartLabelProvider;
 
@@ -97,8 +108,7 @@ public class RemoveSynchronizeParticipantAction extends Action {
 		ISynchronizeManager manager = TeamUI.getSynchronizeManager();
 		ISynchronizeParticipantReference[] refs = manager.getSynchronizeParticipants();
 		ArrayList<ISynchronizeParticipant> removals = new ArrayList<>();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			ISynchronizeParticipant p;
 			try {
 				p = reference.getParticipant();
@@ -125,8 +135,8 @@ public class RemoveSynchronizeParticipantAction extends Action {
 	}
 
 	private boolean promptToSave(List dirtyModels) {
-        if (dirtyModels.size() == 1) {
-        	Saveable model = (Saveable) dirtyModels.get(0);
+		if (dirtyModels.size() == 1) {
+			Saveable model = (Saveable) dirtyModels.get(0);
 			String message = NLS.bind(TeamUIMessages.RemoveSynchronizeParticipantAction_2, model.getName());
 			// Show a dialog.
 			String[] buttons = new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL };
@@ -148,35 +158,35 @@ public class RemoveSynchronizeParticipantAction extends Action {
 			case 2: // cancel
 				return false;
 			}
-        } else {
-            ListSelectionDialog dlg = new ListSelectionDialog(
-                    view.getSite().getShell(), dirtyModels,
-                    new ArrayContentProvider(),
-                    new WorkbenchPartLabelProvider(), TeamUIMessages.RemoveSynchronizeParticipantAction_4);
-            dlg.setInitialSelections(dirtyModels.toArray());
-            dlg.setTitle(TeamUIMessages.RemoveSynchronizeParticipantAction_5);
+		} else {
+			ListSelectionDialog dlg = new ListSelectionDialog(
+					view.getSite().getShell(), dirtyModels,
+					new ArrayContentProvider(),
+					new WorkbenchPartLabelProvider(), TeamUIMessages.RemoveSynchronizeParticipantAction_4);
+			dlg.setInitialSelections(dirtyModels.toArray());
+			dlg.setTitle(TeamUIMessages.RemoveSynchronizeParticipantAction_5);
 
-        	int result = dlg.open();
-            //Just return false to prevent the operation continuing
-            if (result == IDialogConstants.CANCEL_ID)
-                return false;
+			int result = dlg.open();
+			//Just return false to prevent the operation continuing
+			if (result == IDialogConstants.CANCEL_ID)
+				return false;
 
-            dirtyModels = Arrays.asList(dlg.getResult());
-        }
+			dirtyModels = Arrays.asList(dlg.getResult());
+		}
 
-	    // If the editor list is empty return.
-	    if (dirtyModels.isEmpty())
-	        return true;
+		// If the editor list is empty return.
+		if (dirtyModels.isEmpty())
+			return true;
 
 		// Create save block.
-	    final List finalModels = dirtyModels;
+		final List finalModels = dirtyModels;
 		IRunnableWithProgress progressOp = monitor -> {
 			monitor.beginTask(null, finalModels.size());
 			for (Iterator i = finalModels.iterator(); i.hasNext();) {
 				Saveable model = (Saveable) i.next();
 				if (model.isDirty()) {
 					try {
-						model.doSave(new SubProgressMonitor(monitor, 1));
+						model.doSave(SubMonitor.convert(monitor, 1));
 					} catch (CoreException e) {
 						ErrorDialog.openError(view.getSite().getShell(), null, e.getMessage(), e.getStatus());
 					}
@@ -200,8 +210,7 @@ public class RemoveSynchronizeParticipantAction extends Action {
 
 	private List<Saveable> getDirtyModels(ISynchronizeParticipant[] participants) {
 		List<Saveable> result = new ArrayList<>();
-		for (int i = 0; i < participants.length; i++) {
-			ISynchronizeParticipant participant = participants[i];
+		for (ISynchronizeParticipant participant : participants) {
 			if (participant instanceof ModelSynchronizeParticipant) {
 				ModelSynchronizeParticipant msp = (ModelSynchronizeParticipant) participant;
 				Saveable s = msp.getActiveSaveable();

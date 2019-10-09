@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -28,7 +31,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
@@ -79,18 +81,20 @@ public class CreatePatchTest extends EclipseTest {
 		return suite(CreatePatchTest.class);
 	}
 
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		testProject = createProject("ApplyPatchTest", new String[] {});
 	}
 
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		testProject.delete(true, null);
 	}
 
 	//TODO Temporary switched off, see Bug 400540
-	public void _testCreateWorkspacePatch() throws Exception {
+	public void _testCreateWorkspacePatch() {
 		copyIntoWorkspace("exp_addition.txt", "addition.txt");
 
 		openGenerateDiffFileWizard(new IResource[] { testProject });
@@ -201,11 +205,9 @@ public class CreatePatchTest extends EclipseTest {
 			assertTrue(totalWaited < 2500);
 		}
 		try {
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					ret[0] = filterStream(file.getContents(), prefixesToIgnore);
-				}
-			}, file, IResource.NONE, null);
+			ResourcesPlugin.getWorkspace().run(
+					(IWorkspaceRunnable) monitor -> ret[0] = filterStream(file.getContents(), prefixesToIgnore), file,
+					IResource.NONE, null);
 		} catch (CoreException e) {
 			fail(e.getMessage());
 		}
@@ -216,7 +218,7 @@ public class CreatePatchTest extends EclipseTest {
 		BufferedReader reader = new BufferedReader(
 				new InputStreamReader(stream));
 		String line = null;
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		try {
 			while ((line = reader.readLine()) != null) {
 				boolean ignore = false;
@@ -301,6 +303,7 @@ public class CreatePatchTest extends EclipseTest {
 							asInputStream("server_response_with_error.txt")));
 
 
+			@Override
 			public String readLine() throws CVSException {
 				try {
 					return serverResp.readLine();
@@ -310,6 +313,7 @@ public class CreatePatchTest extends EclipseTest {
 				}
 			}
 
+			@Override
 			public void close() {
 				try {
 					super.close();
@@ -343,8 +347,8 @@ public class CreatePatchTest extends EclipseTest {
 					children.length > 0);
 			
 			boolean errorLineOccurred = false;
-			for (int i = 0; i < children.length; i++) {
-				if (children[i].getCode() == CVSStatus.ERROR_LINE) {
+			for (IStatus child : children) {
+				if (child.getCode() == CVSStatus.ERROR_LINE) {
 					errorLineOccurred = true;
 					break;
 				}

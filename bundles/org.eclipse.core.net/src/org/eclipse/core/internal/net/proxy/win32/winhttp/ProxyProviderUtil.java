@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2017 compeople AG and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * 	compeople AG (Stefan Liebig) - initial API and implementation
@@ -86,7 +89,7 @@ public final class ProxyProviderUtil {
 			// The scheme of the uri is irrelevant. We add the http://
 			// scheme to enable class URI to parse the stuff
 			String augmentedURI = proxyDefinition.substring(urlStart);
-			if (augmentedURI.indexOf("://") == -1) //$NON-NLS-1$
+			if (!augmentedURI.contains("://")) //$NON-NLS-1$
 				augmentedURI = "http://" + augmentedURI; //$NON-NLS-1$
 			URI uri = new URI(augmentedURI);
 			host = uri.getHost();

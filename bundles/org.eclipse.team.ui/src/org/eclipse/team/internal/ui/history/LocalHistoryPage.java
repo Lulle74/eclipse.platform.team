@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,21 +15,43 @@ package org.eclipse.team.internal.ui.history;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.ITypedElement;
 import org.eclipse.compare.structuremergeviewer.DiffNode;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.OpenStrategy;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -34,19 +59,37 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.TeamStatus;
 import org.eclipse.team.core.history.IFileHistory;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.core.history.LocalFileHistory;
 import org.eclipse.team.internal.core.history.LocalFileRevision;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.actions.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.actions.CompareRevisionAction;
+import org.eclipse.team.internal.ui.actions.OpenRevisionAction;
+import org.eclipse.team.internal.ui.actions.OpenWithMenu;
 import org.eclipse.team.internal.ui.synchronize.LocalResourceTypedElement;
-import org.eclipse.team.ui.history.*;
+import org.eclipse.team.ui.history.HistoryPage;
+import org.eclipse.team.ui.history.IHistoryCompareAdapter;
+import org.eclipse.team.ui.history.IHistoryPageSite;
 import org.eclipse.team.ui.synchronize.SaveableCompareEditorInput;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.OpenAndLinkWithEditorHelper;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.progress.IProgressConstants;
 
@@ -229,7 +272,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 			IResourceDelta root = event.getDelta();
 
 			if (file == null)
-				 return;
+				return;
 
 			IResourceDelta resourceDelta = root.findMember(file.getFullPath());
 			if (resourceDelta != null){
@@ -381,7 +424,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 			}
 
 			//TODO: Doc help
-	        //PlatformUI.getWorkbench().getHelpSystem().setHelp(getContentsAction, );
+			//PlatformUI.getWorkbench().getHelpSystem().setHelp(getContentsAction, );
 
 			// Click Compare action
 			compareAction = createCompareAction();
@@ -390,7 +433,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					compareAction.setCurrentFileRevision(getCurrentFileRevision());
-					compareAction.selectionChanged((IStructuredSelection) treeViewer.getSelection());
+					compareAction.selectionChanged(treeViewer.getStructuredSelection());
 				}
 			});
 
@@ -401,7 +444,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 				treeViewer.getTree().addSelectionListener(new SelectionAdapter(){
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						openAction.selectionChanged((IStructuredSelection) treeViewer.getSelection());
+						openAction.selectionChanged(treeViewer.getStructuredSelection());
 					}
 				});
 
@@ -410,7 +453,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 				treeViewer.getTree().addSelectionListener(new SelectionAdapter(){
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						openWithMenu.selectionChanged((IStructuredSelection) treeViewer.getSelection());
+						openWithMenu.selectionChanged(treeViewer.getStructuredSelection());
 					}
 				});
 			}
@@ -590,11 +633,11 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 		return null;
 	}
 
-    @Override
+	@Override
 	public void dispose() {
-    	shutdown = true;
+		shutdown = true;
 
-    	if (resourceListener != null){
+		if (resourceListener != null){
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceListener);
 			resourceListener = null;
 		}
@@ -615,7 +658,7 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 			currentFileRevision = new LocalFileRevision(file);
 
 		return currentFileRevision;
-    }
+	}
 
 	private Action getContextMenuAction(String title, final boolean needsProgressDialog, final IWorkspaceRunnable action) {
 		return new Action(title) {
@@ -700,9 +743,6 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.history.IHistoryCompareAdapter#prepareInput(org.eclipse.compare.structuremergeviewer.ICompareInput, org.eclipse.compare.CompareConfiguration, org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public void prepareInput(ICompareInput input, CompareConfiguration configuration, IProgressMonitor monitor) {
 		Object right = input.getRight();
@@ -803,16 +843,16 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 	private Object[] mapExpandedElements(AbstractHistoryCategory[] categories, Object[] expandedElements) {
 		// Store the names of the currently expanded categories in a set.
 		HashSet<String> names = new HashSet<>();
-		for (int i = 0; i < expandedElements.length; i++){
-			names.add(((DateHistoryCategory) expandedElements[i]).getName());
+		for (Object expandedElement : expandedElements) {
+			names.add(((DateHistoryCategory) expandedElement).getName());
 		}
 
 		//Go through the new categories and keep track of the previously expanded ones
 		ArrayList<AbstractHistoryCategory> expandable = new ArrayList<>();
-		for (int i = 0; i < categories.length; i++){
+		for (AbstractHistoryCategory category : categories) {
 			// Check to see if this category is currently expanded.
-			if (names.contains(categories[i].getName())){
-				expandable.add(categories[i]);
+			if (names.contains(category.getName())) {
+				expandable.add(category);
 			}
 		}
 		return expandable.toArray(new Object[expandable.size()]);
@@ -838,14 +878,15 @@ public class LocalHistoryPage extends HistoryPage implements IHistoryCompareAdap
 			//Everything before after week is previous
 			tempCategories[3] = new DateHistoryCategory(TeamUIMessages.HistoryPage_Previous, null, monthCal);
 
-			ArrayList<AbstractHistoryCategory> finalCategories = new ArrayList<AbstractHistoryCategory>();
-			for (int i = 0; i<tempCategories.length; i++){
-				tempCategories[i].collectFileRevisions(revisions, false);
-				if (tempCategories[i].hasRevisions())
-					finalCategories.add(tempCategories[i]);
+			ArrayList<AbstractHistoryCategory> finalCategories = new ArrayList<>();
+			for (DateHistoryCategory tempCategory : tempCategories) {
+				tempCategory.collectFileRevisions(revisions, false);
+				if (tempCategory.hasRevisions()) {
+					finalCategories.add(tempCategory);
+				}
 			}
 
-			if (finalCategories.size() == 0){
+			if (finalCategories.isEmpty()){
 				//no revisions found for the current mode, so add a message category
 				finalCategories.add(getErrorMessage());
 			}

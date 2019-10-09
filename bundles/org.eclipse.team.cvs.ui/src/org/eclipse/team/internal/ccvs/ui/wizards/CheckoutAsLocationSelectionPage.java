@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +15,8 @@
 package org.eclipse.team.internal.ccvs.ui.wizards;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -51,12 +55,12 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 	
 	// constants
 	private static final int SIZING_TEXT_FIELD_WIDTH = 250;
-    private static final int COMBO_HISTORY_LENGTH = 5;
+	private static final int COMBO_HISTORY_LENGTH = 5;
 	
-    // store id constants
-    private static final String STORE_PREVIOUS_LOCATIONS =
-        "CheckoutAsLocationSelectionPage.STORE_PREVIOUS_LOCATIONS";//$NON-NLS-1$
-    
+	// store id constants
+	private static final String STORE_PREVIOUS_LOCATIONS =
+		"CheckoutAsLocationSelectionPage.STORE_PREVIOUS_LOCATIONS";//$NON-NLS-1$
+	
 	/**
 	 * @param pageName
 	 * @param title
@@ -99,16 +103,14 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 		return singleProject;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite= createComposite(parent, 1, false);
 		setControl(composite);
 		// required in order to use setButtonLayoutData
 		initializeDialogUnits(composite);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_LOCATION_SELECTION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_LOCATION_SELECTION_PAGE);
 
 		final Button useDefaultsButton =
 			new Button(composite, SWT.CHECK | SWT.RIGHT);
@@ -116,9 +118,10 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 		useDefaultsButton.setSelection(this.useDefaults);
 
 		createUserSpecifiedProjectLocationGroup(composite, !this.useDefaults);
-        initializeValues();
+		initializeValues();
 
 		SelectionListener listener = new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				useDefaults = useDefaultsButton.getSelection();
 				browseButton.setEnabled(!useDefaults);
@@ -129,7 +132,7 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 			}
 		};
 		useDefaultsButton.addSelectionListener(listener);
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 	
 	/**
@@ -164,6 +167,7 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 		this.browseButton = new Button(projectGroup, SWT.PUSH);
 		this.browseButton.setText(CVSUIMessages.CheckoutAsLocationSelectionPage_browseLabel); 
 		this.browseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent event) {
 				handleLocationBrowseButtonPressed();
 			}
@@ -174,85 +178,82 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 		// Set the initial value first before listener
 		// to avoid handling an event during the creation.
 		setLocationForSelection(true);
-		locationPathField.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				setErrorMessage(checkValidLocation());
-			}
-		});
+		locationPathField.addModifyListener(e -> setErrorMessage(checkValidLocation()));
 		return projectGroup;
 	}
 	
-    /**
-     * Initializes states of the controls.
-     */
-    private void initializeValues() {
-        // Set remembered values
-        IDialogSettings settings = getDialogSettings();
-        if (settings != null) {
-            String[] previouseLocations = settings.getArray(STORE_PREVIOUS_LOCATIONS);
-            if (previouseLocations != null) {
-                for (int i = 0; i < previouseLocations.length; i++) {
-                    if(isSingleFolder())
-                        locationPathField.add(new Path(previouseLocations[i]).append(getSingleProject().getName()).toOSString());
-                    else
-                        locationPathField.add(previouseLocations[i]);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Saves the widget values
-     */
-    private void saveWidgetValues() {
-        // Update history
-        IDialogSettings settings = getDialogSettings();
-        if (settings != null) {
-            String[] previouseLocations = settings.getArray(STORE_PREVIOUS_LOCATIONS);
-            if (previouseLocations == null) previouseLocations = new String[0];
-            if(isSingleFolder())
-                previouseLocations = addToHistory(previouseLocations, new Path(locationPathField.getText()).removeLastSegments(1).toOSString());
-            else
-                previouseLocations = addToHistory(previouseLocations, locationPathField.getText());
-            settings.put(STORE_PREVIOUS_LOCATIONS, previouseLocations);
-        }
-    }
+	/**
+	 * Initializes states of the controls.
+	 */
+	private void initializeValues() {
+		// Set remembered values
+		IDialogSettings settings = getDialogSettings();
+		if (settings != null) {
+			String[] previouseLocations = settings.getArray(STORE_PREVIOUS_LOCATIONS);
+			if (previouseLocations != null) {
+				for (String previouseLocation : previouseLocations) {
+					if (isSingleFolder()) {
+						locationPathField.add(new Path(previouseLocation).append(getSingleProject().getName()).toOSString());
+					} else {
+						locationPathField.add(previouseLocation);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Saves the widget values
+	 */
+	private void saveWidgetValues() {
+		// Update history
+		IDialogSettings settings = getDialogSettings();
+		if (settings != null) {
+			String[] previouseLocations = settings.getArray(STORE_PREVIOUS_LOCATIONS);
+			if (previouseLocations == null) previouseLocations = new String[0];
+			if(isSingleFolder())
+				previouseLocations = addToHistory(previouseLocations, new Path(locationPathField.getText()).removeLastSegments(1).toOSString());
+			else
+				previouseLocations = addToHistory(previouseLocations, locationPathField.getText());
+			settings.put(STORE_PREVIOUS_LOCATIONS, previouseLocations);
+		}
+	}
 
-    /**
-     * Adds an entry to a history, while taking care of duplicate history items
-     * and excessively long histories.  The assumption is made that all histories
-     * should be of length <code>CheckoutAsLocationSelectionPage.COMBO_HISTORY_LENGTH</code>.
-     *
-     * @param history the current history
-     * @param newEntry the entry to add to the history
-     * @return the history with the new entry appended
-     */
-    private String[] addToHistory(String[] history, String newEntry) {
-        ArrayList l = new ArrayList(Arrays.asList(history));
-        addToHistory(l, newEntry);
-        String[] r = new String[l.size()];
-        l.toArray(r);
-        return r;
-    }
-    
-    /**
-     * Adds an entry to a history, while taking care of duplicate history items
-     * and excessively long histories.  The assumption is made that all histories
-     * should be of length <code>CheckoutAsLocationSelectionPage.COMBO_HISTORY_LENGTH</code>.
-     *
-     * @param history the current history
-     * @param newEntry the entry to add to the history
-     */
-    private void addToHistory(List history, String newEntry) {
-        history.remove(newEntry);
-        history.add(0,newEntry);
-    
-        // since only one new item was added, we can be over the limit
-        // by at most one item
-        if (history.size() > COMBO_HISTORY_LENGTH)
-            history.remove(COMBO_HISTORY_LENGTH);
-    }
-    
+	/**
+	 * Adds an entry to a history, while taking care of duplicate history items
+	 * and excessively long histories.  The assumption is made that all histories
+	 * should be of length <code>CheckoutAsLocationSelectionPage.COMBO_HISTORY_LENGTH</code>.
+	 *
+	 * @param history the current history
+	 * @param newEntry the entry to add to the history
+	 * @return the history with the new entry appended
+	 */
+	private String[] addToHistory(String[] history, String newEntry) {
+		ArrayList<String> l = new ArrayList<>(Arrays.asList(history));
+		addToHistory(l, newEntry);
+		String[] r = new String[l.size()];
+		l.toArray(r);
+		return r;
+	}
+	
+	/**
+	 * Adds an entry to a history, while taking care of duplicate history items
+	 * and excessively long histories.  The assumption is made that all histories
+	 * should be of length <code>CheckoutAsLocationSelectionPage.COMBO_HISTORY_LENGTH</code>.
+	 *
+	 * @param history the current history
+	 * @param newEntry the entry to add to the history
+	 */
+	private void addToHistory(List<String> history, String newEntry) {
+		history.remove(newEntry);
+		history.add(0,newEntry);
+	
+		// since only one new item was added, we can be over the limit
+		// by at most one item
+		if (history.size() > COMBO_HISTORY_LENGTH)
+			history.remove(COMBO_HISTORY_LENGTH);
+	}
+	
 	/**
 	 * Check if the entry in the widget location is valid. If it is valid return null. Otherwise
 	 * return a string that indicates the problem.
@@ -283,11 +284,11 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 				if (!locationStatus.isOK())
 					return locationStatus.getMessage();
 			} else {
-				for (int i = 0; i < remoteFolders.length; i++) {
-					String projectName = getPreferredFolderName(remoteFolders[i]);
+				for (ICVSRemoteFolder remoteFolder : remoteFolders) {
+					String projectName = getPreferredFolderName(remoteFolder);
 					IStatus locationStatus = ResourcesPlugin.getWorkspace().validateProjectLocation(
-						ResourcesPlugin.getWorkspace().getRoot().getProject(projectName),
-						new Path(targetLocation).append(projectName));
+							ResourcesPlugin.getWorkspace().getRoot().getProject(projectName),
+							new Path(targetLocation).append(projectName));
 					if (!locationStatus.isOK())
 						return locationStatus.getMessage();
 				}
@@ -384,9 +385,9 @@ public class CheckoutAsLocationSelectionPage extends CVSWizardPage {
 	 */
 	public String getTargetLocation() {
 		if (isCustomLocationSpecified()) {
-            saveWidgetValues();
-            return targetLocation;
-        }
+			saveWidgetValues();
+			return targetLocation;
+		}
 		return null;
 	}
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2007 JCraft,Inc. and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2007, 2019 JCraft,Inc. and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Atsuhiko Yamanaka, JCraft,Inc. - initial API and implementation
@@ -19,34 +22,25 @@ import org.eclipse.jsch.core.IJSchLocation;
  */
 class NullUserAuthenticator implements IUserAuthenticator{
 
-  /**
-   * @see IUserAuthenticator#prompt(IJSchLocation location, int promptType, String title,
-      String message, int[] promptResponses, int defaultResponseIndex)
-   */
+  @Override
   public int prompt(IJSchLocation location, int promptType, String title,
       String message, int[] promptResponses, int defaultResponseIndex){
     return IUserAuthenticator.CANCEL_ID;
   }
 
-  /**
-   * @see IUserAuthenticator#promptForHostKeyChange(IJSchLocation location)
-   */
+  @Override
   public boolean promptForHostKeyChange(IJSchLocation location){
     return false;
   }
 
-  /**
-   * @see IUserAuthenticator#promptForKeyboradInteractive(IJSchLocation location, String destination, String name, String instruction, String[] prompt, boolean[] echo)
-   */
+  @Override
   public String[] promptForKeyboradInteractive(IJSchLocation location,
       String destination, String name, String instruction, String[] prompt,
       boolean[] echo){
     return null;
   }
 
-  /**
-   * @see IUserAuthenticator#promptForUserInfo(IJSchLocation, IUserInfo, String)
-   */
+  @Override
   public void promptForUserInfo(IJSchLocation location, IUserInfo userInfo,
       String message){
     // no operation

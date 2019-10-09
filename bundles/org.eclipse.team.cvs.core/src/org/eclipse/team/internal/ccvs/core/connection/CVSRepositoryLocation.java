@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -287,7 +290,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 					// Save options in hash table
 					StringTokenizer stOpt = new StringTokenizer(
 						location.substring(optionStart+1, end),
-            					"=;" //$NON-NLS-1$
+								"=;" //$NON-NLS-1$
 					);
 					while (stOpt.hasMoreTokens()) {
 						hmOptions.put(stOpt.nextToken(), stOpt.nextToken());
@@ -340,11 +343,11 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 			end= location.indexOf(COLON, start);
 			int hostEnd = end;
 			if (end == -1) {
-			    // The last colon is optional so look for the slash that starts the path
-			    end = location.indexOf('/', start);
-			    hostEnd = end;
-			    // Decrement the end since the slash is part of the path
-			    if (end != -1) end--;
+				// The last colon is optional so look for the slash that starts the path
+				end = location.indexOf('/', start);
+				hostEnd = end;
+				// Decrement the end since the slash is part of the path
+				if (end != -1) end--;
 			}
 			String host = (hmOptions.containsKey("hostname")) ? hmOptions.get("hostname").toString() : location.substring(start, hostEnd); //$NON-NLS-1$ //$NON-NLS-2$
 			int port = USE_DEFAULT_PORT;
@@ -418,14 +421,13 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 	 */
 	public static IConnectionMethod[] getPluggedInConnectionMethods() {
 		if(pluggedInConnectionMethods==null) {
-			List<Object> connectionMethods = new ArrayList<Object>();
+			List<Object> connectionMethods = new ArrayList<>();
 			
 			if (STANDALONE_MODE) {				
 				connectionMethods.add(new PServerConnectionMethod());
 			} else {
 				IExtension[] extensions = Platform.getExtensionRegistry().getExtensionPoint(CVSProviderPlugin.ID, CVSProviderPlugin.PT_CONNECTIONMETHODS).getExtensions();
-				for(int i=0; i<extensions.length; i++) {
-					IExtension extension = extensions[i];
+				for (IExtension extension : extensions) {
 					IConfigurationElement[] configs = extension.getConfigurationElements();
 					if (configs.length == 0) {
 						CVSProviderPlugin.log(IStatus.ERROR, NLS.bind("Connection method {0} is missing required fields", new Object[] {extension.getUniqueIdentifier()}), null);//$NON-NLS-1$ 
@@ -440,11 +442,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 				}
 			}
 			IConnectionMethod[] methods = connectionMethods.toArray(new IConnectionMethod[0]);
-			Arrays.sort(methods, new Comparator<IConnectionMethod> () {
-				@Override
-				public int compare(IConnectionMethod cm1, IConnectionMethod cm2) {
-					return cm1.getName().compareTo(cm2.getName());
-				}});
+			Arrays.sort(methods, (cm1, cm2) -> cm1.getName().compareTo(cm2.getName()));
 			pluggedInConnectionMethods = methods;
 		}
 		return pluggedInConnectionMethods;
@@ -457,9 +455,10 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 	private static IConnectionMethod getPluggedInConnectionMethod(String methodName) {
 		Assert.isNotNull(methodName);
 		IConnectionMethod[] methods = getPluggedInConnectionMethods();
-		for(int i=0; i<methods.length; i++) {
-			if(methodName.equals(methods[i].getName()))
-				return methods[i];
+		for (IConnectionMethod m : methods) {
+			if (methodName.equals(m.getName())) {
+				return m;
+			}
 		}
 		return null;		
 	}
@@ -470,7 +469,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 	 */
 	private static String getPluggedInConnectionMethodNames() {
 		IConnectionMethod[] methods = getPluggedInConnectionMethods();
-		StringBuffer methodNames = new StringBuffer();
+		StringBuilder methodNames = new StringBuilder();
 		for(int i=0; i<methods.length; i++) {
 			String name = methods[i].getName();
 			if (i>0)
@@ -600,23 +599,17 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 			root;
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getMethod()
-	 */
+	@Override
 	public IConnectionMethod getMethod() {
 		return method;
 	}
 
-	/*
-	 * @see ICVSRepositoryLocation#getPort()
-	 */
+	@Override
 	public int getPort() {
 		return port;
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getEncoding()
-	 */
+	@Override
 	public String getEncoding() {
 		if (hasPreferences()) {
 			return internalGetPreferences().get(PREF_SERVER_ENCODING, getDefaultEncoding());
@@ -625,9 +618,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 	}
 
-	/*
-	 * @see ICVSRepositoryLocation#setEncoding()
-	 */
+	@Override
 	public void setEncoding(String encoding) {
 		if (encoding == null || encoding == getDefaultEncoding()) {
 			if (hasPreferences()) {
@@ -640,9 +631,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 	}	
 
-	/*
-	 * @see ICVSRepositoryLocation#members(CVSTag, boolean, IProgressMonitor)
-	 */
+	@Override
 	public ICVSRemoteResource[] members(CVSTag tag, boolean modules, IProgressMonitor progress) throws CVSException {
 		try {
 			if (modules) {
@@ -652,9 +641,8 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 				ICVSRemoteResource[] resources = root.members(progress);
 				// There is the off chance that there is a file in the root of the repository.
 				// This is not supported by cvs so we need to make sure there are no files
-				List<ICVSRemoteResource> folders = new ArrayList<ICVSRemoteResource>(resources.length);
-				for (int i = 0; i < resources.length; i++) {
-					ICVSRemoteResource remoteResource = resources[i];
+				List<ICVSRemoteResource> folders = new ArrayList<>(resources.length);
+				for (ICVSRemoteResource remoteResource : resources) {
 					if (remoteResource.isContainer()) {
 						folders.add(remoteResource);
 					}
@@ -669,16 +657,12 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getRemoteFolder(String, CVSTag)
-	 */
+	@Override
 	public ICVSRemoteFolder getRemoteFolder(String remotePath, CVSTag tag) {
 		return new RemoteFolder(null, this, remotePath, tag);		
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getRemoteFile(String, CVSTag)
-	 */
+	@Override
 	public ICVSRemoteFile getRemoteFile(String remotePath, CVSTag tag) {
 		IPath path = new Path(null, remotePath);
 		RemoteFolderTree remoteFolder = new RemoteFolderTree(null, this, path.removeLastSegments(1).toString(), tag);
@@ -687,9 +671,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		return remoteFile;
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getRootDirectory()
-	 */
+	@Override
 	public String getRootDirectory() {
 		return root;
 	}
@@ -704,17 +686,12 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		return CVSProviderPlugin.getPlugin().getTimeout();
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getUserInfo()
-	 */
+	@Override
 	public IUserInfo getUserInfo(boolean makeUsernameMutable) {
 		return new UserInfo(getUsername(), password, makeUsernameMutable ? true : isUsernameMutable());
 	}
 	
-	/*
-	 * @see ICVSRepositoryLocation#getUsername()
-	 * @see IUserInfo#getUsername()
-	 */
+	@Override
 	public String getUsername() {
 		// If the username is mutable, get it from the cache if it's there
 		if (user == null && isUsernameMutable()) {
@@ -723,9 +700,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		return user == null ? "" : user; //$NON-NLS-1$
 	}
 	
-	/*
-	 * @see IUserInfo#isUsernameMutable()
-	 */
+	@Override
 	public boolean isUsernameMutable() {
 		return !userFixed;
 	}
@@ -745,8 +720,8 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 	 * for any connection made to this remote location.
 	 */
 	public Connection openConnection(IProgressMonitor monitor) throws CVSException {
-        // Get the lock for the host to ensure that we are not connecting to the same host concurrently.
-        Policy.checkCanceled(monitor);
+		// Get the lock for the host to ensure that we are not connecting to the same host concurrently.
+		Policy.checkCanceled(monitor);
 		ILock hostLock;
 		synchronized(hostLocks) {
 			hostLock = hostLocks.get(getHost());
@@ -756,11 +731,11 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 			}
 		}
 		try {
-		    boolean acquired = false;
-		    int count = 0;
-		    int timeout = CVSProviderPlugin.getPlugin().getTimeout();
-		    while (!acquired) {
-		    	try {
+			boolean acquired = false;
+			int count = 0;
+			int timeout = CVSProviderPlugin.getPlugin().getTimeout();
+			while (!acquired) {
+				try {
 					acquired = hostLock.acquire(1000);
 				} catch (InterruptedException e) {
 					// Ignore
@@ -770,7 +745,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 				}
 				count++;
 				Policy.checkCanceled(monitor);
-		    }
+			}
 			// Allow two ticks in case of a retry
 			monitor.beginTask(NLS.bind(CVSMessages.CVSRepositoryLocation_openingConnection, new String[] { getHost() }), 2);
 			ensureLocationCached();
@@ -797,9 +772,9 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 					//	password = "";//$NON-NLS-1$ 
 					Connection connection = createConnection(password, monitor);
 					if (cacheNeedsUpdate)
-					    updateCachedLocation();
+						updateCachedLocation();
 					previousAuthenticationFailed = false;
-                    return connection;
+					return connection;
 				} catch (CVSAuthenticationException ex) {
 					previousAuthenticationFailed = true;
 					if (ex.getRetryStatus() == CVSAuthenticationException.RETRY) {
@@ -813,7 +788,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 				}
 			}
 		} finally {
-            hostLock.release();
+			hostLock.release();
 			monitor.done();
 		}
 	}
@@ -829,76 +804,76 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		authenticator.promptForUserInfo(this, this, message);
 	}
 
-    /*
+	/*
 	 * Ensure that this location is in the known repositories list
 	 * and that the authentication information matches what is in the
 	 * cache, if this instance is not the instance in the cache.
-     */
-    private void ensureLocationCached() {
-        String location = getLocation();
-        KnownRepositories repositories = KnownRepositories.getInstance();
-        if (repositories.isKnownRepository(location)) {
-            try {
-                // The repository is already known.
-                // Ensure that the authentication information of this 
-                // location matches that of the known location
-                setAuthenticationInformation((CVSRepositoryLocation)repositories.getRepository(location));
-            } catch (CVSException e) {
-                // Log the exception and continue
-                CVSProviderPlugin.log(e);
-            }
-        } else {
-            // The repository is not known so record it so any authentication
-            // information the user may provide is remembered
-        	repositories.addRepository(this, true /* broadcast */);
-        }
-    }
+	 */
+	private void ensureLocationCached() {
+		String location = getLocation();
+		KnownRepositories repositories = KnownRepositories.getInstance();
+		if (repositories.isKnownRepository(location)) {
+			try {
+				// The repository is already known.
+				// Ensure that the authentication information of this 
+				// location matches that of the known location
+				setAuthenticationInformation((CVSRepositoryLocation)repositories.getRepository(location));
+			} catch (CVSException e) {
+				// Log the exception and continue
+				CVSProviderPlugin.log(e);
+			}
+		} else {
+			// The repository is not known so record it so any authentication
+			// information the user may provide is remembered
+			repositories.addRepository(this, true /* broadcast */);
+		}
+	}
 
 	/*
 	 * Set the authentication information of this instance such that it matches the
 	 * provided instances.
-     */
-    private void setAuthenticationInformation(CVSRepositoryLocation other) {
-        if (other != this) {
-            // The instances differ so copy from the other location to this one
-            if (other.getUserInfoCached()) {
-                // The user info is cached for the other instance
-                // so null all the values in this instance so the 
-                // information is obtained from the cache
-                this.allowCaching = true;
-                if (!userFixed) this.user = null;
-                if (!passwordFixed) this.password = null;
-            } else {
-                // The user info is not cached for the other instance so
-                // copy the authentication information into this instance
-                setAllowCaching(false); /* this will clear any cached values */
-                // Only copy the username and password if they are not fixed.
-                // (If they are fixed, they would be included in the location
-                // identifier and therefore must already match)
-                if (!other.userFixed)
-                    this.user = other.user;
-                if (!other.passwordFixed)
-                    this.password = other.password;
-            }
-        }
-    }
+	 */
+	private void setAuthenticationInformation(CVSRepositoryLocation other) {
+		if (other != this) {
+			// The instances differ so copy from the other location to this one
+			if (other.getUserInfoCached()) {
+				// The user info is cached for the other instance
+				// so null all the values in this instance so the 
+				// information is obtained from the cache
+				this.allowCaching = true;
+				if (!userFixed) this.user = null;
+				if (!passwordFixed) this.password = null;
+			} else {
+				// The user info is not cached for the other instance so
+				// copy the authentication information into this instance
+				setAllowCaching(false); /* this will clear any cached values */
+				// Only copy the username and password if they are not fixed.
+				// (If they are fixed, they would be included in the location
+				// identifier and therefore must already match)
+				if (!other.userFixed)
+					this.user = other.user;
+				if (!other.passwordFixed)
+					this.password = other.password;
+			}
+		}
+	}
 
-    /*
-     * The connection was successfully made. Update the cached
-     * repository location if it is a different instance than
-     * this location.
-     */
-    private void updateCachedLocation() {
-        try {
-            CVSRepositoryLocation known = (CVSRepositoryLocation)KnownRepositories.getInstance().getRepository(getLocation());
-            known.setAuthenticationInformation(this);
-        } catch (CVSException e) {
-            // Log the exception and continue
-            CVSProviderPlugin.log(e);
-        }
-    }
-    
-    /*
+	/*
+	 * The connection was successfully made. Update the cached
+	 * repository location if it is a different instance than
+	 * this location.
+	 */
+	private void updateCachedLocation() {
+		try {
+			CVSRepositoryLocation known = (CVSRepositoryLocation)KnownRepositories.getInstance().getRepository(getLocation());
+			known.setAuthenticationInformation(this);
+		} catch (CVSException e) {
+			// Log the exception and continue
+			CVSProviderPlugin.log(e);
+		}
+	}
+	
+	/*
 	 * Implementation of inherited toString()
 	 */
 	public String toString() {
@@ -949,9 +924,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 		return null;
 	}
-	/*
-	 * @see IUserInfo#setPassword(String)
-	 */
+	@Override
 	public void setPassword(String password) {
 		if (passwordFixed)
 			throw new UnsupportedOperationException();
@@ -963,9 +936,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		previousAuthenticationFailed = false;
 	}
 	
-	/*
-	 * @see IUserInfo#setUsername(String)
-	 */
+	@Override
 	public void setUsername(String user) {
 		if (userFixed)
 			throw new UnsupportedOperationException();
@@ -978,13 +949,13 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 	
 	public void setAllowCaching(boolean value) {
 		allowCaching = value;
-        if (allowCaching) {
-            updateCache();
-        } else {
-        	if (password == null)
-        		password = retrievePassword();
-            removeNode();
-        }
+		if (allowCaching) {
+			updateCache();
+		} else {
+			if (password == null)
+				password = retrievePassword();
+			removeNode();
+		}
 	}
 	
 	public void updateCache() {
@@ -1083,9 +1054,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 	}
 	
-	/**
-	 * @see ICVSRepositoryLocation#flushUserInfo()
-	 */
+	@Override
 	public void flushUserInfo() {
 		removeNode();
 	}
@@ -1116,7 +1085,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		CVS_RSH_PARAMETERS = stringReplace(CVS_RSH_PARAMETERS, PORT_VARIABLE, Integer.valueOf(port).toString());
 
 		// Build the command list to be sent to the OS.
-		List<String> commands = new ArrayList<String>();
+		List<String> commands = new ArrayList<>();
 		commands.add(CVS_RSH);
 		StringTokenizer tokenizer = new StringTokenizer(CVS_RSH_PARAMETERS);
 		while (tokenizer.hasMoreTokens()) {
@@ -1191,16 +1160,12 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation#getUserAuthenticator()
-	 */
+	@Override
 	public IUserAuthenticator getUserAuthenticator() {
 		return getAuthenticator();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation#setUserAuthenticator()
-	 */
+	@Override
 	public void setUserAuthenticator(IUserAuthenticator authenticator) {
 		CVSRepositoryLocation.authenticator = authenticator;
 	}
@@ -1259,9 +1224,7 @@ public class CVSRepositoryLocation extends PlatformObject implements ICVSReposit
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation#getUserInfoCached()
-	 */
+	@Override
 	public boolean getUserInfoCached() {
 		ISecurePreferences node = getCVSNode();
 		if (node == null)

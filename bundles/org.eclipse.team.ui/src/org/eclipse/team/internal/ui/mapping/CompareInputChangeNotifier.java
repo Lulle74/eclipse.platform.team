@@ -1,19 +1,33 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -97,8 +111,7 @@ public abstract class CompareInputChangeNotifier implements
 				}
 			}
 			dispatchChanges(toDispatch, monitor);
-			for (int i = 0; i < events.length; i++) {
-				RunnableEvent event = events[i];
+			for (RunnableEvent event : events) {
 				executeRunnableNow(event, monitor);
 			}
 			return true;
@@ -121,10 +134,7 @@ public abstract class CompareInputChangeNotifier implements
 						InputChangeEvent changeEvent = (InputChangeEvent) event;
 						ICompareInput[] inputs = changeEvent.getChangedInputs();
 						synchronized (changedInputs) {
-							for (int i = 0; i < inputs.length; i++) {
-								ICompareInput input = inputs[i];
-								changedInputs.add(input);
-							}
+							Collections.addAll(changedInputs, inputs);
 						}
 					}
 					break;
@@ -263,8 +273,7 @@ public abstract class CompareInputChangeNotifier implements
 	 */
 	protected void prepareInputs(ICompareInput[] inputs, IProgressMonitor monitor) {
 		monitor.beginTask(null, inputs.length * 100);
-		for (int i = 0; i < inputs.length; i++) {
-			ICompareInput input = inputs[i];
+		for (ICompareInput input : inputs) {
 			prepareInput(input, Policy.subMonitorFor(monitor, 100));
 		}
 		monitor.done();
@@ -290,8 +299,7 @@ public abstract class CompareInputChangeNotifier implements
 	 * @param inputs the changed inputs
 	 */
 	protected void fireChanges(ICompareInput[] inputs) {
-		for (int i = 0; i < inputs.length; i++) {
-			ICompareInput input = inputs[i];
+		for (ICompareInput input : inputs) {
 			fireChange(input);
 		}
 	}
@@ -308,11 +316,9 @@ public abstract class CompareInputChangeNotifier implements
 	public void resourceChanged(IResourceChangeEvent event) {
 		List<ICompareInput> changedInputs = new ArrayList<>();
 		ICompareInput[] inputs = getConnectedInputs();
-		for (int i = 0; i < inputs.length; i++) {
-			ICompareInput input = inputs[i];
+		for (ICompareInput input : inputs) {
 			IResource[] resources = getResources(input);
-			for (int j = 0; j < resources.length; j++) {
-				IResource resource = resources[j];
+			for (IResource resource : resources) {
 				if (resource != null) {
 					IResourceDelta delta = event.getDelta().findMember(resource.getFullPath());
 					if (delta != null) {
@@ -349,8 +355,7 @@ public abstract class CompareInputChangeNotifier implements
 			realChanges = inputs;
 		} else {
 			List<ICompareInput> result = new ArrayList<>();
-			for (int i = 0; i < inputs.length; i++) {
-				ICompareInput input = inputs[i];
+			for (ICompareInput input : inputs) {
 				if (isChanged(input)) {
 					result.add(input);
 				}

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2007 JCraft,Inc. and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2007, 2019 JCraft,Inc. and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Atsuhiko Yamanaka, JCraft,Inc. - initial API and implementation
@@ -45,82 +48,60 @@ public class JSchLocation extends PlatformObject implements IJSchLocation{
     this(user, host, DEFAULT_PORT);
   }
 
-  /**
-   * @see IJSchLocation#getHost()
-   */
+  @Override
   public String getHost(){
     return host;
   }
 
-  /**
-   * @see IJSchLocation#getPort()
-   */
+  @Override
   public int getPort(){
     return port;
   }
 
-  /*
-   * @see IJSchLocation#setUsername(String)
-   */
+  @Override
   public void setUsername(String user){
     if(userFixed)
       throw new UnsupportedOperationException();
     this.user=user;
   }
 
-  /**
-   * @see IJSchLocation#getUsername()
-   */
+  @Override
   public String getUsername(){
     return user==null ? "" : user; //$NON-NLS-1$
   }
 
-  /**
-   * @see IJSchLocation#setPassword(String)
-   */
+  @Override
   public void setPassword(String password){
     if(password!=null)
       this.password=password;
   }
 
-  /**
-   * @see IJSchLocation#getPassword()
-   */
+  @Override
   public String getPassword(){
     return password;
   }
 
-  /**
-   * @see IJSchLocation#setComment(String comment)
-   */
+  @Override
   public void setComment(String comment){
     this.comment=comment;
   }
 
-  /**
-   * @see IJSchLocation#getComment()
-   */
+  @Override
   public String getComment(){
     return comment;
   }
 
-  /**
-   * @see IJSchLocation#setPasswordStore(IPasswordStore store)
-   */
+  @Override
   public void setPasswordStore(IPasswordStore store){
     this.passwordStore=store;
   }
 
-  /**
-   * @see IJSchLocation#getPasswordStore()
-   */
+  @Override
   public IPasswordStore getPasswordStore(){
     return passwordStore;
   }
 
-  /**
-   * Implementation of inherited toString()
-   */
+  @Override
   public String toString(){
     return user
         +"@"+host+((port==DEFAULT_PORT) ? "" : ":"+(Integer.valueOf(port).toString())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$

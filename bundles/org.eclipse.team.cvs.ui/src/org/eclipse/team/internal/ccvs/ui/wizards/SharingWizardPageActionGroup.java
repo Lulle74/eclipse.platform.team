@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -22,9 +25,7 @@ public class SharingWizardPageActionGroup extends SynchronizePageActionGroup {
 	
 	public static final String ACTION_GROUP = "cvs_sharing_page_actions"; //$NON-NLS-1$
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.subscriber.SynchronizeViewerAdvisor#initializeActions(org.eclipse.jface.viewers.StructuredViewer)
-	 */
+	@Override
 	public void initialize(ISynchronizePageConfiguration configuration) {
 		super.initialize(configuration);
 		configuration.addMenuGroup(ISynchronizePageConfiguration.P_TOOLBAR_MENU, ACTION_GROUP);
@@ -33,6 +34,7 @@ public class SharingWizardPageActionGroup extends SynchronizePageActionGroup {
 				ISynchronizePageConfiguration.P_TOOLBAR_MENU, 
 				ACTION_GROUP,
 				new CVSActionDelegateWrapper(new IgnoreAction(), configuration, null /* no id to avoid conflict with context menu (bug 198319)*/){ 
+					@Override
 					protected String getBundleKeyPrefix() {
 						return "SharingWizardIgnore."; //$NON-NLS-1$
 					}

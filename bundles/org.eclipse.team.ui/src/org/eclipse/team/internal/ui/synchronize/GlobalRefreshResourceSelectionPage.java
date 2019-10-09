@@ -1,26 +1,36 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.internal.ui.TeamUIMessages;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeScope;
+import org.eclipse.team.ui.synchronize.ResourceScope;
+import org.eclipse.team.ui.synchronize.WorkingSetScope;
+import org.eclipse.team.ui.synchronize.WorkspaceScope;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerCheckedTreeViewer;
@@ -115,8 +125,7 @@ public class GlobalRefreshResourceSelectionPage extends GlobalRefreshElementSele
 	protected boolean checkWorkingSetElements() {
 		List allWorkingSetResources = new ArrayList();
 		IWorkingSet[] workingSets = getWorkingSets();
-		for (int i = 0; i < workingSets.length; i++) {
-			IWorkingSet set = workingSets[i];
+		for (IWorkingSet set : workingSets) {
 			allWorkingSetResources.addAll(IDE.computeSelectedResources(new StructuredSelection(set.getElements())));
 		}
 		getViewer().setCheckedElements(allWorkingSetResources.toArray(new IResource[allWorkingSetResources.size()]));

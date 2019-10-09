@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -78,13 +81,11 @@ class ImportStructureVisitor implements ICVSResourceVisitor {
 		
 		wrapMatcher = new FileNameMatcher();
 		
-		for (int i = 0; i < wrappers.length; i++) {
-			
-			if (wrappers[i].indexOf(KEYWORD_OPTION) == -1) {
+		for (String wrapper : wrappers) {
+			if (!wrapper.contains(KEYWORD_OPTION)) {
 				continue;
 			}
-			
-			StringTokenizer st = new StringTokenizer(wrappers[i]);
+			StringTokenizer st = new StringTokenizer(wrapper);
 			String pattern = st.nextToken();
 			String option = st.nextToken();
 			// get rid of the quotes
@@ -98,9 +99,7 @@ class ImportStructureVisitor implements ICVSResourceVisitor {
 		return wrapMatcher;
 	}	
 	
-	/**
-	 * @see ICVSResourceVisitor#visitFile(IManagedFile)
-	 */
+	@Override
 	public void visitFile(ICVSFile mFile) throws CVSException {
 		if (ignoreMatcher != null && ignoreMatcher.match(mFile.getName())) {
 			return;
@@ -114,9 +113,7 @@ class ImportStructureVisitor implements ICVSResourceVisitor {
 		session.sendModified(mFile, binary, monitor);
 	}
 
-	/**
-	 * @see ICVSResourceVisitor#visitFolder(ICVSFolder)
-	 */
+	@Override
 	public void visitFolder(ICVSFolder mFolder) throws CVSException {
 		
 		if (ignoreMatcher != null && ignoreMatcher.match(mFolder.getName())) {

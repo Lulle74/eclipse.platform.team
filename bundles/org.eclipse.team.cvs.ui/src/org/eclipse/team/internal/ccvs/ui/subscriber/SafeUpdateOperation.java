@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,7 +36,8 @@ import org.eclipse.team.internal.ccvs.core.client.Command.LocalOption;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.resources.EclipseSynchronizer;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
-import org.eclipse.team.internal.ccvs.ui.*;
+import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
+import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
 import org.eclipse.team.internal.ccvs.ui.Policy;
 import org.eclipse.team.internal.ccvs.ui.operations.*;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
@@ -58,9 +62,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 		this.promptBeforeUpdate = promptBeforeUpdate;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#shouldRun()
-	 */
+	@Override
 	public boolean shouldRun() {
 		return promptIfNeeded();
 	}
@@ -73,6 +75,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 	 * @param monitor a progress monitor
 	 * @throws InvocationTargetException
 	 */
+	@Override
 	protected void run(final Map projectSyncInfos, final IProject project,
 			IProgressMonitor monitor) throws InvocationTargetException {
 		try {
@@ -90,16 +93,11 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			// Pass the scheduling rule to the synchronizer so that sync change
 			// events and cache commits to disk are batched
 			EclipseSynchronizer.getInstance().run(getUpdateRule(manager),
-					new ICVSRunnable() {
-						public void run(IProgressMonitor monitor)
-								throws CVSException {
-							try {
-								runWithProjectRule(project,
-										(SyncInfoSet) projectSyncInfos
-												.get(project), monitor);
-							} catch (TeamException e) {
-								throw CVSException.wrapException(e);
-							}
+					monitor1 -> {
+						try {
+							runWithProjectRule(project, (SyncInfoSet) projectSyncInfos.get(project), monitor1);
+						} catch (TeamException e) {
+							throw CVSException.wrapException(e);
 						}
 					}, Policy.subMonitorFor(monitor, 100));
 		} catch (TeamException e) {
@@ -112,23 +110,20 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 	private ISchedulingRule getUpdateRule(SynchronizationScopeManager manager) {
 		ISchedulingRule rule = null;
 		ResourceMapping[] mappings = manager.getScope().getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			IProject[] mappingProjects = mapping.getProjects();
-			for (int j = 0; j < mappingProjects.length; j++) {
+			for (IProject mappingProject : mappingProjects) {
 				if (rule == null) {
-					rule = mappingProjects[j];
+					rule = mappingProject;
 				} else {
-					rule = MultiRule.combine(rule, mappingProjects[j]);
+					rule = MultiRule.combine(rule, mappingProject);
 				}
 			}
 		}
 		return rule;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberOperation#run(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		skipped.clear();
 		super.run(monitor);
@@ -139,9 +134,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberAction#run(org.eclipse.team.ui.sync.SyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void runWithProjectRule(IProject project, SyncInfoSet syncSet, IProgressMonitor monitor) throws TeamException {
 		try {
 			monitor.beginTask(null, 100);
@@ -155,6 +148,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			
 			// Remove all failed conflicts from the original sync set
 			syncSet.rejectNodes(new FastSyncInfoFilter() {
+				@Override
 				public boolean select(SyncInfo info) {
 					return skipped.getSyncInfo(info.getLocal()) != null;
 				}
@@ -176,8 +170,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 		FastSyncInfoFilter failFilter = getKnownFailureCases();
 		SyncInfo[] willFail = syncSet.getNodes(failFilter);
 		syncSet.rejectNodes(failFilter);
-		for (int i = 0; i < willFail.length; i++) {
-			SyncInfo info = willFail[i];
+		for (SyncInfo info : willFail) {
 			skipped.add(info);
 		}
 		return syncSet;
@@ -217,17 +210,15 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 		if (changed.length == 0) return;
 		
 		// The list of sync resources to be updated using "cvs update"
-		List updateShallow = new ArrayList();
+		List<SyncInfo> updateShallow = new ArrayList<>();
 		// A list of sync resource folders which need to be created locally 
 		// (incoming addition or previously pruned)
-		Set parentCreationElements = new HashSet();
+		Set<SyncInfo> parentCreationElements = new HashSet<>();
 		// A list of sync resources that are incoming deletions.
 		// We do these first to avoid case conflicts
-		List updateDeletions = new ArrayList();
+		List<SyncInfo> updateDeletions = new ArrayList<>();
 	
-		for (int i = 0; i < changed.length; i++) {
-			SyncInfo changedNode = changed[i];
-			
+		for (SyncInfo changedNode : changed) {
 			// Make sure that parent folders exist
 			SyncInfo parent = getParent(changedNode);
 			if (parent != null && isOutOfSync(parent)) {
@@ -284,13 +275,13 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			monitor.beginTask(null, 100);
 
 			if (updateDeletions.size() > 0) {
-				runUpdateDeletions((SyncInfo[])updateDeletions.toArray(new SyncInfo[updateDeletions.size()]), Policy.subMonitorFor(monitor, 25));
+				runUpdateDeletions(updateDeletions.toArray(new SyncInfo[updateDeletions.size()]), Policy.subMonitorFor(monitor, 25));
 			}			
 			if (parentCreationElements.size() > 0) {
-				makeInSync((SyncInfo[]) parentCreationElements.toArray(new SyncInfo[parentCreationElements.size()]), Policy.subMonitorFor(monitor, 25));				
+				makeInSync(parentCreationElements.toArray(new SyncInfo[parentCreationElements.size()]), Policy.subMonitorFor(monitor, 25));				
 			}
 			if (updateShallow.size() > 0) {
-				runSafeUpdate(project, (SyncInfo[])updateShallow.toArray(new SyncInfo[updateShallow.size()]), Policy.subMonitorFor(monitor, 50));
+				runSafeUpdate(project, updateShallow.toArray(new SyncInfo[updateShallow.size()]), Policy.subMonitorFor(monitor, 50));
 			}
 		} finally {
 			monitor.done();
@@ -318,6 +309,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			new AndSyncInfoFilter(new FastSyncInfoFilter[] {
 				FastSyncInfoFilter.getDirectionAndChangeFilter(SyncInfo.CONFLICTING, SyncInfo.ADDITION),
 				new FastSyncInfoFilter() {
+					@Override
 					public boolean select(SyncInfo info) {
 						return info.getLocal().getType() == IResource.FILE;
 					}
@@ -328,6 +320,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			new AndSyncInfoFilter(new FastSyncInfoFilter[] {
 				FastSyncInfoFilter.getDirectionAndChangeFilter(SyncInfo.CONFLICTING, SyncInfo.CHANGE),
 				new FastSyncInfoFilter() {
+					@Override
 					public boolean select(SyncInfo info) {
 						if (info.getLocal().getType() == IResource.FILE) {
 							try {
@@ -347,6 +340,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			new AndSyncInfoFilter(new FastSyncInfoFilter[] {
 				FastSyncInfoFilter.getDirectionAndChangeFilter(SyncInfo.CONFLICTING, SyncInfo.CHANGE),
 				new FastSyncInfoFilter() {
+					@Override
 					public boolean select(SyncInfo info) {
 						IResourceVariant remote = info.getRemote();
 						IResourceVariant base = info.getBase();
@@ -365,6 +359,7 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 			new AndSyncInfoFilter(new FastSyncInfoFilter[] {
 				FastSyncInfoFilter.getDirectionAndChangeFilter(SyncInfo.CONFLICTING, SyncInfo.CHANGE),
 				new FastSyncInfoFilter() {
+					@Override
 					public boolean select(SyncInfo info) {
 						IResource local = info.getLocal();
 						if (local.getType() == IResource.FILE) {
@@ -395,13 +390,10 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 	 * Note: This method is designed to be overridden by test cases.
 	 */
 	protected void warnAboutFailedResources(final SyncInfoSet syncSet) {
-		TeamUIPlugin.getStandardDisplay().syncExec(new Runnable() {
-			public void run() {
-				MessageDialog.openInformation(getShell(), 
-								CVSUIMessages.SafeUpdateAction_warnFilesWithConflictsTitle, 
-								CVSUIMessages.SafeUpdateAction_warnFilesWithConflictsDescription); 
-			}
-		});
+		TeamUIPlugin.getStandardDisplay()
+				.syncExec(() -> MessageDialog.openInformation(getShell(),
+						CVSUIMessages.SafeUpdateAction_warnFilesWithConflictsTitle,
+						CVSUIMessages.SafeUpdateAction_warnFilesWithConflictsDescription));
 	}
 	
 	/**
@@ -444,19 +436,17 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 	
 	private void addSkippedFiles(IFile[] files) {
 		SyncInfoSet set = getSyncInfoSet();
-		for (int i = 0; i < files.length; i++) {
-			IFile file = files[i];
+		for (IFile file : files) {
 			skipped.add(set.getSyncInfo(file));
 		}
 	}
 	
+	@Override
 	protected String getErrorTitle() {
 		return CVSUIMessages.UpdateAction_update; 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberAction#getJobName(org.eclipse.team.ui.sync.SyncInfoSet)
-	 */
+	@Override
 	protected String getJobName() {
 		SyncInfoSet syncSet = getSyncInfoSet();
 		return NLS.bind(CVSUIMessages.UpdateAction_jobName, new String[] { Integer.valueOf(syncSet.size()).toString() }); 
@@ -474,12 +464,14 @@ public abstract class SafeUpdateOperation extends CVSSubscriberOperation {
 		final SyncInfoSet set = getSyncInfoSet();
 		final boolean[] result = new boolean[] {true};
 		if(getPromptBeforeUpdate()) {
-			TeamUIPlugin.getStandardDisplay().syncExec(new Runnable() {
-				public void run() {
-					String sizeString = Integer.toString(set.size());
-					String message = set.size() > 1 ? NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateSeveral, new String[] { sizeString }) : NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateOne, new String[] { sizeString }); // 
-					result[0] = MessageDialog.openQuestion(getShell(), NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateTitle, new String[] { sizeString }), message); 					 
-				}
+			TeamUIPlugin.getStandardDisplay().syncExec(() -> {
+				String sizeString = Integer.toString(set.size());
+				String message = set.size() > 1
+						? NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateSeveral, new String[] { sizeString })
+						: NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateOne, new String[] { sizeString }); //
+				result[0] = MessageDialog.openQuestion(getShell(),
+						NLS.bind(CVSUIMessages.UpdateAction_promptForUpdateTitle, new String[] { sizeString }),
+						message);
 			});
 		}
 		return result[0];

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +14,7 @@
 package org.eclipse.team.internal.ccvs.ui.operations;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.core.runtime.*;
 import org.eclipse.osgi.util.NLS;
@@ -43,9 +44,8 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 		public CreatedResponseHandler() {
 			super(UpdatedHandler.HANDLE_CREATED);
 		}
-		/* (non-Javadoc)
-		 * @see org.eclipse.team.internal.ccvs.core.client.UpdatedHandler#receiveTargetFile(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.ICVSFile, java.lang.String, java.util.Date, boolean, boolean, org.eclipse.core.runtime.IProgressMonitor)
-		 */
+
+		@Override
 		protected void receiveTargetFile(
 			Session session,
 			ICVSFile mFile,
@@ -58,7 +58,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 			throws CVSException {
 			
 			if (mFile instanceof RemoteFile) {
-			    try {
+				try {
 					((RemoteFile)mFile).aboutToReceiveContents(entryLine.getBytes());
 					super.receiveTargetFile(
 						session,
@@ -69,9 +69,9 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 						readOnly,
 						executable, 
 						monitor);
-			    } finally {
-			        ((RemoteFile)mFile).doneReceivingContents();
-			    }
+				} finally {
+					((RemoteFile)mFile).doneReceivingContents();
+				}
 			} else {
 				super.receiveTargetFile(
 						session,
@@ -88,9 +88,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 	
 	public class SandboxCheckout extends Checkout {
 		
-			/* (non-Javadoc)
-		 * @see org.eclipse.team.internal.ccvs.core.client.Command#commandFinished(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.client.Command.GlobalOption[], org.eclipse.team.internal.ccvs.core.client.Command.LocalOption[], org.eclipse.team.internal.ccvs.core.ICVSResource[], org.eclipse.core.runtime.IProgressMonitor, org.eclipse.core.runtime.IStatus)
-		 */
+		@Override
 		protected IStatus commandFinished(
 			Session session,
 			GlobalOption[] globalOptions,
@@ -104,9 +102,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 			return status;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.team.internal.ccvs.core.client.Command#doExecute(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.client.Command.GlobalOption[], org.eclipse.team.internal.ccvs.core.client.Command.LocalOption[], java.lang.String[], org.eclipse.team.internal.ccvs.core.client.listeners.ICommandOutputListener, org.eclipse.core.runtime.IProgressMonitor)
-		 */
+		@Override
 		protected IStatus doExecute(
 			Session session,
 			GlobalOption[] globalOptions,
@@ -142,9 +138,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 		super(part, new ICVSRemoteFolder[] { remoteFolder });
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CheckoutOperation#checkout(org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus checkout(
 		ICVSRemoteFolder folder,
 		IProgressMonitor monitor)
@@ -161,9 +155,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 		return checkout(folder, sandbox, monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.CVSOperation#getTaskName()
-	 */
+	@Override
 	protected String getTaskName() {
 		return NLS.bind(CVSUIMessages.CheckoutToRemoteFolderOperation_0, new String[] { getRemoteFolders()[0].getName() }); 
 	}
@@ -178,7 +170,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 		session.open(Policy.subMonitorFor(pm, 5), false /* read-only */);
 		try {
 			// Build the local options
-			List localOptions = new ArrayList();
+			List<LocalOption> localOptions = new ArrayList<>();
 			// Add the options related to the CVSTag
 			CVSTag tag = resource.getTag();
 			if (tag == null) {
@@ -191,7 +183,7 @@ public class CheckoutToRemoteFolderOperation extends CheckoutOperation {
 			// Perform the checkout
 			IStatus status = new SandboxCheckout().execute(session,
 					Command.NO_GLOBAL_OPTIONS,
-					(LocalOption[])localOptions.toArray(new LocalOption[localOptions.size()]),
+					localOptions.toArray(new LocalOption[localOptions.size()]),
 					new String[]{resource.getRepositoryRelativePath()},
 					null,
 					Policy.subMonitorFor(pm, 90));

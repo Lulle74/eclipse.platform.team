@@ -1,9 +1,12 @@
 /*******************************************************************************
  *  Copyright (c) 2000, 2017 IBM Corporation and others.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
+ *
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
  *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *  https://www.eclipse.org/legal/epl-2.0/
+ *
+ *  SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,7 +20,8 @@ import org.eclipse.compare.CompareEditorInput;
 import org.eclipse.compare.CompareUI;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.ISelection;
@@ -30,8 +34,19 @@ import org.eclipse.team.internal.ui.synchronize.patch.ApplyPatchModelCompareEdit
 import org.eclipse.team.internal.ui.synchronize.patch.ApplyPatchSubscriberMergeContext;
 import org.eclipse.team.ui.mapping.ISynchronizationCompareInput;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.SyncInfoCompareInput;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IReusableEditor;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Action to open a compare editor from a SyncInfo object.
@@ -79,21 +94,21 @@ public class OpenInCompareAction extends Action {
 		// model synchronize
 		if (participant instanceof ModelSynchronizeParticipant) {
 			ModelSynchronizeParticipant msp = (ModelSynchronizeParticipant) participant;
-			for (int i = 0; i < elements.length; i++) {
+			for (Object element : elements) {
 				// TODO: This is inefficient
-				if (!msp.hasCompareInputFor(elements[i])) {
+				if (!msp.hasCompareInputFor(element)) {
 					return false;
 				}
 			}
 		} else {
 			// all files
 			IResource resources[] = Utils.getResources(elements);
-			for (int i = 0; i < resources.length; i++) {
-	            if (resources[i].getType() != IResource.FILE) {
-	                // Only supported if all the items are files.
-	                return false;
-	            }
-	        }
+			for (IResource resource : resources) {
+				if (resource.getType() != IResource.FILE) {
+					// Only supported if all the items are files.
+					return false;
+				}
+			}
 		}
 		return true;
 	}
@@ -195,32 +210,32 @@ public class OpenInCompareAction extends Action {
 		return page;
 	}
 
-    public static void openCompareEditor(CompareEditorInput input, IWorkbenchPage page) {
-    	// try to reuse editors, if possible
+	public static void openCompareEditor(CompareEditorInput input, IWorkbenchPage page) {
+		// try to reuse editors, if possible
 		openCompareEditor(input, page, true);
 	}
 
-    public static void openCompareEditor(CompareEditorInput input, IWorkbenchPage page, boolean reuseEditorIfPossible) {
-        if (page == null || input == null)
-            return;
+	public static void openCompareEditor(CompareEditorInput input, IWorkbenchPage page, boolean reuseEditorIfPossible) {
+		if (page == null || input == null)
+			return;
 		IEditorPart editor = Utils.findReusableCompareEditor(input, page,
 				new Class[] { SyncInfoCompareInput.class,
 						ModelCompareEditorInput.class });
-        // reuse editor only for single selection
-        if(editor != null && reuseEditorIfPossible) {
-        	IEditorInput otherInput = editor.getEditorInput();
-        	if(otherInput.equals(input)) {
-        		// simply provide focus to editor
-        		page.activate(editor);
-        	} else {
-        		// if editor is currently not open on that input either re-use existing
-        		CompareUI.reuseCompareEditor(input, (IReusableEditor)editor);
-        		page.activate(editor);
-        	}
-        } else {
-        	CompareUI.openCompareEditorOnPage(input, page);
-        }
-    }
+		// reuse editor only for single selection
+		if(editor != null && reuseEditorIfPossible) {
+			IEditorInput otherInput = editor.getEditorInput();
+			if(otherInput.equals(input)) {
+				// simply provide focus to editor
+				page.activate(editor);
+			} else {
+				// if editor is currently not open on that input either re-use existing
+				CompareUI.reuseCompareEditor(input, (IReusableEditor)editor);
+				page.activate(editor);
+			}
+		} else {
+			CompareUI.openCompareEditorOnPage(input, page);
+		}
+	}
 
 	/**
 	 * Returns an editor handle if a SyncInfoCompareInput compare editor is opened on
@@ -233,8 +248,8 @@ public class OpenInCompareAction extends Action {
 	public static IEditorPart findOpenCompareEditor(IWorkbenchPartSite site, IResource resource) {
 		IWorkbenchPage page = site.getPage();
 		IEditorReference[] editorRefs = page.getEditorReferences();
-		for (int i = 0; i < editorRefs.length; i++) {
-			final IEditorPart part = editorRefs[i].getEditor(false /* don't restore editor */);
+		for (IEditorReference editorRef : editorRefs) {
+			final IEditorPart part = editorRef.getEditor(false /* don't restore editor */);
 			if(part != null) {
 				IEditorInput input = part.getEditorInput();
 				if(part != null && input instanceof SyncInfoCompareInput) {
@@ -264,8 +279,8 @@ public class OpenInCompareAction extends Action {
 		}
 		IWorkbenchPage page = site.getPage();
 		IEditorReference[] editorRefs = page.getEditorReferences();
-		for (int i = 0; i < editorRefs.length; i++) {
-			final IEditorPart part = editorRefs[i].getEditor(false /* don't restore editor */);
+		for (IEditorReference editorRef : editorRefs) {
+			final IEditorPart part = editorRef.getEditor(false /* don't restore editor */);
 			if(part != null) {
 				IEditorInput input = part.getEditorInput();
 				if(input instanceof ModelCompareEditorInput) {

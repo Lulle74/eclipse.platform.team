@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,11 +18,18 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ViewerSorter;
-import org.eclipse.team.core.synchronize.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.core.synchronize.ISyncInfoTreeChangeEvent;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
+import org.eclipse.team.core.synchronize.SyncInfoTree;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.ui.TeamImages;
 import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
@@ -73,12 +83,12 @@ public class HierarchicalModelProvider extends SynchronizeModelProvider {
 		super(configuration, set);
 	}
 
-    public HierarchicalModelProvider(
-            AbstractSynchronizeModelProvider parentProvider,
-            ISynchronizeModelElement modelRoot,
-            ISynchronizePageConfiguration configuration, SyncInfoSet set) {
-        super(parentProvider, modelRoot, configuration, set);
-    }
+	public HierarchicalModelProvider(
+			AbstractSynchronizeModelProvider parentProvider,
+			ISynchronizeModelElement modelRoot,
+			ISynchronizePageConfiguration configuration, SyncInfoSet set) {
+		super(parentProvider, modelRoot, configuration, set);
+	}
 
 	@Override
 	public ISynchronizeModelProviderDescriptor getDescriptor() {
@@ -147,32 +157,30 @@ public class HierarchicalModelProvider extends SynchronizeModelProvider {
 	}
 
 	protected void addResources(IResource[] added) {
-		for (int i = 0; i < added.length; i++) {
-			IResource resource = added[i];
-            addResource(resource);
+		for (IResource resource : added) {
+			addResource(resource);
 		}
 	}
 
-    private void addResource(IResource resource) {
-        ISynchronizeModelElement node = getModelObject(resource);
-        if (node != null) {
-        	// Somehow the node exists. Remove it and read it to ensure
-        	// what is shown matches the contents of the sync set
-        	removeFromViewer(resource);
-        }
-        // Build the sub-tree rooted at this node
-        ISynchronizeModelElement parent = getModelObject(resource.getParent());
-        if (parent != null) {
-        	node = createModelObject(parent, resource);
-        	buildModelObjects(node);
-        }
-    }
+	private void addResource(IResource resource) {
+		ISynchronizeModelElement node = getModelObject(resource);
+		if (node != null) {
+			// Somehow the node exists. Remove it and read it to ensure
+			// what is shown matches the contents of the sync set
+			removeFromViewer(resource);
+		}
+		// Build the sub-tree rooted at this node
+		ISynchronizeModelElement parent = getModelObject(resource.getParent());
+		if (parent != null) {
+			node = createModelObject(parent, resource);
+			buildModelObjects(node);
+		}
+	}
 
 	@Override
 	protected IDiffElement[] buildModelObjects(ISynchronizeModelElement node) {
 		IDiffElement[] children = createModelObjects(node);
-		for (int i = 0; i < children.length; i++) {
-			IDiffElement element = children[i];
+		for (IDiffElement element : children) {
 			if (element instanceof ISynchronizeModelElement) {
 				buildModelObjects((ISynchronizeModelElement) element);
 			}
@@ -184,8 +192,7 @@ public class HierarchicalModelProvider extends SynchronizeModelProvider {
 	protected void handleResourceAdditions(ISyncInfoTreeChangeEvent event) {
 		SyncInfo[] infos = event.getAddedResources();
 		HashSet<IProject> set = new HashSet<>();
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			set.add(info.getLocal().getProject());
 		}
 		for (Iterator it = set.iterator(); it.hasNext(); ) {
@@ -201,8 +208,7 @@ public class HierarchicalModelProvider extends SynchronizeModelProvider {
 		// We have to look for folders that may no longer be in the set
 		// (i.e. are in-sync) but still have descendants in the set
 		IResource[] removedResources = event.getRemovedResources();
-		for (int i = 0; i < removedResources.length; i++) {
-			IResource resource = removedResources[i];
+		for (IResource resource : removedResources) {
 			if (resource.getType() != IResource.FILE) {
 				ISynchronizeModelElement node = getModelObject(resource);
 				if (node != null) {
@@ -212,13 +218,13 @@ public class HierarchicalModelProvider extends SynchronizeModelProvider {
 		}
 	}
 
-    @Override
+	@Override
 	protected ISynchronizeModelElement createModelObject(ISynchronizeModelElement parent, SyncInfo info) {
-        return createModelObject(parent, info.getLocal());
-    }
+		return createModelObject(parent, info.getLocal());
+	}
 
-    @Override
+	@Override
 	protected void addResource(SyncInfo info) {
-        addResource(info.getLocal());
-    }
+		addResource(info.getLocal());
+	}
 }

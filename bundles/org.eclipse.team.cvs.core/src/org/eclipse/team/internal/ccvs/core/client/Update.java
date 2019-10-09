@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -101,7 +104,7 @@ public class Update extends Command {
 	}
 	
 	protected LocalOption[] filterLocalOptions(Session session, GlobalOption[] globalOptions, LocalOption[] localOptions) {
-		List newOptions = new ArrayList(Arrays.asList(localOptions));
+		List<LocalOption> newOptions = new ArrayList<>(Arrays.asList(localOptions));
 		
 		if (shouldRetrieveAbsentDirectories(session) && ! RETRIEVE_ABSENT_DIRECTORIES.isElementOf(localOptions)) {
 			newOptions.add(Update.RETRIEVE_ABSENT_DIRECTORIES);
@@ -113,7 +116,7 @@ public class Update extends Command {
 				newOptions.add(Command.PRUNE_EMPTY_DIRECTORIES);
 			}
 		}
-		localOptions = (LocalOption[]) newOptions.toArray(new LocalOption[newOptions.size()]);
+		localOptions = newOptions.toArray(new LocalOption[newOptions.size()]);
 		return super.filterLocalOptions(session, globalOptions, localOptions);
 	}
 	
@@ -168,17 +171,15 @@ public class Update extends Command {
 				folder = resources[i].getParent();
 			}
 			if (folder==null || (!folder.isCVSFolder() && folder.exists())) {
-                if (folder == null)
-                    folder = (ICVSFolder)resources[i];
-                IStatus status = new CVSStatus(IStatus.ERROR,CVSStatus.ERROR,NLS.bind(CVSMessages.Command_argumentNotManaged, new String[] { folder.getName() }),session.getLocalRoot());
+				if (folder == null)
+					folder = (ICVSFolder)resources[i];
+				IStatus status = new CVSStatus(IStatus.ERROR,CVSStatus.ERROR,NLS.bind(CVSMessages.Command_argumentNotManaged, new String[] { folder.getName() }),session.getLocalRoot());
 				throw new CVSException(status);
 			}
 		}
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#doExecute(org.eclipse.team.internal.ccvs.core.client.Session, org.eclipse.team.internal.ccvs.core.client.Command.GlobalOption, org.eclipse.team.internal.ccvs.core.client.Command.LocalOption, java.lang.String, org.eclipse.team.internal.ccvs.core.client.listeners.ICommandOutputListener, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus doExecute(
 			Session session,
 			GlobalOption[] globalOptions,

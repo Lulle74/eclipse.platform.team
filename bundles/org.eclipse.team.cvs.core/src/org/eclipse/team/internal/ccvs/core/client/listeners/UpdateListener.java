@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -235,9 +238,9 @@ public class UpdateListener extends CommandOutputListener {
 								if (resource != null) {
 									return new CVSStatus(IStatus.ERROR, CVSStatus.UNMEGERED_BINARY_CONFLICT,
 										NLS.bind(CVSMessages.UpdateListener_0, (new Object[] { 
-                                        resource.getFullPath().toString(), 
-                                        mergedBinaryFileRevision, 
-                                        resource.getFullPath().removeLastSegments(1).append(backupFile).toString()})), commandRoot);
+										resource.getFullPath().toString(), 
+										mergedBinaryFileRevision, 
+										resource.getFullPath().removeLastSegments(1).append(backupFile).toString()})), commandRoot);
 								}
 							}
 						} catch (CVSException e1) {
@@ -262,8 +265,8 @@ public class UpdateListener extends CommandOutputListener {
 						// To get the folders, the update request should be re-issued for HEAD
 						return new CVSStatus(IStatus.WARNING, CVSStatus.NO_SUCH_TAG, line, commandRoot);
 					} else if (message.startsWith("Numeric join") && message.endsWith("may not contain a date specifier")) { //$NON-NLS-1$ //$NON-NLS-2$
-					    // This error indicates a join failed because a date tag was used
-					    return super.errorLine(line, location, commandRoot, monitor);
+						// This error indicates a join failed because a date tag was used
+						return super.errorLine(line, location, commandRoot, monitor);
 					} else {
 						return super.errorLine(line, location, commandRoot, monitor);
 					}

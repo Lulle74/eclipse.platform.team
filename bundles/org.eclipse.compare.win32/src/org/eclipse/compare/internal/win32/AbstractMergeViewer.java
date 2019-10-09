@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -178,16 +181,13 @@ public abstract class AbstractMergeViewer extends Viewer {
 	private File createTempFile(InputStream contents) throws IOException {
 		File file = File.createTempFile("compare", ".doc"); //$NON-NLS-1$ //$NON-NLS-2$
 		file.deleteOnExit();
-		OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-		try {
+		try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
 			byte[] buffer = new byte[1024];
 			int length;
 			while ((length = contents.read(buffer)) != -1) {
 				out.write(buffer, 0, length);
 			}
 			return file;
-		} finally {
-			out.close();
 		}
 	}
 
@@ -267,8 +267,7 @@ public abstract class AbstractMergeViewer extends Viewer {
 	}
 	
 	protected byte[] asBytes(File file) throws IOException {
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-		try {
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
 			int length;
@@ -277,8 +276,6 @@ public abstract class AbstractMergeViewer extends Viewer {
 			}
 			out.close();
 			return out.toByteArray();
-		} finally {
-			in.close();
 		}
 	}
 

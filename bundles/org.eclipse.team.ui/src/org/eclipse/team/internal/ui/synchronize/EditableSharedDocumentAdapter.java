@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -82,9 +85,6 @@ public class EditableSharedDocumentAdapter extends
 		this.listener = listener;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.SharedDocumentAdapter#connect(org.eclipse.ui.texteditor.IDocumentProvider, org.eclipse.ui.IEditorInput)
-	 */
 	@Override
 	public void connect(IDocumentProvider provider, IEditorInput documentKey)
 			throws CoreException {
@@ -96,9 +96,6 @@ public class EditableSharedDocumentAdapter extends
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.SharedDocumentAdapter#disconnect(org.eclipse.ui.texteditor.IDocumentProvider, org.eclipse.ui.IEditorInput)
-	 */
 	@Override
 	public void disconnect(IDocumentProvider provider,
 			IEditorInput documentKey) {
@@ -157,9 +154,6 @@ public class EditableSharedDocumentAdapter extends
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.SharedDocumentAdapter#flushDocument(org.eclipse.ui.texteditor.IDocumentProvider, org.eclipse.ui.IEditorInput, org.eclipse.jface.text.IDocument, boolean, org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	public void flushDocument(IDocumentProvider provider,
 			IEditorInput documentKey, IDocument document,
@@ -174,33 +168,21 @@ public class EditableSharedDocumentAdapter extends
 		this.listener.handleDocumentFlushed();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementContentAboutToBeReplaced(java.lang.Object)
-	 */
 	@Override
 	public void elementContentAboutToBeReplaced(Object element) {
 		// Nothing to do
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementContentReplaced(java.lang.Object)
-	 */
 	@Override
 	public void elementContentReplaced(Object element) {
 		// Nothing to do
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementDeleted(java.lang.Object)
-	 */
 	@Override
 	public void elementDeleted(Object element) {
 		listener.handleDocumentDeleted();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementDirtyStateChanged(java.lang.Object, boolean)
-	 */
 	@Override
 	public void elementDirtyStateChanged(Object element, boolean isDirty) {
 		if (!isDirty) {
@@ -208,9 +190,6 @@ public class EditableSharedDocumentAdapter extends
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.IElementStateListener#elementMoved(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public void elementMoved(Object originalElement, Object movedElement) {
 		// Nothing to do

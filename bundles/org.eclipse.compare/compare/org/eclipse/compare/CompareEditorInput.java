@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -56,7 +59,13 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IFindReplaceTarget;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -608,7 +617,8 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 
 	/**
 	 * @param parent the parent control under which the control must be created
-	 * @param direction the layout direction of the contents, either </code>SWT.HORIZONTAL<code> or </code>SWT.VERTICAL<code>
+	 * @param direction the layout direction of the contents, either
+	 *                  <code>SWT.HORIZONTAL</code> or <code>SWT.VERTICAL</code>
 	 * @return the SWT control hierarchy for the outline part of the compare editor
 	 * @since 3.0
 	 */
@@ -1151,13 +1161,13 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 	}
 
 	/**
-	 * Saves any unsaved changes.
-	 * Subclasses must override to save any changes.
-	 * This implementation tries to flush changes in all viewers by
-	 * calling <code>ISavable.save</code> on them.
+	 * Saves any unsaved changes. Subclasses must override to save any changes. This
+	 * implementation tries to flush changes in all viewers by calling
+	 * <code>ISavable.save</code> on them.
 	 *
-	 * @param monitor an <code>IProgressMonitor</code> that the implementation of save may use to show progress
-	 * @throws CoreException
+	 * @param monitor an <code>IProgressMonitor</code> that the implementation of
+	 *                save may use to show progress
+	 * @throws CoreException If save fails.
 	 * @since 2.0
 	 */
 	public void saveChanges(IProgressMonitor monitor) throws CoreException {
@@ -1180,7 +1190,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 	}
 
 	/**
-	 * @param monitor
+	 * @param monitor a progress monitor
 	 * @noreference This method is not intended to be referenced by clients.
 	 */
 	protected void flushLeftViewers(IProgressMonitor monitor) {
@@ -1192,7 +1202,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 	}
 
 	/**
-	 * @param monitor
+	 * @param monitor a progress monitor
 	 * @noreference This method is not intended to be referenced by clients.
 	 */
 	protected void flushRightViewers(IProgressMonitor monitor) {
@@ -1465,9 +1475,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 			Utilities.executeRunnable(saveRunnable);
 
 			return true;
-		} catch (InterruptedException x) {
-			// Ignore
-		} catch (OperationCanceledException x) {
+		} catch (InterruptedException | OperationCanceledException x) {
 			// Ignore
 		} catch (InvocationTargetException x) {
 			ErrorDialog.openError(fComposite.getShell(), CompareMessages.CompareDialog_error_title, null,

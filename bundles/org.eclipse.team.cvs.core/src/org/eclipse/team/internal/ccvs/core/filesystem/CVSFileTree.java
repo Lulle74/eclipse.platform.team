@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,7 +50,7 @@ public class CVSFileTree {
 		for (int i = 0; i < remoteResources.length; i++) {
 			IFileInfo fileInfo;
 			try {
-				fileInfo = getFileInfo((ICVSResource) remoteResources[i], new NullProgressMonitor());
+				fileInfo = getFileInfo(remoteResources[i], new NullProgressMonitor());
 				fileStore[i] = new CVSFileStore(baseURI.append(fileInfo.getName()), fileInfo);
 			} catch (TeamException e) {}
 		}
@@ -87,7 +90,7 @@ public class CVSFileTree {
 		for (int i = 0; i < remoteResources.length; i++) {
 			IFileInfo fileInfo;
 			try {
-				fileInfo = getFileInfo((ICVSResource) remoteResources[i], new NullProgressMonitor());
+				fileInfo = getFileInfo(remoteResources[i], new NullProgressMonitor());
 				fileInfos[i] = fileInfo;
 			} catch (TeamException e) {}
 		}
@@ -127,8 +130,7 @@ public class CVSFileTree {
 			
 			ICVSRemoteResource[] children =remoteFolder.getChildren();
 			ICVSResource resource = null;
-			for (int i = 0; i < children.length; i++) {
-				ICVSResource child = children[i];
+			for (ICVSRemoteResource child : children) {
 				if (child.getName().equals(resourceName)) {
 					resource = child;
 					break;

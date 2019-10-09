@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -30,10 +32,10 @@ public class OpenLogEntryAction extends CVSAction {
 	 * Returns the selected remote files
 	 */
 	protected ILogEntry[] getSelectedLogEntries() {
-		ArrayList entries = null;
+		ArrayList<Object> entries = null;
 		IStructuredSelection selection = getSelection();
 		if (!selection.isEmpty()) {
-			entries = new ArrayList();
+			entries = new ArrayList<>();
 			Iterator elements = selection.iterator();
 			while (elements.hasNext()) {
 				Object next = elements.next();
@@ -58,27 +60,24 @@ public class OpenLogEntryAction extends CVSAction {
 		}
 		return new ILogEntry[0];
 	}
-	/*
-	 * @see CVSAction#execute(IAction)
-	 */
+
+	@Override
 	public void execute(IAction action) throws InterruptedException, InvocationTargetException {
-		run(new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) throws InvocationTargetException {
-				final ILogEntry[] entries = getSelectedLogEntries();
-				for (int i = 0; i < entries.length; i++) {
-					if (entries[i].isDeletion()) {
-						MessageDialog.openError(getShell(), CVSUIMessages.OpenLogEntryAction_deletedTitle, CVSUIMessages.OpenLogEntryAction_deleted); // 
-					} else {
-						ICVSRemoteFile file = entries[i].getRemoteFile();
-                        CVSUIPlugin.getPlugin().openEditor(file, monitor);
-					}
+		run((IRunnableWithProgress) monitor -> {
+			final ILogEntry[] entries = getSelectedLogEntries();
+			for (int i = 0; i < entries.length; i++) {
+				if (entries[i].isDeletion()) {
+					MessageDialog.openError(getShell(), CVSUIMessages.OpenLogEntryAction_deletedTitle,
+							CVSUIMessages.OpenLogEntryAction_deleted); //
+				} else {
+					ICVSRemoteFile file = entries[i].getRemoteFile();
+					CVSUIPlugin.getPlugin().openEditor(file, monitor);
 				}
 			}
 		}, false, PROGRESS_BUSYCURSOR); 
 	}
-	/*
-	 * @see TeamAction#isEnabled()
-	 */
+
+	@Override
 	public boolean isEnabled() {
 		ILogEntry[] entries = getSelectedLogEntries();
 		if (entries.length == 0) return false;

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -41,23 +44,17 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 
 	class CVSLabelProvider extends StyledCellLabelProvider implements ILabelProvider {
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ILabelProvider#getImage(java.lang.Object)
-		 */
+		@Override
 		public Image getImage(Object element) {
 			return PlatformUI.getWorkbench().getSharedImages().getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ILabelProvider#getText(java.lang.Object)
-		 */
+		@Override
 		public String getText(Object element) {
 			return getStyledText(element).getString();
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.StyledCellLabelProvider#update(org.eclipse.jface.viewers.ViewerCell)
-		 */
+		@Override
 		public void update(ViewerCell cell) {
 			StyledString string = getStyledText(cell.getElement());
 			cell.setText(string.getString());
@@ -98,9 +95,7 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 		setDescription(CVSUIMessages.CVSScmUrlImportWizardPage_1);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite comp = SWTUtils.createHVFillComposite(parent, SWTUtils.MARGINS_NONE, 1);
 		Composite group = SWTUtils.createHFillComposite(comp, SWTUtils.MARGINS_NONE, 1);
@@ -108,6 +103,7 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 		Button versions = SWTUtils.createRadioButton(group, CVSUIMessages.CVSScmUrlImportWizardPage_3);
 		useHead = SWTUtils.createRadioButton(group, CVSUIMessages.CVSScmUrlImportWizardPage_2);
 		SelectionListener listener = new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				bundlesViewer.refresh(true);
 			}
@@ -144,9 +140,7 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, IHelpContextIds.CVS_SCM_URL_IMPORT_PAGE);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.IScmUrlImportWizardPage#finish()
-	 */
+	@Override
 	public boolean finish() {
 		boolean head = false;
 		if (getControl() != null) {
@@ -166,25 +160,21 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 
 		if (head) {
 			// modify tags on bundle import descriptions
-			for (int i = 0; i < descriptions.length; i++) {
-				URI scmUri = descriptions[i].getUri();
-				descriptions[i].setUrl(removeTag(scmUri));
+			for (ScmUrlImportDescription description : descriptions) {
+				URI scmUri = description.getUri();
+				description.setUrl(removeTag(scmUri));
 			}
 		}
 		
 		return true;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.IScmUrlImportWizardPage#getSelection()
-	 */
+	@Override
 	public ScmUrlImportDescription[] getSelection() {
 		return descriptions;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.IScmUrlImportWizardPage#getSelection()
-	 */
+	@Override
 	public void setSelection(ScmUrlImportDescription[] descriptions) {
 		this.descriptions = descriptions;
 		// fill viewer
@@ -215,22 +205,23 @@ public class CVSScmUrlImportWizardPage extends WizardPage implements IScmUrlImpo
 	 * @return Returns the content of the stripped URI as a string.
 	 */
 	private static String removeTag(URI scmUri) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(scmUri.getScheme()).append(':');
 		String ssp = scmUri.getSchemeSpecificPart();
 		int j = ssp.indexOf(';');
 		if (j != -1) {
 			sb.append(ssp.substring(0, j));
 			String[] params = ssp.substring(j).split(";"); //$NON-NLS-1$
-			for (int k = 0; k < params.length; k++) {
+			for (String param : params) {
 				// PDE way of providing tags
-				if (params[k].startsWith("tag=")) { //$NON-NLS-1$
+				if (param.startsWith("tag=")) { //$NON-NLS-1$
 					// ignore
-				} else if (params[k].startsWith("version=")) { //$NON-NLS-1$
+				} else if (param.startsWith("version=")) { //$NON-NLS-1$
 					// ignore
 				} else {
-					if (params[k] != null && !params[k].equals("")) //$NON-NLS-1$
-						sb.append(';').append(params[k]);
+					if (param != null && !param.equals("")) { //$NON-NLS-1$
+						sb.append(';').append(param);
+					}
 				}
 			}
 		} else {

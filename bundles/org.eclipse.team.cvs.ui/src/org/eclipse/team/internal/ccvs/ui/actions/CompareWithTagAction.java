@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -21,7 +24,8 @@ import org.eclipse.team.core.subscribers.SubscriberScopeManager;
 import org.eclipse.team.internal.ccvs.core.*;
 import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
 import org.eclipse.team.internal.ccvs.ui.ICVSUIConstants;
-import org.eclipse.team.internal.ccvs.ui.mappings.*;
+import org.eclipse.team.internal.ccvs.ui.mappings.CompareSubscriberContext;
+import org.eclipse.team.internal.ccvs.ui.mappings.ModelCompareParticipant;
 import org.eclipse.team.internal.ccvs.ui.subscriber.CompareParticipant;
 import org.eclipse.team.internal.ccvs.ui.tags.TagSelectionDialog;
 import org.eclipse.team.internal.ccvs.ui.tags.TagSource;
@@ -34,9 +38,10 @@ public class CompareWithTagAction extends WorkspaceTraversalAction {
 		return CVSUIPlugin.getPlugin().getPreferenceStore().getBoolean(ICVSUIConstants.PREF_OPEN_COMPARE_EDITOR_FOR_SINGLE_FILE);
 	}
 	
+	@Override
 	public void execute(IAction action) throws InvocationTargetException, InterruptedException {
-        
-        // First, determine the tag to compare with
+		
+		// First, determine the tag to compare with
 		IResource[] resources = getSelectedResources();
 		CVSTag tag = promptForTag(resources);
 		if (tag == null)
@@ -52,7 +57,7 @@ public class CompareWithTagAction extends WorkspaceTraversalAction {
 			}
 		}
 		
-        // Create a subscriber that can cover all projects involved
+		// Create a subscriber that can cover all projects involved
 		if (isShowModelSync()) {
 			final CVSCompareSubscriber compareSubscriber = new CVSCompareSubscriber(getProjects(resources), tag);
 			ResourceMapping[] mappings = getCVSResourceMappings();
@@ -63,6 +68,7 @@ public class CompareWithTagAction extends WorkspaceTraversalAction {
 				// ignore, the compare will fail if there is a real problem.
 			}
 			SubscriberScopeManager manager = new SubscriberScopeManager(compareSubscriber.getName(), mappings, compareSubscriber, true){
+				@Override
 				public void dispose() {
 					compareSubscriber.dispose();
 					super.dispose();
@@ -74,12 +80,12 @@ public class CompareWithTagAction extends WorkspaceTraversalAction {
 			participant.run(getTargetPart());
 		} else {
 			CVSCompareSubscriber compareSubscriber = new CVSCompareSubscriber(getProjects(resources), tag);
-	        ResourceMapping[] resourceMappings = getCVSResourceMappings();
+			ResourceMapping[] resourceMappings = getCVSResourceMappings();
 			if (isLogicalModel(resourceMappings)) {
-	            compareSubscriber = new CVSCompareSubscriber(getProjects(resources), tag);
-	            resources = getResourcesToCompare(compareSubscriber);
-	            compareSubscriber.dispose();
-	        }
+				compareSubscriber = new CVSCompareSubscriber(getProjects(resources), tag);
+				resources = getResourcesToCompare(compareSubscriber);
+				compareSubscriber.dispose();
+			}
 			// create a subscriber specifically for the resources for display to the user
 			compareSubscriber = new CVSCompareSubscriber(resources, tag);
 			try {
@@ -98,19 +104,17 @@ public class CompareWithTagAction extends WorkspaceTraversalAction {
 		}
 	}
 
-    private boolean isShowModelSync() {
+	private boolean isShowModelSync() {
 		return CVSUIPlugin.getPlugin().getPreferenceStore().getBoolean(ICVSUIConstants.PREF_ENABLE_MODEL_SYNC);
 	}
-    
-    protected CVSTag promptForTag(IResource[] resources) {
+	
+	protected CVSTag promptForTag(IResource[] resources) {
 		CVSTag tag = TagSelectionDialog.getTagToCompareWith(getShell(), TagSource.create(resources), TagSelectionDialog.INCLUDE_ALL_TAGS);
 		return tag;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForNonExistantResources()
-	 */
+	@Override
 	protected boolean isEnabledForNonExistantResources() {
 		return true;
-    }
+	}
 }

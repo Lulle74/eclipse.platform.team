@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -49,8 +52,8 @@ public interface ISynchronizePage {
 	 *
 	 * @param configuration the synchronize page configuration
 	 * @param key the property key
-	 * @param newValue
-	 * @return <code>true<code> if the property change should continue to be
+	 * @param newValue new value for the key
+	 * @return <code>true</code> if the property change should continue to be
 	 * fired to other listeners or <code>false</code> to veto the property change
 	 * notification.
 	 */

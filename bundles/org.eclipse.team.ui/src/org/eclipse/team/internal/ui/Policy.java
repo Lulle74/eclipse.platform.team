@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,10 @@ package org.eclipse.team.internal.ui;
 
 import java.util.ResourceBundle;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 
 /**
@@ -27,19 +33,19 @@ public class Policy {
 	public static boolean DEBUG_DND = false;
 	public static boolean DEBUG_COMPARE_EDITOR_INPUT = false;
 
-    private static String ACTION_BUNDLE = "org.eclipse.team.internal.ui.actions.actions"; //$NON-NLS-1$
-    private static ResourceBundle actionBundle = null;
+	private static String ACTION_BUNDLE = "org.eclipse.team.internal.ui.actions.actions"; //$NON-NLS-1$
+	private static ResourceBundle actionBundle = null;
 
-    /*
-     * Returns a resource bundle, creating one if it none is available.
-     */
-    public static ResourceBundle getActionBundle() {
-        // thread safety
-        ResourceBundle tmpBundle = actionBundle;
-        if (tmpBundle != null)
-            return tmpBundle;
-        return actionBundle = ResourceBundle.getBundle(ACTION_BUNDLE);
-    }
+	/*
+	 * Returns a resource bundle, creating one if it none is available.
+	 */
+	public static ResourceBundle getActionBundle() {
+		// thread safety
+		ResourceBundle tmpBundle = actionBundle;
+		if (tmpBundle != null)
+			return tmpBundle;
+		return actionBundle = ResourceBundle.getBundle(ACTION_BUNDLE);
+	}
 
 	static final DebugOptionsListener DEBUG_OPTIONS_LISTENER = options -> {
 		boolean DEBUG = options.getBooleanOption(TeamUIPlugin.ID + "/debug", false); //$NON-NLS-1$
@@ -66,7 +72,7 @@ public class Policy {
 			return new NullProgressMonitor();
 		if (monitor instanceof NullProgressMonitor)
 			return monitor;
-		return new SubProgressMonitor(monitor, ticks);
+		return SubMonitor.convert(monitor, ticks);
 	}
 
 	public static IProgressMonitor monitorFor(IProgressMonitor monitor) {

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2019 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -195,7 +198,11 @@ public class CompareEditor extends EditorPart
 		}
 
 		if (key == IEditorInput.class) {
-			return (T) Adapters.adapt(getEditorInput(), IEditorInput.class);
+			// return (T) Adapters.adapt(getEditorInput(), IEditorInput.class);
+			// The above call cannot be used because the return type of getEditorInput()
+			// call is IEditorInput and this itself will be returned by the above function.
+			// What we want is to call getAdapter call on this IEditorInput object.
+			return (T) getEditorInput().getAdapter(IEditorInput.class);
 		}
 
 		if (key == ITextEditorExtension3.class) {
@@ -233,20 +240,20 @@ public class CompareEditor extends EditorPart
 			ErrorDialog.openError(getSite().getShell(), title, msg, s);
 			return;
 		}
-        doSetInput(input);
-        // Need to refresh the contributor (see #67888)
-        refreshActionBarsContributor();
+		doSetInput(input);
+		// Need to refresh the contributor (see #67888)
+		refreshActionBarsContributor();
 	}
 
 	public void refreshActionBarsContributor() {
 		IEditorSite editorSite= getEditorSite();
-        if (editorSite != null) {
-	        IEditorActionBarContributor actionBarContributor= editorSite.getActionBarContributor();
-	        if (actionBarContributor != null) {
-	        		actionBarContributor.setActiveEditor(null);
-	        		actionBarContributor.setActiveEditor(this);
-	        }
-        }
+		if (editorSite != null) {
+			IEditorActionBarContributor actionBarContributor= editorSite.getActionBarContributor();
+			if (actionBarContributor != null) {
+					actionBarContributor.setActiveEditor(null);
+					actionBarContributor.setActiveEditor(this);
+			}
+		}
 	}
 
 	private void doSetInput(IEditorInput input) {
@@ -292,12 +299,12 @@ public class CompareEditor extends EditorPart
 			initializeInBackground(cei, hadPreviousInput);
 		}
 
-        firePropertyChange(IWorkbenchPartConstants.PROP_INPUT);
+		firePropertyChange(IWorkbenchPartConstants.PROP_INPUT);
 
-        // We only need to notify of new Saveables if we are changing inputs
-        if (hadPreviousInput && hasResult) {
-        	registerSaveable();
-        }
+		// We only need to notify of new Saveables if we are changing inputs
+		if (hadPreviousInput && hasResult) {
+			registerSaveable();
+		}
 	}
 
 	private void registerSaveable() {
@@ -496,10 +503,6 @@ public class CompareEditor extends EditorPart
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * Always throws an AssertionFailedException.
-	 * @see org.eclipse.ui.part.EditorPart#doSaveAs()
-	 */
 	@Override
 	public void doSaveAs() {
 		Assert.isTrue(false); // Save As not supported for CompareEditor
@@ -522,9 +525,7 @@ public class CompareEditor extends EditorPart
 		try {
 			operation.run(progressMonitor);
 			firePropertyChange(PROP_DIRTY);
-		} catch (InterruptedException x) {
-			// NeedWork
-		} catch (OperationCanceledException x) {
+		} catch (InterruptedException | OperationCanceledException x) {
 			// NeedWork
 		} catch (InvocationTargetException x) {
 			String title= Utilities.getString("CompareEditor.saveError.title"); //$NON-NLS-1$
@@ -567,8 +568,7 @@ public class CompareEditor extends EditorPart
 		if (init || knownSaveables == null) {
 			recordSaveables(sourceSaveables);
 		} else {
-			for (int i = 0; i < sourceSaveables.length; i++) {
-				Saveable saveable = sourceSaveables[i];
+			for (Saveable saveable : sourceSaveables) {
 				if (!knownSaveables.contains(saveable)) {
 					CompareUIPlugin.logErrorMessage(NLS.bind("Saveable {0} was not added using a saveables lifecycle event.", saveable.getName())); //$NON-NLS-1$
 					knownSaveables.add(saveable);
@@ -592,8 +592,7 @@ public class CompareEditor extends EditorPart
 		if (sourceSaveables.length != knownSaveables.size()) {
 			return false;
 		}
-		for (int i = 0; i < sourceSaveables.length; i++) {
-			Saveable saveable = sourceSaveables[i];
+		for (Saveable saveable : sourceSaveables) {
 			if (!knownSaveables.contains(saveable)) {
 				return false;
 			}
@@ -718,11 +717,10 @@ public class CompareEditor extends EditorPart
 				return;
 			java.util.List<Saveable> result = new ArrayList<>();
 			Saveable[] all = event.getSaveables();
-			for (int i = 0; i < all.length; i++) {
-				Saveable saveable = all[i];
+			for (Saveable saveable : all) {
 				if (knownSaveables.contains(saveable))
 					result.add(saveable);
-					knownSaveables.remove(saveable);
+				knownSaveables.remove(saveable);
 			}
 			if (result.isEmpty())
 				return;

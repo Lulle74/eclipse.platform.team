@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Dan Rubel - initial API and implementation
@@ -86,21 +89,21 @@ public class UIProjectSetSerializationContext extends ProjectSetSerializationCon
 			List resources = Arrays.asList(projects);
 			@Override
 			public boolean needsPrompt(IResource resource) {
-                if (resource instanceof IProject) {
-                    IProject project = (IProject) resource;
-                    return (project.exists() || getTargetFile(project).exists()) && resources.contains(resource);
-                }
+				if (resource instanceof IProject) {
+					IProject project = (IProject) resource;
+					return (project.exists() || getTargetFile(project).exists()) && resources.contains(resource);
+				}
 				return false;
 			}
 			@Override
 			public String promptMessage(IResource resource) {
-                if (resource.exists())
-                    return NLS.bind(TeamUIMessages.UIProjectSetSerializationContext_0, new String[] { resource.getName() });
-                return NLS.bind(TeamUIMessages.UIProjectSetSerializationContext_2, new String[] { resource.getName(), getTargetFile((IProject)resource).getAbsolutePath() });
+				if (resource.exists())
+					return NLS.bind(TeamUIMessages.UIProjectSetSerializationContext_0, new String[] { resource.getName() });
+				return NLS.bind(TeamUIMessages.UIProjectSetSerializationContext_2, new String[] { resource.getName(), getTargetFile((IProject)resource).getAbsolutePath() });
 			}
-            public File getTargetFile(IProject project) {
-                return new File(project.getParent().getLocation().toFile(), project.getName());
-            }
+			public File getTargetFile(IProject project) {
+				return new File(project.getParent().getLocation().toFile(), project.getName());
+			}
 		};
 		PromptingDialog dialog =
 			new PromptingDialog(

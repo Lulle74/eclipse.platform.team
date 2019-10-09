@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -162,9 +165,9 @@ public class ProxyEntriesComposite extends Composite {
 
 	private String getEditableProvider() {
 		String providers[] = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			if (ProxySelector.canSetProxyData(providers[i])) {
-				return providers[i];
+		for (String provider : providers) {
+			if (ProxySelector.canSetProxyData(provider)) {
+				return provider;
 			}
 		}
 		return null;
@@ -233,8 +236,8 @@ public class ProxyEntriesComposite extends Composite {
 
 	public void initializeValues() {
 		String providers[] = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			proxyEntries.addAll(getProxyData(providers[i]));
+		for (String provider : providers) {
+			proxyEntries.addAll(getProxyData(provider));
 		}
 		entriesViewer.setInput(proxyEntries);
 		setProvider(ProxySelector.getDefaultProvider());
@@ -283,9 +286,9 @@ public class ProxyEntriesComposite extends Composite {
 		}
 		proxyEntries.removeAll(natives);
 		String[] providers = ProxySelector.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			if (!providers[i].equals(provider)) {
-				proxyEntries.addAll(getProxyData(providers[i]));
+		for (String p : providers) {
+			if (!p.equals(provider)) {
+				proxyEntries.addAll(getProxyData(p));
 			}
 		}
 		entriesViewer.refresh();
@@ -295,9 +298,9 @@ public class ProxyEntriesComposite extends Composite {
 	private List<ProxyData> getProxyData(String provider) {
 		List<ProxyData> proxyDatas = new ArrayList<>();
 		ProxyData[] entries = ProxySelector.getProxyData(provider);
-		for (int j = 0; j < entries.length; j++) {
-			entries[j].setSource(provider);
-			proxyDatas.add(entries[j]);
+		for (ProxyData entry : entries) {
+			entry.setSource(provider);
+			proxyDatas.add(entry);
 		}
 		return proxyDatas;
 	}

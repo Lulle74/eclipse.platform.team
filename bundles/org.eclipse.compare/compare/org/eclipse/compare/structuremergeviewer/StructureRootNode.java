@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -68,9 +71,6 @@ public class StructureRootNode extends DocumentRangeNode implements IDisposable,
 		fAdapter = adapter;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.services.IDisposable#dispose()
-	 */
 	@Override
 	public void dispose() {
 		if (fAdapter != null) {
@@ -113,33 +113,21 @@ public class StructureRootNode extends DocumentRangeNode implements IDisposable,
 		return child;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getImage()
-	 */
 	@Override
 	public Image getImage() {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getName()
-	 */
 	@Override
 	public String getName() {
 		return getId();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.ITypedElement#getType()
-	 */
 	@Override
 	public String getType() {
 		return FOLDER_TYPE;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.structuremergeviewer.DocumentRangeNode#isReadOnly()
-	 */
 	@Override
 	public boolean isReadOnly() {
 		if (fInput instanceof IEditableContentExtension) {
@@ -149,9 +137,6 @@ public class StructureRootNode extends DocumentRangeNode implements IDisposable,
 		return super.isReadOnly();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.structuremergeviewer.DocumentRangeNode#validateEdit(org.eclipse.swt.widgets.Shell)
-	 */
 	@Override
 	public IStatus validateEdit(Shell shell) {
 		if (fInput instanceof IEditableContentExtension) {

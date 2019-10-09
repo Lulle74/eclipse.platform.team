@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,9 +20,16 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.internal.ui.synchronize.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.team.internal.ui.SWTUtils;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.internal.ui.synchronize.DialogSynchronizePageSite;
+import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
+import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IPageBookViewPage;
 
@@ -62,9 +72,6 @@ public final class ParticipantPagePane {
 		this.pageConfiguration = pageConfiguration;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.SaveablePartAdapter#dispose()
-	 */
 	public void dispose() {
 		if(titleImage != null) {
 			titleImage.dispose();
@@ -76,9 +83,6 @@ public final class ParticipantPagePane {
 			site.dispose();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchPart#getTitleImage()
-	 */
 	public Image getTitleImage() {
 		if(titleImage == null) {
 			titleImage = participant.getImageDescriptor().createImage();
@@ -86,16 +90,10 @@ public final class ParticipantPagePane {
 		return titleImage;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchPart#getTitle()
-	 */
 	public String getTitle() {
 		return Utils.shortenText(SynchronizeView.MAX_NAME_LENGTH, participant.getName());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
 	public Control createPartControl(Composite parent) {
 		Composite top = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -119,7 +117,7 @@ public final class ParticipantPagePane {
 		try {
 			((ISynchronizePage)fPage).init(pageConfiguration.getSite());
 		} catch (PartInitException e1) {
-		   TeamUIPlugin.log(IStatus.ERROR, TeamUIMessages.ParticipantPagePane_0, e1);
+			TeamUIPlugin.log(IStatus.ERROR, TeamUIMessages.ParticipantPagePane_0, e1);
 		}
 
 		fPage.createControl(fEditionPane);

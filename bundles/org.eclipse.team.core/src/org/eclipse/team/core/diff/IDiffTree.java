@@ -1,16 +1,20 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.diff;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * A diff tree provides access to a tree of {@link IDiff} instances. For
@@ -107,17 +111,19 @@ public interface IDiffTree {
 	public boolean isEmpty();
 
 	/**
-	 * Return the number of out-of-sync elements in the given set whose synchronization
-	 * state matches the given mask. A state of 0 assumes a count of all changes.
-	 * A mask of 0 assumes a direct match of the given state.
+	 * Return the number of out-of-sync elements in the given set whose
+	 * synchronization state matches the given mask. A state of 0 assumes a count of
+	 * all changes. A mask of 0 assumes a direct match of the given state.
 	 * <p>
 	 * For example, this will return the number of outgoing changes in the set:
-	 * <pre>
-	 *  long outgoing =  countFor(IThreeWayDiff.OUTGOING, IThreeWayDiff.DIRECTION_MASK);
-	 * </pre>
 	 * </p>
+	 * 
+	 * <pre>
+	 * long outgoing = countFor(IThreeWayDiff.OUTGOING, IThreeWayDiff.DIRECTION_MASK);
+	 * </pre>
+	 * 
 	 * @param state the sync state
-	 * @param mask the sync state mask
+	 * @param mask  the sync state mask
 	 * @return the number of matching resources in the set.
 	 */
 	public long countFor(int state, int mask);

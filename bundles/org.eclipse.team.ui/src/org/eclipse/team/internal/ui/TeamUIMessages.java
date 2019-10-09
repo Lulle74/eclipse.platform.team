@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM - Initial API and implementation
@@ -34,7 +37,7 @@ public class TeamUIMessages extends NLS {
 
 	public static String TextPreferencePage_ExtensionNotCompleted;
 
-    public static String CompareInputChangeNotifier_0;
+	public static String CompareInputChangeNotifier_0;
 
 	public static String CompareInputChangeNotifier_1;
 
@@ -276,7 +279,7 @@ public class TeamUIMessages extends NLS {
 	public static String SyncInfoCompareInput_1;
 	public static String SyncInfoCompareInput_2;
 	public static String SyncInfoCompareInput_3;
-    public static String SyncInfoCompareInput_tooltip;
+	public static String SyncInfoCompareInput_tooltip;
 
 	public static String SyncViewerPreferencePage_43;
 	public static String SyncViewerPreferencePage_44;
@@ -525,7 +528,7 @@ public class TeamUIMessages extends NLS {
 	public static String HierarchicalModelProvider_0;
 	public static String UIProjectSetSerializationContext_0;
 	public static String UIProjectSetSerializationContext_1;
-    public static String UIProjectSetSerializationContext_2;
+	public static String UIProjectSetSerializationContext_2;
 	public static String RemoveSynchronizeParticipantAction_0;
 	public static String RemoveSynchronizeParticipantAction_1;
 
@@ -745,7 +748,5 @@ public class TeamUIMessages extends NLS {
 	public static String FuzzFactorDialog_numberOutOfRange;
 
 	public static String NotFound;
-
-	public static String LoadingTeamCapabilities;
 
 }

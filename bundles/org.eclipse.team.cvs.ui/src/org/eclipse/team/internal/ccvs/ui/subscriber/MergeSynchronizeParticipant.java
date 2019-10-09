@@ -1,18 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.subscriber;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -54,6 +55,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 	 */
 	public class MergeParticipantActionContribution extends SynchronizePageActionGroup {
 		private MergeUpdateAction updateAction;
+		@Override
 		public void initialize(ISynchronizePageConfiguration configuration) {
 			super.initialize(configuration);
 			
@@ -98,9 +100,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		setSubscriber(subscriber);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.sync.SubscriberParticipant#setSubscriber(org.eclipse.team.core.subscribers.TeamSubscriber)
-	 */
+	@Override
 	public  void setSubscriber(Subscriber subscriber) {
 		super.setSubscriber(subscriber);
 		try {
@@ -113,9 +113,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ISynchronizeParticipant#init(org.eclipse.ui.IMemento)
-	 */
+	@Override
 	public void init(String secondayId, IMemento memento) throws PartInitException {
 		super.init(secondayId, memento);
 		if(memento != null) {
@@ -133,18 +131,14 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ISynchronizeParticipant#init(org.eclipse.ui.IMemento)
-	 */
+	@Override
 	public void saveState(IMemento memento) {
 		super.saveState(memento);
 		CVSMergeSubscriber s = (CVSMergeSubscriber)getSubscriber();
 		write(s, memento);
 	}
 		
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.sync.AbstractSynchronizeParticipant#dispose()
-	 */
+	@Override
 	public void dispose() {
 		super.dispose();
 		if(TeamUI.getSynchronizeManager().get(getId(), getSecondaryId()) == null) {
@@ -154,9 +148,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ISynchronizeParticipant#getName()
-	 */
+	@Override
 	public String getName() {		
 		return NLS.bind(CVSUIMessages.CompareParticipant_0, new String[] { ((CVSMergeSubscriber)getSubscriber()).getName(), Utils.convertSelection(getSubscriber().roots()) });  
 	}
@@ -180,8 +172,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 	 */
 	public static MergeSynchronizeParticipant getMatchingParticipant(IResource[] resources, CVSTag startTag, CVSTag endTag) {
 		ISynchronizeParticipantReference[] refs = TeamUI.getSynchronizeManager().getSynchronizeParticipants();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			if (reference.getId().equals(CVSMergeSubscriber.ID)) {
 				MergeSynchronizeParticipant p;
 				try {
@@ -211,8 +202,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		
 		// resource roots
 		IResource[] roots = s.roots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			IMemento rootNode = memento.createChild(CTX_ROOT);
 			rootNode.putString(CTX_ROOT_PATH, resource.getFullPath().toString());
 		}
@@ -227,9 +217,8 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 			throw new CVSException(NLS.bind(CVSUIMessages.MergeSynchronizeParticipant_10, new String[] { id.toString() })); 
 		}
 		
-		List resources = new ArrayList();
-		for (int i = 0; i < rootNodes.length; i++) {
-			IMemento rootNode = rootNodes[i];
+		List<IResource> resources = new ArrayList<>();
+		for (IMemento rootNode : rootNodes) {
 			IPath path = new Path(rootNode.getString(CTX_ROOT_PATH)); 
 			IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path, true /* include phantoms */);
 			if(resource != null) {
@@ -242,7 +231,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		if(resources.isEmpty()) {
 			throw new CVSException(NLS.bind(CVSUIMessages.MergeSynchronizeParticipant_12, new String[] { id.toString() })); 
 		}
-		IResource[] roots = (IResource[]) resources.toArray(new IResource[resources.size()]);
+		IResource[] roots = resources.toArray(new IResource[resources.size()]);
 		return new CVSMergeSubscriber(id, roots, start, end);
 	}
 	
@@ -250,9 +239,7 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		((CVSMergeSubscriber)getSubscriber()).cancel();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.subscribers.SubscriberParticipant#initializeConfiguration(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-	 */
+	@Override
 	protected void initializeConfiguration(ISynchronizePageConfiguration configuration) {
 		super.initializeConfiguration(configuration);
 		configuration.addMenuGroup(ISynchronizePageConfiguration.P_TOOLBAR_MENU, TOOLBAR_CONTRIBUTION_GROUP);
@@ -267,22 +254,19 @@ public class MergeSynchronizeParticipant extends CVSParticipant {
 		configuration.addActionContribution(new MergeParticipantActionContribution());
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SubscriberParticipant#getLongTaskName()
-	 */
+	@Override
 	protected String getLongTaskName() {
 		return getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SubscriberParticipant#getShortTaskName()
-	 */
+	@Override
 	protected String getShortTaskName() {
 		return CVSUIMessages.Participant_merging; 
 	}
-    
-    protected CVSChangeSetCapability createChangeSetCapability() {
-        // See bug 84561 for a description of the problems with Merge Change Sets
-        return null;
-    }
+	
+	@Override
+	protected CVSChangeSetCapability createChangeSetCapability() {
+		// See bug 84561 for a description of the problems with Merge Change Sets
+		return null;
+	}
 }

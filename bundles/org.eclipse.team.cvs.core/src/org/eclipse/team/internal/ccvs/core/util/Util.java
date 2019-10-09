@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,8 +18,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -178,21 +180,19 @@ public class Util {
 		// Start a thread to execute the command and get a handle to the process
 		final Process[] process = new Process[] { null };
 		final Exception[] exception = new Exception[] {null };
-		final Thread thread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					Process newProcess = Runtime.getRuntime().exec(command);
-					synchronized (process) {
-						if (Thread.interrupted()) {
-							// we we're either cancelled or timed out so just destroy the process
-							newProcess.destroy();
-						} else {
-							process[0] = newProcess;
-						}
+		final Thread thread = new Thread(() -> {
+			try {
+				Process newProcess = Runtime.getRuntime().exec(command);
+				synchronized (process) {
+					if (Thread.interrupted()) {
+						// we we're either cancelled or timed out so just destroy the process
+						newProcess.destroy();
+					} else {
+						process[0] = newProcess;
 					}
-				} catch (IOException e) {
-					exception[0] = e;
 				}
+			} catch (IOException e) {
+				exception[0] = e;
 			}
 		});
 		thread.start();
@@ -368,8 +368,8 @@ public class Util {
 			return tag;
 		}
 		
-		for (int i = 0; i < members.length; i++) {
-			if (members[i].getType() == IResource.FILE) {
+		for (IResource member : members) {
+			if (member.getType() == IResource.FILE) {
 				return tag;
 			}
 		}
@@ -438,6 +438,48 @@ public class Util {
 		return tag;						
 	}
 
+	/**
+	 * Workaround for CVS "bug" where CVS ENTRIES file does not contain correct
+	 * Branch vs. Version info.  Entries files always record a Tv1 so all entries would
+	 * appear as branches.
+	 * 	
+	 * By comparing the revision number to the tag name and to the existing tags
+	 * you can determine if the tag is a branch or version.
+	 * 
+	 * @param cvsResource the resource to test.  Must nut be null.
+	 * @return the correct cVSTag.  May be null.
+	 */
+	public static CVSTag getAccurateFileTag(ICVSResource cvsResource, CVSTag[] existing) throws CVSException {
+		List tags= Arrays.asList(existing);
+		CVSTag tag = null;
+		ResourceSyncInfo info = cvsResource.getSyncInfo();
+		if(info != null) {
+			tag = info.getTag();
+		}
+
+		FolderSyncInfo parentInfo = cvsResource.getParent().getFolderSyncInfo();
+		CVSTag parentTag = null;
+		if(parentInfo != null) {
+			parentTag = parentInfo.getTag();
+		}
+
+		if(tag != null) {
+			if(tag.getName().equals(info.getRevision())) {
+				tag = new CVSTag(tag.getName(), CVSTag.VERSION);
+			} else if(parentTag != null){
+				tag = new CVSTag(tag.getName(), parentTag.getType());
+			} else if (!tags.contains(tag)) {
+				if (!tags.contains(tag)) {
+					CVSTag newTag= new CVSTag(tag.getName(), CVSTag.VERSION);
+					if (tags.contains(newTag)) {
+						tag = newTag;
+					}
+				}
+			}
+		}
+		return tag;
+	}
+	
 	/**
 	 * Return the fullest path that we can obtain for the given resource
 	 * @param resource
@@ -512,7 +554,7 @@ public class Util {
 	 * Flatten the text in the multiline comment
 	 */
 	public static String flattenText(String string) {
-		StringBuffer buffer = new StringBuffer(string.length() + 20);
+		StringBuilder buffer = new StringBuilder(string.length() + 20);
 		boolean skipAdjacentLineSeparator = true;
 		for (int i = 0; i < string.length(); i++) {
 			char c = string.charAt(i);

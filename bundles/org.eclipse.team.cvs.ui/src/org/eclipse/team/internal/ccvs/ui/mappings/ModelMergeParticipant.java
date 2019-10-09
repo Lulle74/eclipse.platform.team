@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -52,6 +55,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 	private final static String CTX_END_TAG_TYPE = "end_tag_type"; //$NON-NLS-1$
 	
 	public class MergeActionGroup extends ModelSynchronizeParticipantActionGroup {
+		@Override
 		public void initialize(ISynchronizePageConfiguration configuration) {
 			super.initialize(configuration);
 			if (!configuration.getSite().isModal()) {
@@ -78,13 +82,12 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		initialize();
 	}
 	
+	@Override
 	protected ModelSynchronizeParticipantActionGroup createMergeActionGroup() {
 		return new MergeActionGroup();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ModelSynchronizeParticipant#initializeConfiguration(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-	 */
+	@Override
 	protected void initializeConfiguration(ISynchronizePageConfiguration configuration) {
 		configuration.setProperty(ISynchronizePageConfiguration.P_VIEWER_ID, VIEWER_ID);
 		super.initializeConfiguration(configuration);
@@ -96,7 +99,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		try {
 			ISynchronizeParticipantDescriptor descriptor = TeamUI.getSynchronizeManager().getParticipantDescriptor(ID); 
 			setInitializationData(descriptor);
-			CVSMergeSubscriber s = (CVSMergeSubscriber)getSubscriber();
+			CVSMergeSubscriber s = getSubscriber();
 			setSecondaryId(s.getId().getLocalName());
 		} catch (CoreException e) {
 			CVSUIPlugin.log(e);
@@ -107,6 +110,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		return (CVSMergeSubscriber)((MergeSubscriberContext)getContext()).getSubscriber();
 	}
 	
+	@Override
 	public void init(String secondaryId, IMemento memento) throws PartInitException {
 		if(memento != null) {
 			ISynchronizeParticipantDescriptor descriptor = TeamUI.getSynchronizeManager().getParticipantDescriptor(ID); 
@@ -129,6 +133,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		}
 	}
 	
+	@Override
 	public void saveState(IMemento memento) {
 		super.saveState(memento);
 		write(subscriber, memento.createChild(CTX_SUBSCRIBER));
@@ -143,9 +148,8 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 			throw new CVSException(NLS.bind(CVSUIMessages.MergeSynchronizeParticipant_10, new String[] { id.toString() })); 
 		}
 		
-		List resources = new ArrayList();
-		for (int i = 0; i < rootNodes.length; i++) {
-			IMemento rootNode = rootNodes[i];
+		List<IResource> resources = new ArrayList<>();
+		for (IMemento rootNode : rootNodes) {
 			IPath path = new Path(rootNode.getString(CTX_ROOT_PATH)); 
 			IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path, true /* include phantoms */);
 			if(resource != null) {
@@ -158,7 +162,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		if(resources.isEmpty()) {
 			throw new CVSException(NLS.bind(CVSUIMessages.MergeSynchronizeParticipant_12, new String[] { id.toString() })); 
 		}
-		IResource[] roots = (IResource[]) resources.toArray(new IResource[resources.size()]);
+		IResource[] roots = resources.toArray(new IResource[resources.size()]);
 		return new CVSMergeSubscriber(id, roots, start, end);
 	}
 	
@@ -173,17 +177,18 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		
 		// resource roots
 		IResource[] roots = s.roots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			IMemento rootNode = memento.createChild(CTX_ROOT);
 			rootNode.putString(CTX_ROOT_PATH, resource.getFullPath().toString());
 		}
 	}
 	
+	@Override
 	protected String getShortTaskName() {
 		return CVSUIMessages.Participant_merging;
 	}
 	
+	@Override
 	public void dispose() {
 		if(TeamUI.getSynchronizeManager().get(getId(), getSecondaryId()) != null) {
 			// If the participant is managed by the synchronize manager then we
@@ -193,20 +198,20 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 		super.dispose();
 	}
 	
+	@Override
 	protected ISynchronizationScopeManager createScopeManager(ResourceMapping[] mappings) {
 		return new SubscriberScopeManager(subscriber.getName(), 
 				mappings, subscriber, true);
 	}
 	
+	@Override
 	protected MergeContext restoreContext(ISynchronizationScopeManager manager) throws CoreException {
 		return MergeSubscriberContext.createContext(manager, subscriber);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ISynchronizeParticipant#getName()
-	 */
+	@Override
 	public String getName() {		
-		return NLS.bind(CVSUIMessages.CompareParticipant_0, new String[] { ((CVSMergeSubscriber)getSubscriber()).getName(), Utils.getScopeDescription(getContext().getScope()) });  
+		return NLS.bind(CVSUIMessages.CompareParticipant_0, new String[] { getSubscriber().getName(), Utils.getScopeDescription(getContext().getScope()) });  
 	}
 	
 	/*
@@ -214,8 +219,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 	 */
 	public static ModelMergeParticipant getMatchingParticipant(ResourceMapping[] mappings, CVSTag startTag, CVSTag endTag) {
 		ISynchronizeParticipantReference[] refs = TeamUI.getSynchronizeManager().getSynchronizeParticipants();
-		for (int i = 0; i < refs.length; i++) {
-			ISynchronizeParticipantReference reference = refs[i];
+		for (ISynchronizeParticipantReference reference : refs) {
 			if (reference.getId().equals(ID)) {
 				ModelMergeParticipant p;
 				try {
@@ -227,9 +231,7 @@ public class ModelMergeParticipant extends CVSModelSynchronizeParticipant {
 				ResourceMapping[] roots = scope.getMappings();
 				if (roots.length == mappings.length) {
 					boolean match = true;
-					for (int j = 0; j < mappings.length; j++) {
-						
-						ResourceMapping mapping = mappings[j];
+					for (ResourceMapping mapping : mappings) {
 						if (scope.getTraversals(mapping) == null) {
 							// The mapping is not in the scope so the participants don't match
 							match = false;

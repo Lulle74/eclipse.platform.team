@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,11 +17,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,9 +39,7 @@ public class CVSFolderPropertiesPage extends CVSPropertiesPage {
 
 	private Text repository;
 	
-	/**
-	 * @see PreferencePage#createContents(Composite)
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		initialize();
 		noDefaultAndApplyButton();
@@ -94,14 +93,12 @@ public class CVSFolderPropertiesPage extends CVSPropertiesPage {
 				int widthHint = convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
 				data.widthHint = Math.max(widthHint, disconnect.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
 				disconnect.setLayoutData(data);
-				disconnect.addListener(SWT.Selection, new Listener() {
-					public void handleEvent (Event event) {
-						// perform a disconnect
-						if (disconnectFolder()) {
-							root.setText(CVSUIMessages.CVSFilePropertiesPage_none); 
-							repository.setText(CVSUIMessages.CVSFilePropertiesPage_none); 
-							disconnect.setEnabled(false);
-						}
+				disconnect.addListener(SWT.Selection, event -> {
+					// perform a disconnect
+					if (disconnectFolder()) {
+						root.setText(CVSUIMessages.CVSFilePropertiesPage_none);
+						repository.setText(CVSUIMessages.CVSFilePropertiesPage_none);
+						disconnect.setEnabled(false);
 					}
 				});
 			}
@@ -109,8 +106,8 @@ public class CVSFolderPropertiesPage extends CVSPropertiesPage {
 			// Display error text
 			createLabel(composite, CVSUIMessages.CVSFilePropertiesPage_error, 2); 
 		}
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.FOLDER_PROPERTY_PAGE);
-        Dialog.applyDialogFont(parent);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.FOLDER_PROPERTY_PAGE);
+		Dialog.applyDialogFont(parent);
 		return composite;
 	}
 
@@ -135,13 +132,11 @@ public class CVSFolderPropertiesPage extends CVSPropertiesPage {
 		if (MessageDialog.openQuestion(getShell(), CVSUIMessages.CVSFolderPropertiesPage_disconnectTitle, CVSUIMessages.CVSFolderPropertiesPage_disconnectQuestion)) { // 
 			final ICVSFolder cvsFolder = CVSWorkspaceRoot.getCVSFolderFor(folder);
 			try {
-				PlatformUI.getWorkbench().getProgressService().run(true, false, new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							cvsFolder.unmanage(null);
-						} catch (CVSException e) {
-							throw new InvocationTargetException(e);
-						}
+				PlatformUI.getWorkbench().getProgressService().run(true, false, monitor -> {
+					try {
+						cvsFolder.unmanage(null);
+					} catch (CVSException e) {
+						throw new InvocationTargetException(e);
 					}
 				});
 			} catch (InvocationTargetException e) {

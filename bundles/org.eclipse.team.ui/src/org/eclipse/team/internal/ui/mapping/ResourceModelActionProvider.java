@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -17,9 +20,14 @@ import org.eclipse.team.internal.ui.synchronize.actions.RefactorActionGroup;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
 import org.eclipse.team.ui.mapping.SynchronizationActionProvider;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.navigator.ICommonViewerSite;
+import org.eclipse.ui.navigator.ICommonViewerWorkbenchSite;
+import org.eclipse.ui.navigator.INavigatorContentService;
 
 /**
  * This is the synchronization action handler for the resources model
@@ -31,9 +39,6 @@ public class ResourceModelActionProvider extends SynchronizationActionProvider {
 	public ResourceModelActionProvider() {
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.SynchronizationActionProvider#initialize()
-	 */
 	@Override
 	protected void initialize() {
 		super.initialize();
@@ -70,18 +75,12 @@ public class ResourceModelActionProvider extends SynchronizationActionProvider {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.SynchronizationActionProvider#fillActionBars(org.eclipse.ui.IActionBars)
-	 */
 	@Override
 	public void fillActionBars(IActionBars actionBars) {
 		super.fillActionBars(actionBars);
 		if (refactorActions != null) refactorActions.fillActionBars(actionBars);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.SynchronizationActionProvider#fillContextMenu(org.eclipse.jface.action.IMenuManager)
-	 */
 	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		super.fillContextMenu(menu);
@@ -91,30 +90,21 @@ public class ResourceModelActionProvider extends SynchronizationActionProvider {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.actions.ActionGroup#updateActionBars()
-	 */
 	@Override
 	public void updateActionBars() {
 		super.updateActionBars();
-		 if (refactorActions != null) refactorActions.updateActionBars();
+		if (refactorActions != null) refactorActions.updateActionBars();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SynchronizePageActionGroup#dispose()
-	 */
 	@Override
 	public void dispose() {
 		super.dispose();
 		if (refactorActions != null) refactorActions.dispose();
 	}
 
-	/* (non-Javadoc)
-     * @see org.eclipse.ui.actions.ActionGroup#setContext(org.eclipse.ui.actions.ActionContext)
-     */
-    @Override
+	@Override
 	public void setContext(ActionContext context) {
-        super.setContext(context);
-        if (refactorActions != null) refactorActions.setContext(context);
-    }
+		super.setContext(context);
+		if (refactorActions != null) refactorActions.setContext(context);
+	}
 }

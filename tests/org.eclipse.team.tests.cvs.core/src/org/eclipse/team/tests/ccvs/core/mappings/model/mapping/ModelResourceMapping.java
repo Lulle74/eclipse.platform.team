@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -37,6 +40,7 @@ public class ModelResourceMapping extends ResourceMapping {
 		return null;
 	}
 
+	@Override
 	public ResourceTraversal[] getTraversals(ResourceMappingContext context,
 			IProgressMonitor monitor) throws CoreException {
 		return new ResourceTraversal[] { new ResourceTraversal(
@@ -49,18 +53,22 @@ public class ModelResourceMapping extends ResourceMapping {
 		this.object = object;
 	}
 
+	@Override
 	public Object getModelObject() {
 		return object;
 	}
 
+	@Override
 	public String getModelProviderId() {
 		return CustomModelProvider.ID;
 	}
 
+	@Override
 	public IProject[] getProjects() {
 		return new IProject[] { (IProject) object.getProject().getResource() };
 	}
 
+	@Override
 	public boolean contains(ResourceMapping mapping) {
 		if (mapping instanceof ModelResourceMapping) {
 			ModelObject object = (ModelObject) mapping.getModelObject();

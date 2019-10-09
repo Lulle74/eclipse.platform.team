@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,12 +14,16 @@
 package org.eclipse.team.ui.synchronize;
 
 import org.eclipse.compare.CompareConfiguration;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IPageBookViewPage;
 
 /**
@@ -39,7 +46,7 @@ import org.eclipse.ui.part.IPageBookViewPage;
  * enabled <code>synchronizeWizards</code> it will also appear in the global synchronize action
  * toolbar.
  * <p>
- * A participant is added to the workbench as follows:
+ * A participant is added to the workbench as follows:</p>
  * <ul>
  * <li>A <code>synchronizeParticipant</code> extension is contributed to
  * the team registry. This extension defines the participant id, name, icon, type, and
@@ -49,7 +56,7 @@ import org.eclipse.ui.part.IPageBookViewPage;
  * synchronize manager. It then appears in the synchronize view.
  * <li>A synchronization can be persistent and thus re-initialized at startup.
  * <li>A pinned participant will only be removed from the synchronize manager if it is un-pinned.
- * </ul></p>
+ * </ul>
  * <p>
  * Once a participant is added to the synchronize manager its lifecycle will be managed. On shutdown if
  * the participant is persistable, the participant will be asked to persist state via
@@ -184,7 +191,7 @@ public interface ISynchronizeParticipant extends IExecutableExtension, IAdaptabl
 	 * resources associated with a participant. When a participant is added
 	 * to the {@link ISynchronizeManager} this method is called when the
 	 * manager is shutdown or the participant is removed from the manager.
-	 * </p><p>
+	 * <p>
 	 * Within this method a participant may release any resources, fonts, images, etc.
 	 * held by this part.  It is also very important to remove all listeners.
 	 * </p><p>
@@ -211,12 +218,13 @@ public interface ISynchronizeParticipant extends IExecutableExtension, IAdaptabl
 	 * registered.
 	 * <p>
 	 * The changes supported by the synchronize view are as follows:
+	 * </p>
 	 * <ul>
 	 * <li><code>IBasicPropertyConstants.P_TEXT</code>- indicates the name
 	 * of a synchronize participant has changed</li>
 	 * <li><code>IBasicPropertyConstants.P_IMAGE</code>- indicates the
 	 * image of a synchronize participant has changed</li>
-	 * </ul></p>
+	 * </ul>
 	 * <p>
 	 * Clients may define additional properties as required.
 	 * </p>
@@ -245,17 +253,17 @@ public interface ISynchronizeParticipant extends IExecutableExtension, IAdaptabl
 	 * @since 3.1
 	 */
 	public void prepareCompareInput(
-	        ISynchronizeModelElement element,
-	        CompareConfiguration configuration,
-	        IProgressMonitor monitor)
+			ISynchronizeModelElement element,
+			CompareConfiguration configuration,
+			IProgressMonitor monitor)
 				throws TeamException;
 
-    /**
-     * Return the list of preference pages that are associated with this participant
-     * @return the list of preference pages that are associated with this participant
-     * @since 3.1
-     */
-    public PreferencePage[] getPreferencePages();
+	/**
+	 * Return the list of preference pages that are associated with this participant
+	 * @return the list of preference pages that are associated with this participant
+	 * @since 3.1
+	 */
+	public PreferencePage[] getPreferencePages();
 
 	/**
 	 * Returns the help context id of this participant.

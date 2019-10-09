@@ -1,29 +1,34 @@
 /*******************************************************************************
  * Copyright (c) 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.examples.model.ui;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.team.examples.model.ModelObjectDefinitionFile;
 import org.eclipse.ui.Saveable;
 import org.eclipse.ui.navigator.SaveablesProvider;
 
 /**
- * Provider used by the Common Navigator framework to link saveables to 
+ * Provider used by the Common Navigator framework to link saveables to
  * model elements.
  */
 public class ModelSaveablesProvider extends SaveablesProvider {
 
-	private List saveables = new ArrayList();
+	private List<Saveable> saveables = new ArrayList<>();
 
+	@Override
 	public Object[] getElements(Saveable saveable) {
 		if (saveable instanceof ModelSaveable) {
 			ModelSaveable ms = (ModelSaveable) saveable;
@@ -32,17 +37,19 @@ public class ModelSaveablesProvider extends SaveablesProvider {
 		return new Object[0];
 	}
 
+	@Override
 	public Saveable getSaveable(Object element) {
-		for (Iterator iterator = saveables.iterator(); iterator.hasNext();) {
-			ModelSaveable saveable = (ModelSaveable) iterator.next();
+		for (Object element2 : saveables) {
+			ModelSaveable saveable = (ModelSaveable) element2;
 			if (saveable.getModelObject().equals(element))
 				return saveable;
 		}
 		return null;
 	}
 
+	@Override
 	public Saveable[] getSaveables() {
-		return (Saveable[]) saveables.toArray(new Saveable[saveables.size()]);
+		return saveables.toArray(new Saveable[saveables.size()]);
 	}
 
 	public void makeDirty(ModelObjectDefinitionFile mo) {

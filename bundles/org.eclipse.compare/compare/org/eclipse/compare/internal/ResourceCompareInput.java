@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -289,9 +292,11 @@ class ResourceCompareInput extends CompareEditorInput {
 	}
 
 	private boolean checkSelection(IResource[] resources) {
-		for (int i = 0; i < resources.length; i++)
-			if (resources[i] == null)
+		for (IResource resource : resources) {
+			if (resource == null) {
 				return false;
+			}
+		}
 		return true;
 	}
 
@@ -489,8 +494,7 @@ class ResourceCompareInput extends CompareEditorInput {
 
 		IDiffElement[] children= node.getChildren();
 		if (children != null) {
-			for (int i= 0; i < children.length; i++) {
-				IDiffElement element= children[i];
+			for (IDiffElement element : children) {
 				if (element instanceof DiffNode)
 					commit(pm, (DiffNode) element);
 			}
@@ -501,52 +505,51 @@ class ResourceCompareInput extends CompareEditorInput {
 	@Override
 	public <T> T getAdapter(Class<T> adapter) {
 		if (IFile.class.equals(adapter)) {
-		    IProgressMonitor pm= new NullProgressMonitor();
+			IProgressMonitor pm= new NullProgressMonitor();
 			// flush changes in any dirty viewer
 			flushViewers(pm);
-		    IFile[] files= getAdapter(IFile[].class);
-		    if (files != null && files.length > 0)
-		        return (T) files[0];	// can only return one: limitation on IDE.saveAllEditors; see #64617
-		    return null;
+			IFile[] files= getAdapter(IFile[].class);
+			if (files != null && files.length > 0)
+				return (T) files[0];	// can only return one: limitation on IDE.saveAllEditors; see #64617
+			return null;
 		}
 		if (IFile[].class.equals(adapter)) {
-		    HashSet<IFile> collector= new HashSet<>();
-		    collectDirtyResources(fRoot, collector);
-		    return (T) collector.toArray(new IFile[collector.size()]);
+			HashSet<IFile> collector= new HashSet<>();
+			collectDirtyResources(fRoot, collector);
+			return (T) collector.toArray(new IFile[collector.size()]);
 		}
 		return super.getAdapter(adapter);
 	}
 
 	private void collectDirtyResources(Object o, Set<IFile> collector) {
 		if (o instanceof DiffNode) {
-		    DiffNode node= (DiffNode) o;
+			DiffNode node= (DiffNode) o;
 
 			ITypedElement left= node.getLeft();
 			if (left instanceof BufferedResourceNode) {
-			    BufferedResourceNode bn= (BufferedResourceNode) left;
-			    if (bn.isDirty()) {
-			        IResource resource= bn.getResource();
-			        if (resource instanceof IFile)
-			            collector.add((IFile) resource);
-			    }
+				BufferedResourceNode bn= (BufferedResourceNode) left;
+				if (bn.isDirty()) {
+					IResource resource= bn.getResource();
+					if (resource instanceof IFile)
+						collector.add((IFile) resource);
+				}
 			}
 
 			ITypedElement right= node.getRight();
 			if (right instanceof BufferedResourceNode) {
-			    BufferedResourceNode bn= (BufferedResourceNode) right;
-			    if (bn.isDirty()) {
-			        IResource resource= bn.getResource();
-			        if (resource instanceof IFile)
-			            collector.add((IFile) resource);
-			    }
+				BufferedResourceNode bn= (BufferedResourceNode) right;
+				if (bn.isDirty()) {
+					IResource resource= bn.getResource();
+					if (resource instanceof IFile)
+						collector.add((IFile) resource);
+				}
 			}
 
 			IDiffElement[] children= node.getChildren();
 			if (children != null) {
-				for (int i= 0; i < children.length; i++) {
-					IDiffElement element= children[i];
+				for (IDiffElement element : children) {
 					if (element instanceof DiffNode)
-					    collectDirtyResources(element, collector);
+						collectDirtyResources(element, collector);
 				}
 			}
 		}

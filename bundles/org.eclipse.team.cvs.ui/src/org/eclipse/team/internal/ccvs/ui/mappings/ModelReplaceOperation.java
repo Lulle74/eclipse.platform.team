@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -31,38 +34,28 @@ public class ModelReplaceOperation extends ModelUpdateOperation {
 		super(part, selectedMappings, consultModels);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#getJobName()
-	 */
+	@Override
 	protected String getJobName() {
 		return CVSUIMessages.ReplaceOperation_taskName;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingMergeOperation#isAttemptHeadlessMerge()
-	 */
+	@Override
 	protected boolean isAttemptHeadlessMerge() {
 		return true;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingMergeOperation#hasChangesOfInterest()
-	 */
+	@Override
 	protected boolean hasChangesOfInterest() {
 		IMergeContext context = (IMergeContext)getContext();
 		return !context.getDiffTree().isEmpty();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.mappings.ModelUpdateOperation#getMergeType()
-	 */
+	@Override
 	protected int getMergeType() {
 		return ISynchronizationContext.TWO_WAY;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingMergeOperation#performMerge(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected IStatus performMerge(IProgressMonitor monitor) throws CoreException {
 		if (!hasLocalChanges() || promptForOverwrite()) {
 			return super.performMerge(monitor);
@@ -77,29 +70,29 @@ public class ModelReplaceOperation extends ModelUpdateOperation {
 		if (hasPrompted)
 			return true;
 		final int[] result = new int[] { 1 };
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-		        MessageDialog dialog = new MessageDialog(getShell(), CVSUIMessages.ModelReplaceOperation_0, null, // accept
-		                // the
-		                // default
-		                // window
-		                // icon
-		        		CVSUIMessages.ModelReplaceOperation_1, 
-		        		MessageDialog.QUESTION, new String[] { CVSUIMessages.ModelReplaceOperation_2, CVSUIMessages.ModelReplaceOperation_3,
-		                        IDialogConstants.CANCEL_LABEL }, result[0]); // preview is the default
-		        
-		        result[0] = dialog.open();
+		Display.getDefault().syncExec(() -> {
+			MessageDialog dialog = new MessageDialog(getShell(), CVSUIMessages.ModelReplaceOperation_0, null, // accept
+					// the
+					// default
+					// window
+					// icon
+					CVSUIMessages.ModelReplaceOperation_1, MessageDialog.QUESTION,
+					new String[] { CVSUIMessages.ModelReplaceOperation_2, CVSUIMessages.ModelReplaceOperation_3,
+							IDialogConstants.CANCEL_LABEL },
+					result[0]); // preview is the default
 
-			};
+			result[0] = dialog.open();
+
 		});
-        if (result[0] == 2)
-        	throw new OperationCanceledException();
-        hasPrompted = true;
-        return result[0] == 0;
+		if (result[0] == 2)
+			throw new OperationCanceledException();
+		hasPrompted = true;
+		return result[0] == 0;
 	}
 
 	private boolean hasLocalChanges() {
 		return getContext().getDiffTree().hasMatchingDiffs(ResourcesPlugin.getWorkspace().getRoot().getFullPath(), new FastDiffFilter() {
+			@Override
 			public boolean select(IDiff node) {
 				if (node instanceof IThreeWayDiff) {
 					IThreeWayDiff twd = (IThreeWayDiff) node;

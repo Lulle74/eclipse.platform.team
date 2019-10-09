@@ -1,21 +1,33 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.importing.provisional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.osgi.util.ManifestElement;
-import org.eclipse.team.core.*;
+import org.eclipse.team.core.ProjectSetCapability;
+import org.eclipse.team.core.ProjectSetSerializationContext;
+import org.eclipse.team.core.RepositoryProviderType;
+import org.eclipse.team.core.ScmUrlImportDescription;
 import org.eclipse.team.internal.core.TeamPlugin;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -55,8 +67,7 @@ public abstract class BundleImporterDelegate implements IBundleImporterDelegate 
 					if (getSupportedValues().contains(prefix)) {
 						try {
 							ManifestElement[] elements = ManifestElement.parseHeader(ECLIPSE_SOURCE_REFERENCES, value);
-							for (int j = 0; j < elements.length; j++) {
-								ManifestElement element = elements[j];
+							for (ManifestElement element : elements) {
 								String url = element.toString();
 								String project = element.getAttribute(ATTR_PROJECT);
 								if (project == null) {
@@ -85,8 +96,7 @@ public abstract class BundleImporterDelegate implements IBundleImporterDelegate 
 		IProject[] result = null;
 		if (psfCapability != null) {
 			// collect and validate all header values
-			for (int i = 0; i < descriptions.length; i++) {
-				ScmUrlImportDescription description = descriptions[i];
+			for (ScmUrlImportDescription description : descriptions) {
 				references.add(psfCapability.asReference(description.getUri(), description.getProject()));
 			}
 			// create projects

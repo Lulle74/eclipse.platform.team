@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -71,9 +74,7 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 	private Button useCustomLabel;
 	private Text labelText;
 			
-	/*
-	 * @see PreferencesPage#createContents
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		initialize();
 		
@@ -94,11 +95,7 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		labelGroup.setLayout(layout);
-		Listener labelListener = new Listener() {
-			public void handleEvent(Event event) {
-				updateWidgetEnablements();
-			}
-		};
+		Listener labelListener = event -> updateWidgetEnablements();
 		useLocationAsLabel = createRadioButton(labelGroup, CVSUIMessages.CVSRepositoryPropertiesPage_useLocationAsLabel, 3); 
 		useCustomLabel = createRadioButton(labelGroup, CVSUIMessages.CVSRepositoryPropertiesPage_useCustomLabel, 1); 
 		useCustomLabel.addListener(SWT.Selection, labelListener);
@@ -147,6 +144,7 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		data.horizontalSpan = 3;
 		allowCachingButton.setLayoutData(data);
 		allowCachingButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				allowCaching = allowCachingButton.getSelection();
 			}
@@ -160,17 +158,11 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		
 		initializeValues();
 		updateWidgetEnablements();
-		Listener connectionInfoChangedListener = new Listener() {
-			public void handleEvent(Event event) {
-				connectionInfoChanged = true;
-				updateWidgetEnablements();
-			}
+		Listener connectionInfoChangedListener = event -> {
+			connectionInfoChanged = true;
+			updateWidgetEnablements();
 		};
-		passwordText.addListener(SWT.Modify, new Listener() {
-			public void handleEvent(Event event) {
-				passwordChanged = !passwordText.getText().equals(FAKE_PASSWORD);
-			}
-		});
+		passwordText.addListener(SWT.Modify, event -> passwordChanged = !passwordText.getText().equals(FAKE_PASSWORD));
 		userText.addListener(SWT.Modify, connectionInfoChangedListener);
 		methodType.addListener(SWT.Modify, connectionInfoChangedListener);
 		hostText.addListener(SWT.Modify, connectionInfoChangedListener);
@@ -178,8 +170,8 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		useCustomPort.addListener(SWT.Selection, connectionInfoChangedListener);
 		pathText.addListener(SWT.Modify, connectionInfoChangedListener);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.REPOSITORY_LOCATION_PROPERTY_PAGE);
-        Dialog.applyDialogFont(parent);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.REPOSITORY_LOCATION_PROPERTY_PAGE);
+		Dialog.applyDialogFont(parent);
 		return composite;
 	}
 	
@@ -289,8 +281,8 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		connectionInfoChanged = false;
 		
 		IConnectionMethod[] methods = CVSRepositoryLocation.getPluggedInConnectionMethods();
-		for (int i = 0; i < methods.length; i++) {
-			methodType.add(methods[i].getName());
+		for (IConnectionMethod method : methods) {
+			methodType.add(method.getName());
 		}
 		String method = location.getMethod().getName();
 		methodType.select(methodType.indexOf(method));
@@ -360,7 +352,8 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 			}
 			final boolean[] result = new boolean[] { false };
 			final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(getShell());
-            progressMonitorDialog.run(false, false, new WorkspaceModifyOperation(null) {
+			progressMonitorDialog.run(false, false, new WorkspaceModifyOperation(null) {
+				@Override
 				public void execute(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						// Create a new repository location with the new information
@@ -371,19 +364,19 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 							// For each project shared with the old location, set connection info to the new one
 							List projects = new ArrayList();
 							IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-							for (int i = 0; i < allProjects.length; i++) {
-								RepositoryProvider teamProvider = RepositoryProvider.getProvider(allProjects[i], CVSProviderPlugin.getTypeId());
+							for (IProject project : allProjects) {
+								RepositoryProvider teamProvider = RepositoryProvider.getProvider(project, CVSProviderPlugin.getTypeId());
 								if (teamProvider != null) {
 									CVSTeamProvider cvsProvider = (CVSTeamProvider)teamProvider;
 									if (cvsProvider.getCVSWorkspaceRoot().getRemoteLocation().equals(location)) {
-										projects.add(allProjects[i]);
+										projects.add(project);
 									}
 								}
 							}
 							if (projects.size() > 0) {
 								// To do: warn the user
 								DetailsDialogWithProjects dialog = new DetailsDialogWithProjects(
-								    progressMonitorDialog.getShell(), 
+									progressMonitorDialog.getShell(), 
 									CVSUIMessages.CVSRepositoryPropertiesPage_Confirm_Project_Sharing_Changes_1, 
 									CVSUIMessages.CVSRepositoryPropertiesPage_There_are_projects_in_the_workspace_shared_with_this_repository_2, 
 									NLS.bind(CVSUIMessages.CVSRepositoryPropertiesPage_sharedProject, new String[] { location.toString() }), 
@@ -438,9 +431,8 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 	private void performNonConnectionInfoChanges() {
 		recordNewLabel((CVSRepositoryLocation)location);
 	}
-	/*
-	 * @see PreferencesPage#performOk
-	 */
+
+	@Override
 	public boolean performOk() {
 		if (performConnectionInfoChanges()) {
 			performNonConnectionInfoChanges();
@@ -449,9 +441,7 @@ public class CVSRepositoryPropertiesPage extends PropertyPage {
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
-	 */
+	@Override
 	protected void performDefaults() {
 		super.performDefaults();
 		initializeValues();

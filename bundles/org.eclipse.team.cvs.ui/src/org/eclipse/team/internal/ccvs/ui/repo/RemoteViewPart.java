@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,6 @@ package org.eclipse.team.internal.ccvs.ui.repo;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.osgi.util.TextProcessor;
@@ -26,9 +28,11 @@ import org.eclipse.team.internal.ccvs.ui.*;
 import org.eclipse.team.internal.ccvs.ui.actions.OpenRemoteFileAction;
 import org.eclipse.team.internal.ccvs.ui.model.RemoteContentProvider;
 import org.eclipse.ui.*;
-import org.eclipse.ui.actions.*;
+import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.actions.WorkingSetFilterActionGroup;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.DrillDownAdapter;
+import org.eclipse.ui.part.ViewPart;
 
 /**
  * This class acts as a superclass to all remote CVS tree views.
@@ -53,6 +57,7 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 	private static final String SELECTED_WORKING_SET = "SelectedWorkingSet"; //$NON-NLS-1$
 
 	/* package */ class DecoratingRepoLabelProvider extends WorkbenchLabelProvider {
+		@Override
 		protected String decorateText(String input, Object element) {
 			//Used to process RTL locales only
 			return TextProcessor.process(input, ":@/"); //$NON-NLS-1$
@@ -72,9 +77,7 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		setWorkingSet(set, false);
 	}
 	
-	/**
-	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(getContentProvider());
@@ -93,12 +96,10 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		// F1 Help
 		String helpID = getHelpContextId();
 		if (helpID != null)
-            PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), helpID);
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), helpID);
 	}
 	
-	/**
-	 * @see WorkbenchPart#setFocus
-	 */
+	@Override
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
@@ -127,10 +128,11 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 			contentProvider = new RemoteContentProvider();
 		}
 		return contentProvider;
-	};
+	}
 
 	protected KeyAdapter getKeyListener() {
 		return new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent event) {
 				if (event.keyCode == SWT.F5) {
 					refreshAll();
@@ -176,6 +178,7 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		// Refresh (toolbar)
 		CVSUIPlugin plugin = CVSUIPlugin.getPlugin();
 		refreshAction = new Action(CVSUIMessages.RepositoriesView_refresh, CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_REFRESH_ENABLED)) { 
+			@Override
 			public void run() {
 				refreshAll();
 			}
@@ -186,6 +189,7 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
 
 		collapseAllAction = new Action(CVSUIMessages.RepositoriesView_collapseAll, CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_COLLAPSE_ALL_ENABLED)) { 
+			@Override
 			public void run() {
 				collapseAll();
 			}
@@ -194,16 +198,13 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		collapseAllAction.setHoverImageDescriptor(plugin.getImageDescriptor(ICVSUIConstants.IMG_COLLAPSE_ALL));
 		
 		// Working Set action group
-		IPropertyChangeListener workingSetUpdater = new IPropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent event) {
-                String property = event.getProperty();
-                if (WorkingSetFilterActionGroup.CHANGE_WORKING_SET
-                        .equals(property)) {
-                    Object newValue = event.getNewValue();
-                    setWorkingSet((IWorkingSet) newValue, true);
-                }
-            }
-        };
+		IPropertyChangeListener workingSetUpdater = event -> {
+			String property = event.getProperty();
+			if (WorkingSetFilterActionGroup.CHANGE_WORKING_SET.equals(property)) {
+				Object newValue = event.getNewValue();
+				setWorkingSet((IWorkingSet) newValue, true);
+			}
+		};
 		setActionGroup(new WorkingSetFilterActionGroup(shell, workingSetUpdater));
 		getWorkingSetActionGroup().setWorkingSet(getContentProvider().getWorkingSet());
 		
@@ -211,12 +212,7 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		MenuManager menuMgr = new MenuManager();
 		Tree tree = viewer.getTree();
 		Menu menu = menuMgr.createContextMenu(tree);
-		menuMgr.addMenuListener(new IMenuListener() {
-			public void menuAboutToShow(IMenuManager manager) {
-				addWorkbenchActions(manager);
-			}
-
-		});
+		menuMgr.addMenuListener(manager -> addWorkbenchActions(manager));
 		menuMgr.setRemoveAllWhenShown(true);
 		tree.setMenu(menu);
 		getSite().registerContextMenu(menuMgr, viewer);
@@ -232,32 +228,28 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 
 		// Register the open handler
 		openAction = new OpenRemoteFileAction();
-		viewer.addOpenListener(new IOpenListener() {
-			public void open(OpenEvent event) {
-				handleOpen(event);
-			}
-		});
+		viewer.addOpenListener(event -> handleOpen(event));
 
 		bars.updateActionBars();
 	}
 	
-    /**
-     * Returns the action group.
-     * 
-     * @return the action group
-     */
-    private WorkingSetFilterActionGroup getWorkingSetActionGroup() {
-        return workingSetActionGroup;
-    }
+	/**
+	 * Returns the action group.
+	 * 
+	 * @return the action group
+	 */
+	private WorkingSetFilterActionGroup getWorkingSetActionGroup() {
+		return workingSetActionGroup;
+	}
 
-    /**
-     * Sets the action group.
-     * 
-     * @param actionGroup the action group
-     */
-    private void setActionGroup(WorkingSetFilterActionGroup actionGroup) {
-        this.workingSetActionGroup = actionGroup;
-    }
+	/**
+	 * Sets the action group.
+	 * 
+	 * @param actionGroup the action group
+	 */
+	private void setActionGroup(WorkingSetFilterActionGroup actionGroup) {
+		this.workingSetActionGroup = actionGroup;
+	}
 	
 	/**
 	 * Add the menu actions that were contributed in plugin.xml
@@ -294,9 +286,9 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		((RemoteContentProvider)viewer.getContentProvider()).cancelJobs(CVSUIPlugin.getPlugin().getRepositoryManager().getKnownRepositoryRoots());
 		((RemoteContentProvider)viewer.getContentProvider()).purgeCache();
 		CVSUIPlugin.getPlugin().getRepositoryManager().purgeCache();
-        viewer.getControl().setRedraw(false);
+		viewer.getControl().setRedraw(false);
 		viewer.refresh();
-        viewer.getControl().setRedraw(true);
+		viewer.getControl().setRedraw(true);
 	}
 	
 	public void collapseAll() {
@@ -335,20 +327,16 @@ public abstract class RemoteViewPart extends ViewPart implements ISelectionListe
 		return viewer;
 	}
 
-	/**
-	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
-	 */
+	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 	}
 
-	/**
-	 * @see org.eclipse.ui.IWorkbenchPart#dispose()
-	 */
+	@Override
 	public void dispose() {
 		getSite().getWorkbenchWindow().getSelectionService().removePostSelectionListener(this);
-        if (getWorkingSetActionGroup() != null) {
-            getWorkingSetActionGroup().dispose();
-        }
+		if (getWorkingSetActionGroup() != null) {
+			getWorkingSetActionGroup().dispose();
+		}
 		super.dispose();
 		viewer = null;
 	}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,7 +17,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IContributionManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.team.internal.ui.Utils;
@@ -135,9 +140,6 @@ public class DirectionFilterActionGroup extends ActionGroup implements IProperty
 		return 0;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.actions.ActionGroup#fillActionBars(org.eclipse.ui.IActionBars)
-	 */
 	public void fillActionBars(IActionBars actionBars, String group) {
 		super.fillActionBars(actionBars);
 		IToolBarManager toolBar = actionBars.getToolBarManager();
@@ -176,9 +178,6 @@ public class DirectionFilterActionGroup extends ActionGroup implements IProperty
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
-	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if(event.getProperty().equals(ISynchronizePageConfiguration.P_MODE)) {
@@ -187,9 +186,6 @@ public class DirectionFilterActionGroup extends ActionGroup implements IProperty
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.actions.ActionGroup#dispose()
-	 */
 	@Override
 	public void dispose() {
 		super.dispose();

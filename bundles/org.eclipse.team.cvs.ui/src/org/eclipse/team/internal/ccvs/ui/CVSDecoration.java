@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -268,14 +271,14 @@ public class CVSDecoration {
 			bindings.put(CVSDecoratorConfiguration.REMOTELOCATION_ROOT, location.getRootDirectory());
 			bindings.put(CVSDecoratorConfiguration.REMOTELOCATION_REPOSITORY, repository);
 
-            RepositoryManager repositoryManager = CVSUIPlugin.getPlugin().getRepositoryManager();
-            RepositoryRoot root = repositoryManager.getRepositoryRootFor(location);
-            CVSUIPlugin.getPlugin().getRepositoryManager();
-            String label = root.getName();
-            if (label == null) {
-              label = location.getLocation(true);
-            }
-            bindings.put(CVSDecoratorConfiguration.REMOTELOCATION_LABEL, label);
+			RepositoryManager repositoryManager = CVSUIPlugin.getPlugin().getRepositoryManager();
+			RepositoryRoot root = repositoryManager.getRepositoryRootFor(location);
+			CVSUIPlugin.getPlugin().getRepositoryManager();
+			String label = root.getName();
+			if (label == null) {
+				label = location.getLocation(true);
+			}
+			bindings.put(CVSDecoratorConfiguration.REMOTELOCATION_LABEL, label);
 		}
 		CVSDecoratorConfiguration.decorate(this, getTextFormatter(), bindings);
 	}
@@ -443,9 +446,9 @@ public class CVSDecoration {
 
 	public void setStateFlags(int stateFlags) {
 		this.stateFlags = stateFlags;
-    	if ((stateFlags & IThreeWayDiff.OUTGOING) != 0) {
-    		setDirty(true);
-    	}
+		if ((stateFlags & IThreeWayDiff.OUTGOING) != 0) {
+			setDirty(true);
+		}
 	}
 	
 	public TeamStateDescription asTeamStateDescription(String[] properties) {
@@ -463,8 +466,7 @@ public class CVSDecoration {
 	private boolean isRequestedProperty(String[] properties, String property) {
 		if (properties == null)
 			return true;
-		for (int i = 0; i < properties.length; i++) {
-			String string = properties[i];
+		for (String string : properties) {
 			if (string.equals(property))
 				return true;
 		}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -37,8 +40,7 @@ public class ScopeBuildingTests extends TeamTest {
 						IProgressMonitor monitor) throws CoreException {
 					super.initialize(monitor);
 					// Add the additional test mappings to the scope
-					for (int i = 0; i < additionalMappings.length; i++) {
-						ResourceMapping mapping = additionalMappings[i];
+					for (ResourceMapping mapping : additionalMappings) {
 						ResourceTraversal[] traversals = mapping.getTraversals(getContext(), monitor);
 						((ResourceMappingScope)getScope()).addMapping(mapping, traversals);
 						// TODO: The additional mappings and additional resources boolean will not be set
@@ -104,9 +106,9 @@ public class ScopeBuildingTests extends TeamTest {
 			public String getModelProviderId() {
 				return TEST_MODEL_PROVIDER_ID;
 			}
-		    public boolean contains(ResourceMapping mapping) {
-		    	return false;
-		    }
+			public boolean contains(ResourceMapping mapping) {
+				return false;
+			}
 
 		};
 	}

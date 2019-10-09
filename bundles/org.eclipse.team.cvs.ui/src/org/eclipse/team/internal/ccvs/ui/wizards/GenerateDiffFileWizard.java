@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,12 +18,12 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
@@ -43,8 +46,9 @@ import org.eclipse.team.core.mapping.provider.ResourceDiffTree;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.internal.ccvs.core.CVSException;
 import org.eclipse.team.internal.ccvs.core.ICVSFile;
-import org.eclipse.team.internal.ccvs.core.client.*;
+import org.eclipse.team.internal.ccvs.core.client.Command;
 import org.eclipse.team.internal.ccvs.core.client.Command.LocalOption;
+import org.eclipse.team.internal.ccvs.core.client.Diff;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.internal.ccvs.core.syncinfo.ResourceSyncInfo;
 import org.eclipse.team.internal.ccvs.ui.*;
@@ -135,6 +139,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			//Never show closed projects
 			boolean showClosedProjects=false;
 
+			@Override
 			public Object[] getChildren(Object element) {
 				if (element instanceof IWorkspace) {
 					// check if closed projects should be shown
@@ -142,10 +147,10 @@ public class GenerateDiffFileWizard extends Wizard {
 					if (showClosedProjects)
 						return allProjects;
 
-					ArrayList accessibleProjects = new ArrayList();
-					for (int i = 0; i < allProjects.length; i++) {
-						if (allProjects[i].isOpen()) {
-							accessibleProjects.add(allProjects[i]);
+					ArrayList<IProject> accessibleProjects = new ArrayList<>();
+					for (IProject project : allProjects) {
+						if (project.isOpen()) {
+							accessibleProjects.add(project);
 						}
 					}
 					return accessibleProjects.toArray();
@@ -167,6 +172,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				super(shell);
 			}
 
+			@Override
 			protected Control createContents(Composite parent) {
 				Control control = super.createContents(parent);
 				setTitle(CVSUIMessages.WorkspacePatchDialogTitle);
@@ -178,6 +184,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				return control;
 			}
 
+			@Override
 			protected Control createDialogArea(Composite parent){
 				Composite parentComposite = (Composite) super.createDialogArea(parent);
 
@@ -232,6 +239,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				return parent;
 			}
 
+			@Override
 			protected Button createButton(Composite parent, int id,
 					String label, boolean defaultButton) {
 				Button button = super.createButton(parent, id, label,
@@ -285,6 +293,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				getButton(IDialogConstants.OK_ID).setEnabled(true);
 			}
 
+			@Override
 			protected void okPressed() {
 				IFile file = wsSelectedContainer.getFile(new Path(
 						wsFilenameText.getText()));
@@ -296,7 +305,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			}
 
 			private IContainer getSelectedContainer() {
-				Object obj = ((IStructuredSelection)wsTreeViewer.getSelection()).getFirstElement();
+				Object obj = wsTreeViewer.getStructuredSelection().getFirstElement();
 				if (obj instanceof IContainer) {
 					wsSelectedContainer = (IContainer) obj;
 				} else if (obj instanceof IFile) {
@@ -305,11 +314,13 @@ public class GenerateDiffFileWizard extends Wizard {
 				return wsSelectedContainer;
 			}
 
+			@Override
 			protected void cancelPressed() {
 				validatePage();
 				super.cancelPressed();
 			}
 
+			@Override
 			public boolean close() {
 				if (dlgTitleImage != null)
 					dlgTitleImage.dispose();
@@ -318,41 +329,35 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			void setupListeners(){
 				wsTreeViewer.addSelectionChangedListener(
-						new ISelectionChangedListener() {
-							public void selectionChanged(SelectionChangedEvent event) {
-								IStructuredSelection s = (IStructuredSelection)event.getSelection();
-								Object obj=s.getFirstElement();
-								if (obj instanceof IContainer)
-									wsSelectedContainer = (IContainer) obj;
-								else if (obj instanceof IFile){
-									IFile tempFile = (IFile) obj;
-									wsSelectedContainer = tempFile.getParent();
-									wsFilenameText.setText(tempFile.getName());
-								}
-								validateDialog();
+						event -> {
+							IStructuredSelection s = event.getStructuredSelection();
+							Object obj=s.getFirstElement();
+							if (obj instanceof IContainer)
+								wsSelectedContainer = (IContainer) obj;
+							else if (obj instanceof IFile){
+								IFile tempFile = (IFile) obj;
+								wsSelectedContainer = tempFile.getParent();
+								wsFilenameText.setText(tempFile.getName());
 							}
+							validateDialog();
 						});
 
 				wsTreeViewer.addDoubleClickListener(
-						new IDoubleClickListener() {
-							public void doubleClick(DoubleClickEvent event) {
-								ISelection s= event.getSelection();
-								if (s instanceof IStructuredSelection) {
-									Object item = ((IStructuredSelection)s).getFirstElement();
-									if (wsTreeViewer.getExpandedState(item))
-										wsTreeViewer.collapseToLevel(item, 1);
-									else
-										wsTreeViewer.expandToLevel(item, 1);
-								}
-								validateDialog();
+						event -> {
+							ISelection s= event.getSelection();
+							if (s instanceof IStructuredSelection) {
+								Object item = ((IStructuredSelection)s).getFirstElement();
+								if (wsTreeViewer.getExpandedState(item))
+									wsTreeViewer.collapseToLevel(item, 1);
+								else
+									wsTreeViewer.expandToLevel(item, 1);
 							}
+							validateDialog();
 						});
 
-				wsFilenameText.addModifyListener(new ModifyListener() {
-					public void modifyText(ModifyEvent e) {
-						modified = true;
-						validateDialog();
-					}
+				wsFilenameText.addModifyListener(e -> {
+					modified = true;
+					validateDialog();
 				});
 			}
 		}
@@ -545,6 +550,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		 * Allow the user to chose to save the patch to the workspace or outside
 		 * of the workspace.
 		 */
+		@Override
 		public void createControl(Composite parent) {
 
 			final Composite composite= new Composite(parent, SWT.NULL);
@@ -576,11 +582,11 @@ public class GenerateDiffFileWizard extends Wizard {
 			 * Ensure the page is in a valid state.
 			 */
 			/*if (!validatePage()) {
-                store.storeRadioSelection(CLIPBOARD);
-                initializeDefaultValues();
-                validatePage();
-            }
-            pageValid= true;*/
+				store.storeRadioSelection(CLIPBOARD);
+				initializeDefaultValues();
+				validatePage();
+			}
+			pageValid= true;*/
 			validatePage();
 
 			updateEnablements();
@@ -690,6 +696,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				Button showChanges = new Button(changeDesc, SWT.PUSH);
 				showChanges.setText(CVSUIMessages.CommitWizardCommitPage_5);
 				showChanges.addSelectionListener(new SelectionAdapter() {
+					@Override
 					public void widgetSelected(SelectionEvent e) {
 						showChangesPane();
 					}
@@ -723,6 +730,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			return control;
 		}
 
+		@Override
 		public void dispose() {
 			if (fPagePane != null)
 				fPagePane.dispose();
@@ -795,68 +803,55 @@ public class GenerateDiffFileWizard extends Wizard {
 		 */
 		private void setupListeners() {
 
-			cpRadio.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					selectedLocation= CLIPBOARD;
-					validatePage();
-					updateEnablements();
-				}
+			cpRadio.addListener(SWT.Selection, event -> {
+				selectedLocation= CLIPBOARD;
+				validatePage();
+				updateEnablements();
 			});
-			fsRadio.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					selectedLocation= FILESYSTEM;
-					validatePage();
-					updateEnablements();
-				}
+			fsRadio.addListener(SWT.Selection, event -> {
+				selectedLocation= FILESYSTEM;
+				validatePage();
+				updateEnablements();
 			});
 
-			wsRadio.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					selectedLocation= WORKSPACE;
-					validatePage();
-					updateEnablements();
-				}
+			wsRadio.addListener(SWT.Selection, event -> {
+				selectedLocation= WORKSPACE;
+				validatePage();
+				updateEnablements();
 			});
 
-			ModifyListener pathTextModifyListener = new ModifyListener() {
-				public void modifyText(ModifyEvent e) {
-					validatePage();
-				}
-			};
+			ModifyListener pathTextModifyListener = e -> validatePage();
 			fsPathText.addModifyListener(pathTextModifyListener);
 			wsPathText.addModifyListener(pathTextModifyListener);
 
-			fsBrowseButton.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					final FileDialog dialog = new FileDialog(getShell(), SWT.PRIMARY_MODAL | SWT.SAVE);
-					if (pageValid) {
-						final File file= new File(fsPathText.getText());
-						dialog.setFilterPath(file.getParent());
-					}
-					dialog.setText(CVSUIMessages.Save_Patch_As_5);
-					dialog.setFileName(CVSUIMessages.patch_txt_6);
-					final String path = dialog.open();
-					fsBrowsed = true;
-					if (path != null) {
-						fsPathText.setText(new Path(path).toOSString());
-					}
-					validatePage();
+			fsBrowseButton.addListener(SWT.Selection, event -> {
+				final FileDialog dialog = new FileDialog(getShell(), SWT.PRIMARY_MODAL | SWT.SAVE);
+				if (pageValid) {
+					final File file= new File(fsPathText.getText());
+					dialog.setFilterPath(file.getParent());
 				}
+				dialog.setText(CVSUIMessages.Save_Patch_As_5);
+				dialog.setFileName(CVSUIMessages.patch_txt_6);
+				final String path = dialog.open();
+				fsBrowsed = true;
+				if (path != null) {
+					fsPathText.setText(new Path(path).toOSString());
+				}
+				validatePage();
 			});
 
 
 
-			wsBrowseButton.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					final WorkspaceDialog dialog = new WorkspaceDialog(getShell());
-					wsBrowsed = true;
-					dialog.open();
-					validatePage();
-				}
+			wsBrowseButton.addListener(SWT.Selection, event -> {
+				final WorkspaceDialog dialog = new WorkspaceDialog(getShell());
+				wsBrowsed = true;
+				dialog.open();
+				validatePage();
 			});
 
 
 			chgSelectAll.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					initCheckedItems();
 					//Only bother changing isPageComplete state if the current state
@@ -867,6 +862,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			});
 
 			chgDeselectAll.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					ISynchronizePage page = fConfiguration.getPage();
 					if (page != null){
@@ -887,11 +883,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			if (page != null) {
 				Viewer viewer = page.getViewer();
 				if (viewer instanceof CheckboxTreeViewer) {
-					((CheckboxTreeViewer)viewer).addCheckStateListener(new ICheckStateListener() {
-						public void checkStateChanged(CheckStateChangedEvent event) {
-							setPageComplete(validatePage());
-						}
-					});
+					((CheckboxTreeViewer)viewer).addCheckStateListener(event -> setPageComplete(validatePage()));
 				}
 			}
 		}
@@ -902,8 +894,8 @@ public class GenerateDiffFileWizard extends Wizard {
 				Viewer viewer = page.getViewer();
 				if (viewer instanceof CheckboxTreeViewer) {
 					TreeItem[] items=((CheckboxTreeViewer)viewer).getTree().getItems();
-					for (int i = 0; i < items.length; i++) {
-						((CheckboxTreeViewer)viewer).setChecked(items[i].getData(), true);
+					for (TreeItem item : items) {
+						((CheckboxTreeViewer)viewer).setChecked(item.getData(), true);
 					}
 				}
 			}
@@ -916,14 +908,13 @@ public class GenerateDiffFileWizard extends Wizard {
 				if (viewer instanceof CheckboxTreeViewer) {
 					Object[] elements = ((CheckboxTreeViewer)viewer).getCheckedElements();
 					IResource[]selectedResources = Utils.getResources(elements);
-					ArrayList result = new ArrayList();
-					for (int i = 0; i < selectedResources.length; i++) {
-						IResource resource = selectedResources[i];
+					ArrayList<IResource> result = new ArrayList<>();
+					for (IResource resource : selectedResources) {
 						if (fConfiguration.getSyncInfoSet().getSyncInfo(resource) != null) {
 							result.add(resource);
 						}
 					}
-					return (IResource[]) result.toArray(new IResource[result.size()]);
+					return result.toArray(new IResource[result.size()]);
 				}
 			}
 			return new IResource[0];
@@ -958,15 +949,14 @@ public class GenerateDiffFileWizard extends Wizard {
 					super(""); //$NON-NLS-1$
 					fLocationPage=page;
 				}
+				@Override
 				public IStatus run(IProgressMonitor monitor) {
 					monitor.beginTask(CVSUIMessages.CommitWizard_4, IProgressMonitor.UNKNOWN);
 					syncInfoCollector.waitForCollector(monitor);
-					Utils.syncExec(new Runnable() {
-						public void run() {
-							fLocationPage.initCheckedItems();
-							fLocationPage.canValidate=true;
-							fLocationPage.validatePage();
-						}
+					Utils.syncExec((Runnable) () -> {
+						fLocationPage.initCheckedItems();
+						fLocationPage.canValidate=true;
+						fLocationPage.validatePage();
 					}, getControl());
 					monitor.done();
 					return Status.OK_STATUS;
@@ -982,12 +972,10 @@ public class GenerateDiffFileWizard extends Wizard {
 		public IFile findBinaryFile() {
 			try {
 				final IFile[] found = new IFile[1];
-				fParticipant.getSubscriber().accept(resources, IResource.DEPTH_INFINITE, new IDiffVisitor() {
-					public boolean visit(IDiff diff) {
-						if (isBinaryFile(diff))
-							found[0] = getFile(diff);
-						return true;
-					}
+				fParticipant.getSubscriber().accept(resources, IResource.DEPTH_INFINITE, (IDiffVisitor) diff -> {
+					if (isBinaryFile(diff))
+						found[0] = getFile(diff);
+					return true;
 				});
 				return found[0];
 			} catch (CoreException e) {
@@ -1025,18 +1013,16 @@ public class GenerateDiffFileWizard extends Wizard {
 
 		public void removeBinaryFiles() {
 			try {
-				final List nonBinaryFiles = new ArrayList();
-				fParticipant.getSubscriber().accept(resources, IResource.DEPTH_INFINITE, new IDiffVisitor() {
-					public boolean visit(IDiff diff) {
-						if (!isBinaryFile(diff)) {
-							IFile file = getFile(diff);
-							if (file != null)
-								nonBinaryFiles.add(file);
-						}
-						return true;
+				final List<IFile> nonBinaryFiles = new ArrayList<>();
+				fParticipant.getSubscriber().accept(resources, IResource.DEPTH_INFINITE, (IDiffVisitor) diff -> {
+					if (!isBinaryFile(diff)) {
+						IFile file = getFile(diff);
+						if (file != null)
+							nonBinaryFiles.add(file);
 					}
+					return true;
 				});
-				resources = (IResource[]) nonBinaryFiles
+				resources = nonBinaryFiles
 				.toArray(new IResource[nonBinaryFiles.size()]);
 			} catch (CoreException e) {
 				CVSUIPlugin.log(e);
@@ -1058,7 +1044,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		public final static int FORMAT_STANDARD = 3;
 
 		/**
-    	The possible root of the patch
+		The possible root of the patch
 		 */
 		public final static int ROOT_WORKSPACE = 1;
 		public final static int ROOT_PROJECT = 2;
@@ -1099,9 +1085,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			this.store = store;
 		}
 
-		/*
-		 * @see IDialogPage#createControl(Composite)
-		 */
+		@Override
 		public void createControl(Composite parent) {
 			Composite composite= new Composite(parent, SWT.NULL);
 			GridLayout layout= new GridLayout();
@@ -1159,6 +1143,7 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			//add listeners
 			unifiedDiffOption.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					setEnableUnifiedGroup(true);
 					updateEnablements();
@@ -1167,6 +1152,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			});
 
 			contextDiffOption.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					setEnableUnifiedGroup(false);
 					updateEnablements();
@@ -1175,6 +1161,7 @@ public class GenerateDiffFileWizard extends Wizard {
 			});
 
 			regularDiffOption.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					setEnableUnifiedGroup(false);
 					updateEnablements();
@@ -1184,6 +1171,7 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			unified_workspaceRelativeOption
 			.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					unifiedRadioGroup.setSelection(ROOT_WORKSPACE, false);
 				}
@@ -1191,6 +1179,7 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			unified_projectRelativeOption
 			.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					unifiedRadioGroup.setSelection(ROOT_PROJECT, false);
 				}
@@ -1198,6 +1187,7 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			unified_selectionRelativeOption
 			.addSelectionListener(new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					unifiedRadioGroup.setSelection(ROOT_SELECTION, false);
 				}
@@ -1310,13 +1300,13 @@ public class GenerateDiffFileWizard extends Wizard {
 		 * Return the list of Diff command options configured on this page.
 		 */
 		public LocalOption[] getOptions() {
-			List options = new ArrayList(5);
+			List<LocalOption> options = new ArrayList<>(5);
 			/*  if(includeNewFilesOptions.getSelection()) {
-                options.add(Diff.INCLUDE_NEWFILES);
-            }
-            if(!recurseOption.getSelection()) {
-                options.add(Command.DO_NOT_RECURSE);
-            }*/
+				options.add(Diff.INCLUDE_NEWFILES);
+			}
+			if(!recurseOption.getSelection()) {
+				options.add(Command.DO_NOT_RECURSE);
+			}*/
 
 			//Add new files for now
 			options.add(Diff.INCLUDE_NEWFILES);
@@ -1327,7 +1317,7 @@ public class GenerateDiffFileWizard extends Wizard {
 				options.add(Diff.CONTEXT_FORMAT);
 			}
 
-			return (LocalOption[]) options.toArray(new LocalOption[options.size()]);
+			return options.toArray(new LocalOption[options.size()]);
 		}
 		protected void setEnableUnifiedGroup(boolean enabled){
 			unifiedRadioGroup.setEnablement(enabled, new int[] {
@@ -1461,6 +1451,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		this.unifiedSelectionEnabled=unifiedSelectionEnabled;
 	}
 
+	@Override
 	public void addPages() {
 		String pageTitle = CVSUIMessages.GenerateCVSDiff_pageTitle;
 		String pageDescription = CVSUIMessages.GenerateCVSDiff_pageDescription;
@@ -1490,9 +1481,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		}
 	}
 
-	/* (Non-javadoc)
-	 * Method declared on IWizard.
-	 */
+	@Override
 	public boolean needsProgressMonitor() {
 		return true;
 	}
@@ -1501,6 +1490,7 @@ public class GenerateDiffFileWizard extends Wizard {
 	 * Completes processing of the wizard. If this method returns <code>
 	 * true</code>, the wizard will close; otherwise, it will stay active.
 	 */
+	@Override
 	public boolean performFinish() {
 
 		final int location= locationPage.getSelectedLocation();
@@ -1554,11 +1544,11 @@ public class GenerateDiffFileWizard extends Wizard {
 				defaultValuesStore.storeLocationSelection(LocationPage.WORKSPACE);
 				defaultValuesStore.storeWorkspacePath(workspaceResource);
 				/* try {
-	                workspaceResource.getParent().refreshLocal(IResource.DEPTH_ONE, null);
-	            } catch(CoreException e) {
-	                CVSUIPlugin.openError(getShell(), CVSUIMessages.GenerateCVSDiff_error, null, e);
-	                return false;
-	            } */
+					workspaceResource.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+				} catch(CoreException e) {
+					CVSUIPlugin.openError(getShell(), CVSUIMessages.GenerateCVSDiff_error, null, e);
+					return false;
+				} */
 			} else {
 				//Problem with workspace location, open with clipboard next time
 				defaultValuesStore.storeLocationSelection(LocationPage.CLIPBOARD);
@@ -1669,7 +1659,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		/**
 		 * List of buttons in the group. Both radio groups contain 3 elements.
 		 */
-		private List buttons = new ArrayList(3);
+		private List<Button> buttons = new ArrayList<>(3);
 
 		/**
 		 * Index of the selected button.
@@ -1719,7 +1709,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		public int setSelection(int buttonCode, boolean selectEnabledOnly) {
 			deselectAll();
 
-			((Button) buttons.get(buttonCode - 1)).setSelection(true);
+			buttons.get(buttonCode - 1).setSelection(true);
 			selected = buttonCode - 1;
 			if (selectEnabledOnly)
 				selected = selectEnabledOnly() - 1;
@@ -1734,7 +1724,7 @@ public class GenerateDiffFileWizard extends Wizard {
 		public int selectEnabledOnly() {
 			deselectAll();
 
-			Button selectedButton = (Button) buttons.get(selected);
+			Button selectedButton = buttons.get(selected);
 			if (!selectedButton.isEnabled()) {
 				// if the button is disabled, set selection to an enabled one
 				for (Iterator iterator = buttons.iterator(); iterator.hasNext();) {
@@ -1771,11 +1761,11 @@ public class GenerateDiffFileWizard extends Wizard {
 
 			// enable (or disable) given buttons
 			for (int i = 0; i < buttonsToChange.length; i++) {
-				((Button) this.buttons.get(buttonsToChange[i] - 1))
+				this.buttons.get(buttonsToChange[i] - 1)
 				.setEnabled(enabled);
 			}
 			// check whether the selected button is enabled
-			if (!((Button) this.buttons.get(selected)).isEnabled()) {
+			if (!this.buttons.get(selected).isEnabled()) {
 				if (defaultSelection != -1)
 					// set the default selection and check if it's enabled
 					setSelection(defaultSelection, true);

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,11 +21,18 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.team.core.mapping.*;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScope;
+import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
 import org.eclipse.team.internal.core.Policy;
 import org.eclipse.team.internal.core.mapping.CompoundResourceTraversal;
 import org.eclipse.team.internal.ui.TeamUIMessages;
@@ -54,8 +64,7 @@ public abstract class ModelOperation extends TeamOperation {
 	 */
 	public static ModelProvider[] sortByExtension(ModelProvider[] providers) {
 		List<ModelProvider> result = new ArrayList<>();
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider providerToInsert = providers[i];
+		for (ModelProvider providerToInsert : providers) {
 			int index = result.size();
 			for (int j = 0; j < result.size(); j++) {
 				ModelProvider provider = result.get(j);
@@ -72,8 +81,7 @@ public abstract class ModelOperation extends TeamOperation {
 	private static boolean extendsProvider(ModelProvider providerToInsert, ModelProvider provider) {
 		String[] extended = providerToInsert.getDescriptor().getExtendedModels();
 		// First search immediate dependents
-		for (int i = 0; i < extended.length; i++) {
-			String id = extended[i];
+		for (String id : extended) {
 			if (id.equals(provider.getDescriptor().getId())) {
 				return true;
 			}
@@ -192,8 +200,7 @@ public abstract class ModelOperation extends TeamOperation {
 				// the input or if they are from a model that has no relationship to the input model
 				String modelProviderId = inputModelProviders[0].getDescriptor().getId();
 				ResourceMapping[] mappings = getScope().getMappings();
-				for (int i = 0; i < mappings.length; i++) {
-					ResourceMapping mapping = mappings[i];
+				for (ResourceMapping mapping : mappings) {
 					if (inputScope.getTraversals(mapping) == null) {
 						// This mapping was not in the input
 						String id = mapping.getModelProviderId();
@@ -209,16 +216,14 @@ public abstract class ModelOperation extends TeamOperation {
 			} else {
 				// We need to prompt if there are additional mappings from an input
 				// provider whose traversals overlap those of the input mappings.
-				for (int i = 0; i < inputModelProviders.length; i++) {
-					ModelProvider provider = inputModelProviders[i];
+				for (ModelProvider provider : inputModelProviders) {
 					String id = provider.getDescriptor().getId();
 					ResourceMapping[] inputMappings = inputScope.getMappings(id);
 					ResourceMapping[] scopeMappings = getScope().getMappings(id);
 					if (inputMappings.length != scopeMappings.length) {
 						// There are more mappings for this provider.
 						// We need to see if any of the new ones overlap the old ones.
-						for (int j = 0; j < scopeMappings.length; j++) {
-							ResourceMapping mapping = scopeMappings[j];
+						for (ResourceMapping mapping : scopeMappings) {
 							ResourceTraversal[] inputTraversals = inputScope.getTraversals(mapping);
 							if (inputTraversals == null) {
 								// This mapping was not in the input.
@@ -256,12 +261,10 @@ public abstract class ModelOperation extends TeamOperation {
 
 	private boolean hasAdditionalMappingsFromIndependantModel(ModelProvider[] inputModelProviders, ModelProvider[] modelProviders) {
 		ModelProvider[] additionalProviders = getAdditionalProviders(inputModelProviders, modelProviders);
-		for (int i = 0; i < additionalProviders.length; i++) {
-			ModelProvider additionalProvider = additionalProviders[i];
+		for (ModelProvider additionalProvider : additionalProviders) {
 			boolean independant = true;
 			// Return true if the new provider is independant of all input providers
-			for (int j = 0; j < inputModelProviders.length; j++) {
-				ModelProvider inputProvider = inputModelProviders[j];
+			for (ModelProvider inputProvider : inputModelProviders) {
 				if (!isIndependantModel(additionalProvider.getDescriptor().getId(), inputProvider.getDescriptor().getId())) {
 					independant = false;
 				}
@@ -276,8 +279,7 @@ public abstract class ModelOperation extends TeamOperation {
 		Set<ModelProvider> input = new HashSet<>();
 		List<ModelProvider> result = new ArrayList<>();
 		input.addAll(Arrays.asList(inputModelProviders));
-		for (int i = 0; i < modelProviders.length; i++) {
-			ModelProvider provider = modelProviders[i];
+		for (ModelProvider provider : modelProviders) {
 			if (!input.contains(provider))
 				result.add(provider);
 		}
@@ -285,10 +287,8 @@ public abstract class ModelOperation extends TeamOperation {
 	}
 
 	private boolean overlaps(ResourceTraversal[] scopeTraversals, ResourceTraversal[] inputModelTraversals) {
-		for (int i = 0; i < inputModelTraversals.length; i++) {
-			ResourceTraversal inputTraversal = inputModelTraversals[i];
-			for (int j = 0; j < scopeTraversals.length; j++) {
-				ResourceTraversal scopeTraversal = scopeTraversals[j];
+		for (ResourceTraversal inputTraversal : inputModelTraversals) {
+			for (ResourceTraversal scopeTraversal : scopeTraversals) {
 				if (overlaps(inputTraversal, scopeTraversal)) {
 					return true;
 				}
@@ -300,10 +300,8 @@ public abstract class ModelOperation extends TeamOperation {
 	private boolean overlaps(ResourceTraversal inputTraversal, ResourceTraversal scopeTraversal) {
 		IResource[] inputRoots = inputTraversal.getResources();
 		IResource[] scopeRoots = scopeTraversal.getResources();
-		for (int i = 0; i < scopeRoots.length; i++) {
-			IResource scopeResource = scopeRoots[i];
-			for (int j = 0; j < inputRoots.length; j++) {
-				IResource inputResource = inputRoots[j];
+		for (IResource scopeResource : scopeRoots) {
+			for (IResource inputResource : inputRoots) {
 				if (overlaps(scopeResource, scopeTraversal.getDepth(), inputResource, inputTraversal.getDepth()))
 					return true;
 			}
@@ -331,8 +329,7 @@ public abstract class ModelOperation extends TeamOperation {
 
 	private ResourceTraversal[] getTraversals(ISynchronizationScope inputScope, ResourceMapping[] inputMappings) {
 		CompoundResourceTraversal result = new CompoundResourceTraversal();
-		for (int i = 0; i < inputMappings.length; i++) {
-			ResourceMapping mapping = inputMappings[i];
+		for (ResourceMapping mapping : inputMappings) {
 			result.addTraversals(inputScope.getTraversals(mapping));
 		}
 		return result.asTraversals();
@@ -352,15 +349,13 @@ public abstract class ModelOperation extends TeamOperation {
 	private boolean isExtension(IModelProviderDescriptor desc1, IModelProviderDescriptor desc2) {
 		String[] ids = desc1.getExtendedModels();
 		// First check direct extension
-		for (int i = 0; i < ids.length; i++) {
-			String id = ids[i];
+		for (String id : ids) {
 			if (id.equals(desc2.getId())) {
 				return true;
 			}
 		}
 		// Now check for indirect extension
-		for (int i = 0; i < ids.length; i++) {
-			String id = ids[i];
+		for (String id : ids) {
 			IModelProviderDescriptor desc3 = ModelProvider.getModelProviderDescriptor(id);
 			if (isExtension(desc3, desc2)) {
 				return true;
@@ -382,24 +377,24 @@ public abstract class ModelOperation extends TeamOperation {
 		return showAllMappings(requestPreviewMessage);
 	}
 
-    private boolean showAllMappings(final String requestPreviewMessage) {
-        final boolean[] canceled = new boolean[] { false };
-        final boolean[] forcePreview = new boolean[] { false };
-        Display.getDefault().syncExec(() -> {
-		    AdditionalMappingsDialog dialog = new AdditionalMappingsDialog(getShell(), TeamUIMessages.ResourceMappingOperation_0, getScope(), getContext());
-		    dialog.setPreviewMessage(requestPreviewMessage);
-		    int result = dialog.open();
-		    canceled[0] = result != Window.OK;
-		    if (requestPreviewMessage != null) {
-		    	forcePreview[0] = dialog.isForcePreview();
-		    }
+	private boolean showAllMappings(final String requestPreviewMessage) {
+		final boolean[] canceled = new boolean[] { false };
+		final boolean[] forcePreview = new boolean[] { false };
+		Display.getDefault().syncExec(() -> {
+			AdditionalMappingsDialog dialog = new AdditionalMappingsDialog(getShell(), TeamUIMessages.ResourceMappingOperation_0, getScope(), getContext());
+			dialog.setPreviewMessage(requestPreviewMessage);
+			int result = dialog.open();
+			canceled[0] = result != Window.OK;
+			if (requestPreviewMessage != null) {
+				forcePreview[0] = dialog.isForcePreview();
+			}
 		});
 
-        if (canceled[0]) {
-            throw new OperationCanceledException();
-        }
-        return forcePreview[0];
-    }
+		if (canceled[0]) {
+			throw new OperationCanceledException();
+		}
+		return forcePreview[0];
+	}
 
 	/**
 	 * Return the synchronization context for the operation or <code>null</code>

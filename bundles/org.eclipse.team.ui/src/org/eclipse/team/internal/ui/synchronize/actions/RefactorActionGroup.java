@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,13 +20,23 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
 import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
-import org.eclipse.ui.*;
-import org.eclipse.ui.actions.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.actions.DeleteResourceAction;
+import org.eclipse.ui.actions.MoveResourceAction;
+import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.navigator.INavigatorContentService;
 
 /**
@@ -64,13 +77,13 @@ public class RefactorActionGroup extends ActionGroup {
 		parentMenu.appendToGroup(groupId, renameAction);
 	}
 
- 	@Override
+	@Override
 	public void fillActionBars(IActionBars actionBars) {
-    	actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
-    	actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), deleteAction);
-    	actionBars.setGlobalActionHandler(ActionFactory.RENAME.getId(), renameAction);
-    	actionBars.setGlobalActionHandler(ActionFactory.MOVE.getId(), moveAction);
-    }
+		actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
+		actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), deleteAction);
+		actionBars.setGlobalActionHandler(ActionFactory.RENAME.getId(), renameAction);
+		actionBars.setGlobalActionHandler(ActionFactory.MOVE.getId(), moveAction);
+	}
 
 	@Override
 	public void updateActionBars() {
@@ -137,22 +150,22 @@ public class RefactorActionGroup extends ActionGroup {
 				.setActionDefinitionId(IWorkbenchCommandConstants.FILE_RENAME);
 	}
 
-    private IStructuredSelection getSelection() {
-        final ISelection selection= getContext().getSelection();
+	private IStructuredSelection getSelection() {
+		final ISelection selection= getContext().getSelection();
 
-        if (!(selection instanceof IStructuredSelection))
-            return new StructuredSelection();
+		if (!(selection instanceof IStructuredSelection))
+			return new StructuredSelection();
 
-    	return new StructuredSelection(Utils.getResources(((IStructuredSelection)selection).toArray()));
+		return new StructuredSelection(Utils.getResources(((IStructuredSelection)selection).toArray()));
 	}
 
-    private IStructuredSelection getObjectSelection() {
-        final ISelection selection= getContext().getSelection();
+	private IStructuredSelection getObjectSelection() {
+		final ISelection selection= getContext().getSelection();
 
-        if (!(selection instanceof IStructuredSelection))
-            return new StructuredSelection();
+		if (!(selection instanceof IStructuredSelection))
+			return new StructuredSelection();
 
-    	return (IStructuredSelection)selection;
+		return (IStructuredSelection)selection;
 	}
 
 	private boolean allResourcesAreOfType(IStructuredSelection selection, int resourceMask) {

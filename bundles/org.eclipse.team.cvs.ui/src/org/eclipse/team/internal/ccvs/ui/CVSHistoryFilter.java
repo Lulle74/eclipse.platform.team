@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -37,9 +40,7 @@ public class CVSHistoryFilter extends ViewerFilter {
 		this.matchCounter = 0;
 	}
 
-	/**
-	 * @see ViewerFilter#select(Viewer, Object, Object)
-	 */
+	@Override
 	public boolean select(Viewer aviewer, Object parentElement, Object element) {
 		if (element instanceof AbstractHistoryCategory)
 			return true;
@@ -68,8 +69,8 @@ public class CVSHistoryFilter extends ViewerFilter {
 
 	protected boolean branchMatch(CVSFileRevision revision) {
 		ITag[] branches = revision.getBranches();
-		for (int i = 0; i < branches.length; i++) {
-			if ((branches[i].getName().toLowerCase().indexOf(branchName.toLowerCase()) != -1)) {
+		for (ITag branche : branches) {
+			if (branche.getName().toLowerCase().contains(branchName.toLowerCase())) {
 				return true;
 			}
 		}		
@@ -81,7 +82,7 @@ public class CVSHistoryFilter extends ViewerFilter {
 	}
 
 	protected boolean commentMatch(CVSFileRevision revision) {
-		return !(revision.getComment().toLowerCase().indexOf(comment.toLowerCase()) == -1);
+		return !(!revision.getComment().toLowerCase().contains(comment.toLowerCase()));
 	}
 
 	protected boolean dateMatch(CVSFileRevision revision) {

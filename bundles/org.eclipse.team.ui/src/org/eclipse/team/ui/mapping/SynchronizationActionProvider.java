@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -21,9 +24,15 @@ import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.internal.ui.mapping.CommonMenuManager;
 import org.eclipse.team.internal.ui.synchronize.actions.OpenWithActionGroup;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.navigator.*;
+import org.eclipse.ui.navigator.CommonActionProvider;
+import org.eclipse.ui.navigator.ICommonActionExtensionSite;
+import org.eclipse.ui.navigator.ICommonViewerSite;
+import org.eclipse.ui.navigator.ICommonViewerWorkbenchSite;
+import org.eclipse.ui.navigator.IExtensionStateModel;
 
 /**
  * An action group that can be used by models to contribute actions
@@ -152,12 +161,11 @@ public class SynchronizationActionProvider extends CommonActionProvider {
 		super.fillContextMenu(menu);
 		if (menu instanceof CommonMenuManager) {
 			CommonMenuManager manager = (CommonMenuManager) menu;
-			for (Iterator iter = handlers.keySet().iterator(); iter.hasNext();) {
-				String actionId = (String) iter.next();
+			for (String actionId : handlers.keySet()) {
 				manager.registerHandler(actionId, handlers.get(actionId));
 			}
 		}
-        final IContributionItem fileGroup = menu.find(ISynchronizePageConfiguration.FILE_GROUP);
+		final IContributionItem fileGroup = menu.find(ISynchronizePageConfiguration.FILE_GROUP);
 		if (openWithActions != null && fileGroup != null) {
 			openWithActions.fillContextMenu(menu, fileGroup.getId());
 		}

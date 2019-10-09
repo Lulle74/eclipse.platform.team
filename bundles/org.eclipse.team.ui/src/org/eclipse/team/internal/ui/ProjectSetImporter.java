@@ -1,23 +1,38 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
@@ -25,10 +40,22 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.core.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.team.core.IProjectSetSerializer;
+import org.eclipse.team.core.ProjectSetCapability;
+import org.eclipse.team.core.RepositoryProviderType;
+import org.eclipse.team.core.Team;
+import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.core.TeamPlugin;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.WorkbenchException;
+import org.eclipse.ui.XMLMemento;
 
 public class ProjectSetImporter {
 	/**
@@ -84,37 +111,37 @@ public class ProjectSetImporter {
 			} else {
 				UIProjectSetSerializationContext context = new UIProjectSetSerializationContext(shell, filename);
 				List<TeamException> errors = new ArrayList<TeamException>();
-			  	IMemento[] providers = xmlMemento.getChildren("provider"); //$NON-NLS-1$
-			  	for (int i = 0; i < providers.length; i++) {
+				IMemento[] providers = xmlMemento.getChildren("provider"); //$NON-NLS-1$
+				for (IMemento provider : providers) {
 					ArrayList<String> referenceStrings= new ArrayList<>();
-					IMemento[] projects = providers[i].getChildren("project"); //$NON-NLS-1$
-					for (int j = 0; j < projects.length; j++) {
-						referenceStrings.add(projects[j].getString("reference")); //$NON-NLS-1$
+					IMemento[] projects = provider.getChildren("project"); //$NON-NLS-1$
+					for (IMemento project : projects) {
+						referenceStrings.add(project.getString("reference")); //$NON-NLS-1$
 					}
 					try {
-                        String id = providers[i].getString("id"); //$NON-NLS-1$
-                        TeamCapabilityHelper.getInstance().processRepositoryId(id,
-                        		PlatformUI.getWorkbench().getActivitySupport());
-                        RepositoryProviderType providerType = RepositoryProviderType.getProviderType(id);
-                        if (providerType == null) {
-                            // The provider type is absent. Perhaps there is another provider that can import this type
-                            providerType = TeamPlugin.getAliasType(id);
-                        }
-                        if (providerType == null) {
-                            throw new TeamException(new Status(IStatus.ERROR, TeamUIPlugin.ID, 0, NLS.bind(TeamUIMessages.ProjectSetImportWizard_0, new String[] { id }), null));
-                        }
-                    	ProjectSetCapability serializer = providerType.getProjectSetCapability();
-                    	ProjectSetCapability.ensureBackwardsCompatible(providerType, serializer);
-                    	if (serializer != null) {
-                    		IProject[] allProjects = serializer.addToWorkspace(referenceStrings.toArray(new String[referenceStrings.size()]), context, monitor);
-                    		if (allProjects != null)
-                    			newProjects.addAll(Arrays.asList(allProjects));
-                    	}
-                    } catch (TeamException e) {
-                        errors.add(e);
-                    }
+						String id = provider.getString("id"); //$NON-NLS-1$
+						TeamCapabilityHelper.getInstance().processRepositoryId(id,
+								PlatformUI.getWorkbench().getActivitySupport());
+						RepositoryProviderType providerType = RepositoryProviderType.getProviderType(id);
+						if (providerType == null) {
+							// The provider type is absent. Perhaps there is another provider that can import this type
+							providerType = TeamPlugin.getAliasType(id);
+						}
+						if (providerType == null) {
+							throw new TeamException(new Status(IStatus.ERROR, TeamUIPlugin.ID, 0, NLS.bind(TeamUIMessages.ProjectSetImportWizard_0, new String[] { id }), null));
+						}
+						ProjectSetCapability serializer = providerType.getProjectSetCapability();
+						ProjectSetCapability.ensureBackwardsCompatible(providerType, serializer);
+						if (serializer != null) {
+							IProject[] allProjects = serializer.addToWorkspace(referenceStrings.toArray(new String[referenceStrings.size()]), context, monitor);
+							if (allProjects != null)
+								newProjects.addAll(Arrays.asList(allProjects));
+						}
+					} catch (TeamException e) {
+						errors.add(e);
+					}
 				}
-			  	if (!errors.isEmpty()) {
+				if (!errors.isEmpty()) {
 					TeamException[] exceptions= errors.toArray(new TeamException[errors.size()]);
 					IStatus[] status= new IStatus[exceptions.length];
 					for (int i= 0; i < exceptions.length; i++) {
@@ -123,15 +150,15 @@ public class ProjectSetImporter {
 					throw new TeamException(new MultiStatus(TeamUIPlugin.ID, 0, status, TeamUIMessages.ProjectSetImportWizard_1, null));
 				}
 
-			  	//try working sets
-			  	IMemento[] sets = xmlMemento.getChildren("workingSets"); //$NON-NLS-1$
-			  	IWorkingSetManager wsManager = TeamUIPlugin.getPlugin().getWorkbench().getWorkingSetManager();
-			  	boolean replaceAll = false;
-			  	boolean mergeAll = false;
-			  	boolean skipAll = false;
+				//try working sets
+				IMemento[] sets = xmlMemento.getChildren("workingSets"); //$NON-NLS-1$
+				IWorkingSetManager wsManager = TeamUIPlugin.getPlugin().getWorkbench().getWorkingSetManager();
+				boolean replaceAll = false;
+				boolean mergeAll = false;
+				boolean skipAll = false;
 
-			  	for (int i = 0; i < sets.length; i++) {
-					IWorkingSet newWs = wsManager.createWorkingSet(sets[i]);
+				for (IMemento set : sets) {
+					IWorkingSet newWs = wsManager.createWorkingSet(set);
 					if (newWs != null) {
 						IWorkingSet oldWs = wsManager.getWorkingSet(newWs
 								.getName());
@@ -208,16 +235,10 @@ public class ProjectSetImporter {
 
 	private static XMLMemento stringToXMLMemento(String stringContents)
 			throws InvocationTargetException {
-		StringReader reader = null;
-		try {
-			reader = new StringReader(stringContents);
+		try (StringReader reader = new StringReader(stringContents)) {
 			return XMLMemento.createReadRoot(reader);
 		} catch (WorkbenchException e) {
 			throw new InvocationTargetException(e);
-		} finally {
-			if (reader != null) {
-				reader.close();
-			}
 		}
 	}
 

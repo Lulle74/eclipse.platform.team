@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2009, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -14,23 +17,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.compare.internal.core.patch.Hunk;
 import org.eclipse.compare.internal.core.patch.LineReader;
 import org.eclipse.compare.internal.patch.Utilities;
-import org.eclipse.compare.patch.ApplyPatchOperation;
-import org.eclipse.compare.patch.IFilePatch;
-import org.eclipse.compare.patch.IFilePatch2;
-import org.eclipse.compare.patch.IFilePatchResult;
-import org.eclipse.compare.patch.IHunk;
-import org.eclipse.compare.patch.PatchBuilder;
-import org.eclipse.compare.patch.PatchConfiguration;
+import org.eclipse.compare.patch.*;
 import org.eclipse.compare.tests.PatchUtils.StringStorage;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.*;
+import org.junit.Assert;
+
+import junit.framework.TestCase;
 
 public class PatchBuilderTest extends TestCase {
 
@@ -56,7 +52,8 @@ public class PatchBuilderTest extends TestCase {
 
 		String[] lines = new String[] { " [d]", "+[d1]", "+[d2]", "+[d3]",
 				"+[d4]", " [e]" };
-		addLineDelimiters(lines);
+		String lineDelimiter = getLineDelimiter(patchStorage);
+		addLineDelimiters(lines, lineDelimiter);
 		IHunk[] toAdd = new IHunk[] { PatchBuilder.createHunk(3, lines) };
 		IFilePatch2 filePatch = PatchBuilder.addHunks(patches[0], toAdd);
 
@@ -85,7 +82,7 @@ public class PatchBuilderTest extends TestCase {
 
 		LineReader lr = new LineReader(PatchUtils
 				.getReader("exp_modifyHunks.txt"));
-		List inLines = lr.readLines();
+		List<String> inLines = lr.readLines();
 		String expected = LineReader.createString(false, inLines);
 
 		assertEquals(expected, PatchUtils.asString(actual));
@@ -101,12 +98,13 @@ public class PatchBuilderTest extends TestCase {
 
 		String[] lines0 = new String[] { " [d]", "+[d1]", "+[d2]", "+[d3]",
 				"+[d4]", " [e]" };
-		addLineDelimiters(lines0);
+		String lineDelimiter = getLineDelimiter(patchStorage);
+		addLineDelimiters(lines0, lineDelimiter);
 		IHunk hunk0 = PatchBuilder.createHunk(3, lines0);
 
 		String[] lines1 = new String[] { " [K]", " [L]", "-[M]", " [N]",
 				"+[N1]", "+[N2]", " [O]", " [P]" };
-		addLineDelimiters(lines1);
+		addLineDelimiters(lines1, lineDelimiter);
 		IHunk hunk1 = PatchBuilder.createHunk(36, lines1);
 
 		IHunk[] toAdd = new IHunk[] { hunk0, hunk1 };
@@ -135,7 +133,7 @@ public class PatchBuilderTest extends TestCase {
 		InputStream actual = result.getPatchedContents();
 
 		LineReader lr = new LineReader(PatchUtils.getReader("exp_addHunks.txt"));
-		List inLines = lr.readLines();
+		List<String> inLines = lr.readLines();
 		String expected = LineReader.createString(false, inLines);
 
 		assertEquals(expected, PatchUtils.asString(actual));
@@ -172,7 +170,7 @@ public class PatchBuilderTest extends TestCase {
 
 		LineReader lr = new LineReader(PatchUtils
 				.getReader("exp_removeHunks.txt"));
-		List inLines = lr.readLines();
+		List<String> inLines = lr.readLines();
 		String expected = LineReader.createString(false, inLines);
 
 		assertEquals(expected, PatchUtils.asString(actual));
@@ -182,13 +180,14 @@ public class PatchBuilderTest extends TestCase {
 		IStorage contextStorage = new StringStorage("context.txt");
 
 		String[] lines0 = new String[] { "+[a1]", "+[a2]", "+[a3]", " [a]" };
-		addLineDelimiters(lines0);
+		String lineDelimiter = getLineDelimiter(contextStorage);
+		addLineDelimiters(lines0, lineDelimiter);
 		Hunk hunk0 = (Hunk) PatchBuilder.createHunk(0, lines0);
 
 		String[] lines1 = new String[] { " [b]", " [c]", "-[d]", "-[e]",
 				" [f]", " [g]", " [h]", "+[h1]", " [i]", " [j]", "+[j1]",
 				"+[j2]", " [k]", " [l]" };
-		addLineDelimiters(lines1);
+		addLineDelimiters(lines1, lineDelimiter);
 		Hunk hunk1 = (Hunk) PatchBuilder.createHunk(1, lines1);
 
 		IHunk[] hunks = new IHunk[] { hunk1, hunk0 };
@@ -209,13 +208,13 @@ public class PatchBuilderTest extends TestCase {
 
 		LineReader lr = new LineReader(PatchUtils
 				.getReader("exp_createFilePatch.txt"));
-		List inLines = lr.readLines();
+		List<String> inLines = lr.readLines();
 		String expected = LineReader.createString(false, inLines);
 
 		assertEquals(expected, PatchUtils.asString(actual));
 	}
 
-	public void testCreateHunk0() throws CoreException {
+	public void testCreateHunk0() throws CoreException, IOException {
 		IStorage patch = new StringStorage("patch_createHunk0.txt");
 		IFilePatch[] filePatches = ApplyPatchOperation.parsePatch(patch);
 		assertEquals(1, filePatches.length);
@@ -223,16 +222,17 @@ public class PatchBuilderTest extends TestCase {
 
 		String[] lines = new String[] { "+[a1]", "+[a2]", "+[a3]", " [a]",
 				" [b]", "-[c]", " [d]", " [e]", " [f]" };
-		addLineDelimiters(lines);
+		String lineDelimiter = getLineDelimiter(patch);
+		addLineDelimiters(lines, lineDelimiter);
 		Hunk hunk = (Hunk) PatchBuilder.createHunk(0, lines);
 		String[] actual = hunk.getUnifiedLines();
 		assertTrue(lines != actual);
-		assertLinesEquals(lines, actual);
+		Assert.assertArrayEquals(lines, actual);
 
 		assertHunkEquals(hunk, (Hunk) filePatches[0].getHunks()[0]);
 	}
 
-	public void testCreateHunk1() throws CoreException {
+	public void testCreateHunk1() throws CoreException, IOException {
 		IStorage patch = new StringStorage("patch_createHunk1.txt");
 		IFilePatch[] filePatches = ApplyPatchOperation.parsePatch(patch);
 		assertEquals(1, filePatches.length);
@@ -241,43 +241,46 @@ public class PatchBuilderTest extends TestCase {
 		String[] lines = new String[] { " [a]", " [b]", "-[c]", " [d]", "-[e]",
 				" [f]", " [g]", " [h]", "+[h1]", " [i]", " [j]", "+[j1]",
 				"+[j2]", " [k]", " [l]", " [m]" };
-		addLineDelimiters(lines);
+		String lineDelimiter = getLineDelimiter(patch);
+		addLineDelimiters(lines, lineDelimiter);
 		Hunk hunk = (Hunk) PatchBuilder.createHunk(0, lines);
 		String[] actual = hunk.getUnifiedLines();
 		assertTrue(lines != actual);
-		assertLinesEquals(lines, actual);
+		Assert.assertArrayEquals(lines, actual);
 
 		assertHunkEquals(hunk, (Hunk) filePatches[0].getHunks()[0]);
 	}
 
-	public void testCreateHunk2() throws CoreException {
+	public void testCreateHunk2() throws CoreException, IOException {
 		IStorage patch = new StringStorage("patch_createHunk2.txt");
 		IFilePatch[] filePatches = ApplyPatchOperation.parsePatch(patch);
 		assertEquals(1, filePatches.length);
 		assertEquals(1, filePatches[0].getHunks().length);
 
 		String[] lines = new String[] { "+[aa]", "+[bb]", "+[cc]" };
-		addLineDelimiters(lines);
+		String lineDelimiter = getLineDelimiter(patch);
+		addLineDelimiters(lines, lineDelimiter);
 		Hunk hunk = (Hunk) PatchBuilder.createHunk(0, lines);
 		String[] actual = hunk.getUnifiedLines();
 		assertTrue(lines != actual);
-		assertLinesEquals(lines, actual);
+		Assert.assertArrayEquals(lines, actual);
 
 		assertHunkEquals(hunk, (Hunk) filePatches[0].getHunks()[0]);
 	}
 
-	public void testCreateHunk3() throws CoreException {
+	public void testCreateHunk3() throws CoreException, IOException {
 		IStorage patch = new StringStorage("patch_createHunk3.txt");
 		IFilePatch[] filePatches = ApplyPatchOperation.parsePatch(patch);
 		assertEquals(1, filePatches.length);
 		assertEquals(1, filePatches[0].getHunks().length);
 
 		String[] lines = new String[] { "-[aa]", "-[bb]", "-[cc]", "-[dd]" };
-		addLineDelimiters(lines);
+		String lineDelimiter = getLineDelimiter(patch);
+		addLineDelimiters(lines, lineDelimiter);
 		Hunk hunk = (Hunk) PatchBuilder.createHunk(0, lines);
 		String[] actual = hunk.getUnifiedLines();
 		assertTrue(lines != actual);
-		assertLinesEquals(lines, actual);
+		Assert.assertArrayEquals(lines, actual);
 
 		assertHunkEquals(hunk, (Hunk) filePatches[0].getHunks()[0]);
 	}
@@ -298,16 +301,27 @@ public class PatchBuilderTest extends TestCase {
 		assertEquals(h1.getHunkType(true), h2.getHunkType(true));
 	}
 
-	private void assertLinesEquals(String[] expected, String[] actual) {
-		assertEquals(expected.length, actual.length);
-		for (int i = 0; i < expected.length; i++) {
-			assertEquals(expected[i], actual[i]);
+	private String getLineDelimiter(IStorage storage) throws CoreException, IOException {
+		InputStream in = null;
+		try {
+			in = storage.getContents();
+			int ch;
+			while ((ch = in.read()) != -1) {
+				if (ch == '\r') {
+					return "\r\n";
+				}
+			}
+		} finally {
+			if (in != null) {
+				in.close();
+			}
 		}
+		return "\n";
 	}
 
-	private void addLineDelimiters(String[] lines) {
+	private void addLineDelimiters(String[] lines, String lineDelimiter) {
 		for (int i = 0; i < lines.length; i++) {
-			lines[i] = lines[i] + "\r\n";
+			lines[i] = lines[i] + lineDelimiter;
 		}
 	}
 

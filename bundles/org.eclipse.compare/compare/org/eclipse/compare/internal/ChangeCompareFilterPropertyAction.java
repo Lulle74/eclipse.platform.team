@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -58,11 +61,13 @@ public class ChangeCompareFilterPropertyAction extends Action implements
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	void setProperty(boolean state) {
 		if (fCompareConfiguration != null) {
-			Map filters = new HashMap();
+			Map<String, ICompareFilter> filters = new HashMap<>();
 			if (fCompareConfiguration.getProperty(COMPARE_FILTERS) != null) {
-				filters.putAll((Map) fCompareConfiguration
+				filters.putAll(
+						(Map<String, ICompareFilter>) fCompareConfiguration
 						.getProperty(COMPARE_FILTERS));
 			}
 			if (state) {
@@ -75,10 +80,12 @@ public class ChangeCompareFilterPropertyAction extends Action implements
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	boolean getProperty() {
-		Map filters = (Map) fCompareConfiguration.getProperty(COMPARE_FILTERS);
+		Map<String, ICompareFilter> filters = (Map<String, ICompareFilter>) fCompareConfiguration
+				.getProperty(COMPARE_FILTERS);
 		if (filters == null) {
-			filters = new HashMap();
+			filters = new HashMap<>();
 		}
 		return filters.containsKey(fCompareFilterDescriptor.getFilterId());
 	}
@@ -105,11 +112,12 @@ public class ChangeCompareFilterPropertyAction extends Action implements
 		setChecked(getProperty());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(COMPARE_FILTERS)
 				&& event.getNewValue() instanceof Map) {
-			setChecked(((Map) event.getNewValue())
+			setChecked(((Map<String, ICompareFilter>) event.getNewValue())
 					.containsKey(fCompareFilterDescriptor.getFilterId()));
 		}
 	}

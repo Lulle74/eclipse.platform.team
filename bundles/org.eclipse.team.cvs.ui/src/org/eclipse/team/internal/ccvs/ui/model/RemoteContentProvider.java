@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -33,15 +36,13 @@ public class RemoteContentProvider extends WorkbenchContentProvider {
 	IWorkingSet workingSet;
 	DeferredTreeContentManager manager;
 
-	HashMap cachedTrees;
+	HashMap<ICVSRemoteFolder, RemoteFolderTree> cachedTrees;
 	
 	public RemoteContentProvider(){
-		cachedTrees = new HashMap();
+		cachedTrees = new HashMap<>();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-	 */
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		if (viewer instanceof AbstractTreeViewer) {
 			manager = new DeferredTreeContentManager((AbstractTreeViewer) viewer);
@@ -49,6 +50,7 @@ public class RemoteContentProvider extends WorkbenchContentProvider {
 		super.inputChanged(viewer, oldInput, newInput);
 	}
 
+	@Override
 	public boolean hasChildren(Object element) {
 		// the + box will always appear, but then disappear
 		// if not needed after you first click on it.
@@ -95,14 +97,12 @@ public class RemoteContentProvider extends WorkbenchContentProvider {
 		return workingSet;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.model.WorkbenchContentProvider#getChildren(java.lang.Object)
-	 */
+	@Override
 	public Object[] getChildren(Object element) {
 		//check to see if we already have the children cached in the tree map
 		Object tree = cachedTrees.get(element);
 		if (tree != null) {
-		  	return ((RemoteFolderTree) tree).getChildren();
+			return ((RemoteFolderTree) tree).getChildren();
 		}
 		
 		if (manager != null) {
@@ -114,8 +114,7 @@ public class RemoteContentProvider extends WorkbenchContentProvider {
 			}
 		}
 		Object[] children = super.getChildren(element);
-		for (int i = 0; i < children.length; i++) {
-			Object object = children[i];
+		for (Object object : children) {
 			if (object instanceof CVSModelElement) 
 				((CVSModelElement)object).setWorkingSet(getWorkingSet());
 		}
@@ -124,8 +123,7 @@ public class RemoteContentProvider extends WorkbenchContentProvider {
 
 	public void cancelJobs(RepositoryRoot[] roots) {
 		if (manager != null) {
-			for (int i = 0; i < roots.length; i++) {
-				RepositoryRoot root = roots[i];
+			for (RepositoryRoot root : roots) {
 				cancelJobs(root.getRoot());
 			}
 		}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -43,21 +46,22 @@ public abstract class ModelResource extends ModelObject{
 		return resource;
 	}
 	
+	@Override
 	public String getName() {
 		return getResource().getName();
 	}
 	
+	@Override
 	public String getPath() {
 		return getResource().getFullPath().makeRelative().toString();
 	}
 	
+	@Override
 	public ModelObject getParent() {
 		return ModelObject.create(getResource().getParent());
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ModelResource) {
 			ModelResource mr = (ModelResource) obj;
@@ -66,23 +70,17 @@ public abstract class ModelResource extends ModelObject{
 		return super.equals(obj);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
 	public int hashCode() {
 		return getResource().hashCode();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.examples.model.ModelObject#delete()
-	 */
+	@Override
 	public void delete() throws CoreException {
 		getResource().delete(false, null);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.examples.model.ModelObject#getProject()
-	 */
+	@Override
 	public ModelProject getProject() {
 		return (ModelProject)ModelObject.create(getResource().getProject());
 	}

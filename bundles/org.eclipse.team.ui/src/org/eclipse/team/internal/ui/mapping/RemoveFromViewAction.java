@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,7 +14,9 @@
 package org.eclipse.team.internal.ui.mapping;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
@@ -23,7 +28,10 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.team.core.diff.IDiff;
 import org.eclipse.team.core.mapping.provider.ResourceDiffTree;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
 import org.eclipse.ui.PlatformUI;
 
@@ -64,8 +72,7 @@ public class RemoveFromViewAction extends ResourceModelParticipantAction {
 		ResourceDiffTree tree = (ResourceDiffTree)getSynchronizationContext().getDiffTree();
 		try {
 			tree.beginInput();
-			for (int i = 0; i < resources.length; i++) {
-				IResource resource = resources[i];
+			for (IResource resource : resources) {
 				tree.remove(resource);
 			}
 		} finally {
@@ -77,8 +84,7 @@ public class RemoveFromViewAction extends ResourceModelParticipantAction {
 		ResourceTraversal[] traversals = getResourceTraversals(getStructuredSelection(), monitor);
 		IDiff[] diffs = getSynchronizationContext().getDiffTree().getDiffs(traversals);
 		List<IResource> result = new ArrayList<>();
-		for (int i = 0; i < diffs.length; i++) {
-			IDiff diff = diffs[i];
+		for (IDiff diff : diffs) {
 			if (isVisible(diff)) {
 				result.add(ResourceDiffTree.getResourceFor(diff));
 			}

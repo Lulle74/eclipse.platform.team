@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,7 +14,9 @@
 package org.eclipse.team.examples.filesystem.ui;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.runtime.IStatus;
@@ -33,6 +38,7 @@ public class ModelPutAction extends ModelParticipantAction {
 		super(text, configuration);
 	}
 
+	@Override
 	protected boolean isEnabledForSelection(IStructuredSelection selection) {
 		// Only enable the put in outgoing or both modes
 		int mode = getConfiguration().getMode();
@@ -43,19 +49,17 @@ public class ModelPutAction extends ModelParticipantAction {
 	}
 
 	private ResourceMapping[] getResourceMappings(IStructuredSelection selection) {
-		List mappings = new ArrayList();
+		List<ResourceMapping> mappings = new ArrayList<>();
 		for (Iterator iter = selection.iterator(); iter.hasNext();) {
 			Object element = iter.next();
 			ResourceMapping mapping = Utils.getResourceMapping(element);
 			if (mapping != null)
 				mappings.add(mapping);
 		}
-		return (ResourceMapping[]) mappings.toArray(new ResourceMapping[mappings.size()]);
+		return mappings.toArray(new ResourceMapping[mappings.size()]);
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#run()
-	 */
+
+	@Override
 	public void run() {
 		ResourceMapping[] resourceMappings = getResourceMappings(getStructuredSelection());
 		SubscriberScopeManager manager = FileSystemOperation.createScopeManager("Put", resourceMappings);

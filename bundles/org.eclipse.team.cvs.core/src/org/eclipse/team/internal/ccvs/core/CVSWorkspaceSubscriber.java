@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -76,14 +79,13 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 	 * 
 	 * [Issue : this will have to change when folders can be shared with
 	 * a team provider instead of the current project restriction]
-	 * (non-Javadoc)
+	 *
 	 * @see org.eclipse.team.core.sync.ISyncTreeSubscriber#roots()
 	 */
 	public IResource[] roots() {
 		List result = new ArrayList();
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < projects.length; i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			if(project.isOpen()) {
 				RepositoryProvider provider = RepositoryProvider.getProvider(project, CVSProviderPlugin.getTypeId());
 				if(provider != null) {
@@ -94,9 +96,7 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		return (IProject[]) result.toArray(new IProject[result.size()]);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#resourceSyncInfoChanged(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void resourceSyncInfoChanged(IResource[] changedResources) {
 		internalResourceSyncInfoChanged(changedResources, true); 
 	}
@@ -106,16 +106,12 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		fireTeamResourceChange(SubscriberChangeEvent.asSyncChangedDeltas(this, changedResources));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#externalSyncInfoChange(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void externalSyncInfoChange(IResource[] changedResources) {
 		internalResourceSyncInfoChanged(changedResources, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#resourceModified(org.eclipse.core.resources.IResource[])
-	 */
+	@Override
 	public void resourceModified(IResource[] changedResources) {
 		// This is only ever called from a delta POST_CHANGE
 		// which causes problems since the workspace tree is closed
@@ -125,17 +121,13 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		// we don't need to propogate this.
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#projectConfigured(org.eclipse.core.resources.IProject)
-	 */
+	@Override
 	public void projectConfigured(IProject project) {
 		SubscriberChangeEvent delta = new SubscriberChangeEvent(this, ISubscriberChangeEvent.ROOT_ADDED, project);
 		fireTeamResourceChange(new SubscriberChangeEvent[] {delta});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.IResourceStateChangeListener#projectDeconfigured(org.eclipse.core.resources.IProject)
-	 */
+	@Override
 	public void projectDeconfigured(IProject project) {
 		try {
 			getRemoteTree().flushVariants(project, IResource.DEPTH_INFINITE);
@@ -155,27 +147,20 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.CVSSyncTreeSubscriber#getBaseSynchronizationCache()
-	 */
+	@Override
 	protected IResourceVariantTree getBaseTree() {
 		return baseTree;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.CVSSyncTreeSubscriber#getRemoteSynchronizationCache()
-	 */
+	@Override
 	protected IResourceVariantTree getRemoteTree() {
 		return remoteTree;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.Subscriber#collectOutOfSync(org.eclipse.core.resources.IResource[], int, org.eclipse.team.core.synchronize.SyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public void collectOutOfSync(IResource[] resources, int depth, final SyncInfoSet set, final IProgressMonitor monitor) {
 		monitor.beginTask(null, IProgressMonitor.UNKNOWN);
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			try {
 				if (!isSupervised(resource)) {
 					return;
@@ -219,8 +204,7 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		boolean keepGoing = visitor.visit(resource);
 		if (keepGoing && depth != IResource.DEPTH_ZERO) {
 			IResource[] members = members(resource);
-			for (int i = 0; i < members.length; i++) {
-				IResource member = members[i];
+			for (IResource member : members) {
 				visit(member, visitor, depth == IResource.DEPTH_ONE ? IResource.DEPTH_ZERO : IResource.DEPTH_INFINITE);
 			}
 		}
@@ -301,9 +285,7 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.Subscriber#getState(org.eclipse.core.resources.mapping.ResourceMapping, int, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public int getState(ResourceMapping mapping, int stateMask, IProgressMonitor monitor) throws CoreException {
 		if ((stateMask & IThreeWayDiff.INCOMING) == 0) {
 			// If we're only interested in outgoing changes, used the cached modified state
@@ -321,11 +303,9 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 	
 	private int getOutgoingKind(ResourceTraversal[] traversals, IProgressMonitor monitor) throws CoreException {
 		int kind = 0;
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
-			for (int j = 0; j < resources.length; j++) {
-				IResource resource = resources[j];
+			for (IResource resource : resources) {
 				IDiff node = getDiff(resource);
 				if (node == null)
 					return IDiff.CHANGE;
@@ -339,46 +319,40 @@ public class CVSWorkspaceSubscriber extends CVSSyncTreeSubscriber implements IRe
 		return kind;
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * @see org.eclipse.team.core.subscribers.Subscriber#hasLocalChanges(org.eclipse.core.resources.mapping.ResourceTraversal[], org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	public boolean hasLocalChanges(ResourceTraversal[] traversals, IProgressMonitor monitor) throws CoreException {
 		monitor = Policy.monitorFor(monitor);
-		for (int i = 0; i < traversals.length; i++) {
-			ResourceTraversal traversal = traversals[i];
+		for (ResourceTraversal traversal : traversals) {
 			IResource[] resources = traversal.getResources();
 			switch (traversal.getDepth()) {
-			case IResource.DEPTH_ZERO:
-				for (int j = 0; j < resources.length; j++) {
-					IResource resource = resources[j];
-					if (isDirectlyDirty(resource, monitor)) {
-						return true;
-					}
-				}
-				break;
-			case IResource.DEPTH_INFINITE:
-				for (int j = 0; j < resources.length; j++) {
-					IResource resource = resources[j];
-					if (isDirty(resource, monitor)) {
-						return true;
-					}
-				}
-				break;
-			case IResource.DEPTH_ONE:
-				for (int j = 0; j < resources.length; j++) {
-					IResource resource = resources[j];
-					if (isDirectlyDirty(resource, monitor)) {
-						return true;
-					}
-					IResource[] children = members(resource);
-					for (int k = 0; k < children.length; k++) {
-						IResource child = children[k];				
-						if (isDirectlyDirty(child, monitor)) {
+				case IResource.DEPTH_ZERO:
+					for (IResource resource : resources) {
+						if (isDirectlyDirty(resource, monitor)) {
 							return true;
 						}
 					}
-				}
-				break;
+					break;
+				case IResource.DEPTH_INFINITE:
+					for (IResource resource : resources) {
+						if (isDirty(resource, monitor)) {
+							return true;
+						}
+					}
+					break;
+				case IResource.DEPTH_ONE:
+					for (IResource resource : resources) {
+						if (isDirectlyDirty(resource, monitor)) {
+							return true;
+						}	IResource[] children = members(resource);
+						for (IResource child : children) {
+							if (isDirectlyDirty(child, monitor)) {
+								return true;
+							}
+						}
+					}
+					break;
 			}
 		}
 		return false;

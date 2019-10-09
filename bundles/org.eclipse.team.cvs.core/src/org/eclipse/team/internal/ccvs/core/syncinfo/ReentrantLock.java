@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -59,13 +62,11 @@ public class ReentrantLock extends BatchingLock {
 		}
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.internal.core.subscribers.BatchingLock#createThreadInfo(org.eclipse.team.internal.core.subscribers.BatchingLock.IFlushOperation)
-     */
-    protected ThreadInfo createThreadInfo(IFlushOperation operation) {
-        return new CVSThreadInfo(operation);
-    }
-    
+	@Override
+	protected ThreadInfo createThreadInfo(IFlushOperation operation) {
+		return new CVSThreadInfo(operation);
+	}
+	
 	public void folderChanged(IContainer folder) {
 		CVSThreadInfo info = (CVSThreadInfo)getThreadInfo();
 		Assert.isNotNull(info, "Folder changed outside of resource lock"); //$NON-NLS-1$

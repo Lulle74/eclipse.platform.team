@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -18,7 +21,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.core.diff.IDiff;
@@ -38,21 +40,17 @@ public abstract class AbstractCommitAction extends CVSModelProviderAction {
 		super(configuration);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#run()
-	 */
+	@Override
 	public void execute() {
-    	final List resources = new ArrayList();
+		final List resources = new ArrayList();
 		try {
 			final IStructuredSelection selection = getActualSelection();
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						ResourceTraversal[] traversals = getCommitTraversals(selection, monitor);
-						resources.add(getOutgoingChanges(getSynchronizationContext().getDiffTree(), traversals, monitor));
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					}
+			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+				try {
+					ResourceTraversal[] traversals = getCommitTraversals(selection, monitor);
+					resources.add(getOutgoingChanges(getSynchronizationContext().getDiffTree(), traversals, monitor));
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -63,12 +61,12 @@ public abstract class AbstractCommitAction extends CVSModelProviderAction {
 			Utils.handleError(getConfiguration().getSite().getShell(), e, null, null);
 		}
 		if (!resources.isEmpty() && ((IResource[])resources.get(0)).length > 0) {
-	        Shell shell= getConfiguration().getSite().getShell();
-	        try {
-	            CommitWizard.run(getConfiguration().getSite().getPart(), shell, ((IResource[])resources.get(0)));
-	        } catch (CVSException e) {
-	            CVSUIPlugin.log(e);
-	        }
+			Shell shell= getConfiguration().getSite().getShell();
+			try {
+				CommitWizard.run(getConfiguration().getSite().getPart(), shell, ((IResource[])resources.get(0)));
+			} catch (CVSException e) {
+				CVSUIPlugin.log(e);
+			}
 		}
 	}
 	
@@ -78,20 +76,19 @@ public abstract class AbstractCommitAction extends CVSModelProviderAction {
 
 	protected abstract ResourceTraversal[] getCommitTraversals(IStructuredSelection selection, IProgressMonitor monitor) throws CoreException;
 	
-    public static IResource[] getOutgoingChanges(final IResourceDiffTree tree, ResourceTraversal[] traversals, IProgressMonitor monitor) {
-    	final List resources = new ArrayList();
+	public static IResource[] getOutgoingChanges(final IResourceDiffTree tree, ResourceTraversal[] traversals, IProgressMonitor monitor) {
+		final List<IResource> resources = new ArrayList<>();
 		IDiff[] diffs = tree.getDiffs(traversals);
-		for (int i = 0; i < diffs.length; i++) {
-			IDiff diff = diffs[i];
+		for (IDiff diff : diffs) {
 			if (hasLocalChange(diff)) {
 				IResource resource = ResourceDiffTree.getResourceFor(diff);
 				if (resource != null)
 					resources.add(resource);
 			}
 		}
-		return (IResource[]) resources.toArray(new IResource[resources.size()]);
-    }
-    
+		return resources.toArray(new IResource[resources.size()]);
+	}
+	
 	public static boolean hasLocalChange(IDiff diff) {
 		if (diff instanceof IThreeWayDiff) {
 			IThreeWayDiff twd = (IThreeWayDiff) diff;

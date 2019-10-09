@@ -1,9 +1,12 @@
 /*******************************************************************************
 * Copyright (c) 2010, 2017 IBM Corporation and others.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
+*
+* This program and the accompanying materials
+* are made available under the terms of the Eclipse Public License 2.0
 * which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
+* https://www.eclipse.org/legal/epl-2.0/
+*
+* SPDX-License-Identifier: EPL-2.0
 *
 * Contributors:
 *     IBM Corporation - initial API and implementation
@@ -280,8 +283,7 @@ public class PreferenceManager {
 
 		// migrate proxy data
 		PreferenceManager instanceManager = PreferenceManager.createInstanceManager(instanceScope);
-		for (int i = 0; i < proxies.length; i++) {
-			ProxyType type = proxies[i];
+		for (ProxyType type : proxies) {
 			IProxyData data = type.getProxyData(ProxyType.DO_NOT_VERIFY);
 			if (data.getHost() == null) {
 				ProxyType instanceType = new ProxyType(type.getName(), instanceManager);
@@ -312,8 +314,7 @@ public class PreferenceManager {
 			if (httpProxyHost != null) {
 				ProxyData proxyData = new ProxyData(IProxyData.HTTP_PROXY_TYPE,
 						httpProxyHost, port, false, null);
-				for (int i = 0; i < proxies.length; i++) {
-					ProxyType type = proxies[i];
+				for (ProxyType type : proxies) {
 					if (type.getName().equals(proxyData.getType())) {
 						type.updatePreferencesIfMissing(proxyData);
 					}

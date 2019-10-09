@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,15 +16,27 @@ package org.eclipse.team.internal.ui.mapping;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ResourceMapping;
 import org.eclipse.core.resources.mapping.ResourceMappingContext;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.RepositoryProvider;
 import org.eclipse.team.core.RepositoryProviderType;
-import org.eclipse.team.internal.core.*;
+import org.eclipse.team.internal.core.IRepositoryProviderListener;
+import org.eclipse.team.internal.core.RepositoryProviderManager;
+import org.eclipse.team.internal.core.TeamPlugin;
 import org.eclipse.team.internal.ui.Utils;
-import org.eclipse.team.ui.mapping.*;
+import org.eclipse.team.ui.mapping.ITeamStateChangeEvent;
+import org.eclipse.team.ui.mapping.ITeamStateChangeListener;
+import org.eclipse.team.ui.mapping.ITeamStateDescription;
+import org.eclipse.team.ui.mapping.ITeamStateProvider;
 import org.eclipse.team.ui.synchronize.TeamStateProvider;
 
 /**
@@ -42,8 +57,7 @@ public class WorkspaceTeamStateProvider extends TeamStateProvider
 				IResourceChangeEvent.POST_CHANGE);
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot()
 				.getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
+		for (IProject project : allProjects) {
 			handleProject(project);
 		}
 	}
@@ -128,8 +142,7 @@ public class WorkspaceTeamStateProvider extends TeamStateProvider
 
 	private String getProviderId(IProject[] projects) {
 		String id = null;
-		for (int i = 0; i < projects.length; i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			String nextId = getProviderId(project);
 			if (id == null)
 				id = nextId;
@@ -196,8 +209,7 @@ public class WorkspaceTeamStateProvider extends TeamStateProvider
 		IResourceDelta[] projectDeltas = delta
 				.getAffectedChildren(IResourceDelta.ADDED
 						| IResourceDelta.CHANGED);
-		for (int i = 0; i < projectDeltas.length; i++) {
-			IResourceDelta projectDelta = projectDeltas[i];
+		for (IResourceDelta projectDelta : projectDeltas) {
 			IResource resource = projectDelta.getResource();
 			if ((projectDelta.getFlags() & IResourceDelta.OPEN) != 0
 					&& resource.getType() == IResource.PROJECT) {

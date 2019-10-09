@@ -1,20 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import org.eclipse.jface.preference.*;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.internal.ui.IHelpContextIds;
 import org.eclipse.team.internal.ui.TeamUIMessages;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 
 public class StartupPreferencePage extends FieldEditorPreferencePage implements
 		IWorkbenchPreferencePage {
@@ -39,26 +46,23 @@ public class StartupPreferencePage extends FieldEditorPreferencePage implements
 		// Nothing to do
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
 	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
-        // set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_STARTUP_PREFERENCE_PAGE);
+		// set F1 help
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.SYNC_STARTUP_PREFERENCE_PAGE);
 	}
 
 	@Override
 	protected void createFieldEditors() {
-	    addField(new RadioGroupFieldEditor(PROP_STARTUP_ACTION,
-	            TeamUIMessages.StartupPreferencePage_2, 1,
-	            new String[][] {
-	            	{TeamUIMessages.StartupPreferencePage_3, STARTUP_ACTION_POPULATE},
-	            	{TeamUIMessages.StartupPreferencePage_4, STARTUP_ACTION_SYNCHRONIZE},
-	            	{TeamUIMessages.StartupPreferencePage_5, STARTUP_ACTION_NONE}
-	    		},
-	    		getFieldEditorParent(), true /* use a group */));
+		addField(new RadioGroupFieldEditor(PROP_STARTUP_ACTION,
+				TeamUIMessages.StartupPreferencePage_2, 1,
+				new String[][] {
+					{TeamUIMessages.StartupPreferencePage_3, STARTUP_ACTION_POPULATE},
+					{TeamUIMessages.StartupPreferencePage_4, STARTUP_ACTION_SYNCHRONIZE},
+					{TeamUIMessages.StartupPreferencePage_5, STARTUP_ACTION_NONE}
+				},
+				getFieldEditorParent(), true /* use a group */));
 	}
 
 }

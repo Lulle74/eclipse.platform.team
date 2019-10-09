@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2012 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -26,8 +29,6 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
@@ -54,24 +55,24 @@ public class RepositoryManager {
 	// new state file
 	private static final String REPOSITORIES_VIEW_FILE = "repositoriesView.xml"; //$NON-NLS-1$
 	private static final String COMMENT_HIST_FILE = "commitCommentHistory.xml"; //$NON-NLS-1$
-    private static final String COMMENT_TEMPLATES_FILE = "commentTemplates.xml"; //$NON-NLS-1$
+	private static final String COMMENT_TEMPLATES_FILE = "commentTemplates.xml"; //$NON-NLS-1$
 	static final String ELEMENT_COMMIT_COMMENT = "CommitComment"; //$NON-NLS-1$
 	static final String ELEMENT_COMMIT_HISTORY = "CommitComments"; //$NON-NLS-1$
-    static final String ELEMENT_COMMENT_TEMPLATES = "CommitCommentTemplates"; //$NON-NLS-1$
+	static final String ELEMENT_COMMENT_TEMPLATES = "CommitCommentTemplates"; //$NON-NLS-1$
 
-	private Map repositoryRoots = new HashMap();
+	private Map<String, RepositoryRoot> repositoryRoots = new HashMap<>();
 	
-	List listeners = new ArrayList();
+	List<IRepositoryListener> listeners = new ArrayList<>();
 
 	// The previously remembered comment
 	static String[] previousComments = new String[0];
-    static String[] commentTemplates = new String[0];
+	static String[] commentTemplates = new String[0];
 	
 	public static boolean notifyRepoView = true;
 	
 	// Cache of changed repository roots
 	private int notificationLevel = 0;
-	private Map changedRepositories = new HashMap();
+	private Map<String, ICVSRepositoryLocation> changedRepositories = new HashMap<>();
 	
 	public static final int DEFAULT_MAX_COMMENTS = 10;
 	
@@ -101,14 +102,13 @@ public class RepositoryManager {
 	 * @return RepositoryRoot[]
 	 */
 	private RepositoryRoot[] getRepositoryRoots(ICVSRepositoryLocation[] locations) {
-		List roots = new ArrayList();
-		for (int i = 0; i < locations.length; i++) {
-			ICVSRepositoryLocation location = locations[i];
+		List<RepositoryRoot> roots = new ArrayList<>();
+		for (ICVSRepositoryLocation location : locations) {
 			RepositoryRoot root = getRepositoryRootFor(location);
 			if (root != null)
 				roots.add(root);
 		}
-		return (RepositoryRoot[]) roots.toArray(new RepositoryRoot[roots.size()]);
+		return roots.toArray(new RepositoryRoot[roots.size()]);
 	}
 	
 	public RepositoryRoot[] getKnownRepositoryRoots() {
@@ -121,14 +121,13 @@ public class RepositoryManager {
 	public CVSTag[] getKnownTags(ICVSFolder project, int tagType) {
 		try {
 			CVSTag[] tags = getKnownTags(project);
-			Set result = new HashSet();
-			for (int i = 0; i < tags.length; i++) {
-				CVSTag tag = tags[i];
+			Set<CVSTag> result = new HashSet<>();
+			for (CVSTag tag : tags) {
 				if (tag.getType() == tagType)
 					result.add(tag);
 			}
 
-			return (CVSTag[])result.toArray(new CVSTag[result.size()]);
+			return result.toArray(new CVSTag[result.size()]);
 		} catch(CVSException e) {
 			CVSUIPlugin.log(e);
 			return new CVSTag[0];
@@ -139,17 +138,16 @@ public class RepositoryManager {
 	 * Get the list of known version tags for a given project.
 	 */
 	public CVSTag[] getKnownTags(ICVSRepositoryLocation location, int tagType) {
-		Set result = new HashSet();
-		RepositoryRoot root = (RepositoryRoot)repositoryRoots.get(location.getLocation(false));
+		Set<CVSTag> result = new HashSet<>();
+		RepositoryRoot root = repositoryRoots.get(location.getLocation(false));
 		if (root != null) {
 			CVSTag[] tags = root.getAllKnownTags();
-			for (int i = 0; i < tags.length; i++) {
-				CVSTag tag = tags[i];
+			for (CVSTag tag : tags) {
 				if (tag.getType() == tagType)
 					result.add(tag);
 			}
 		}
-		return (CVSTag[])result.toArray(new CVSTag[0]);
+		return result.toArray(new CVSTag[0]);
 	}
 	
 	/**
@@ -166,12 +164,12 @@ public class RepositoryManager {
 		}
 		ICVSRemoteResource[] folders = getFoldersForTag(repository, CVSTag.DEFAULT, monitor);
 		folders = filterResources(set, folders);
-		Set tags = new HashSet();
-		for (int i = 0; i < folders.length; i++) {
-			ICVSRemoteFolder folder = (ICVSRemoteFolder)folders[i];
+		Set<CVSTag> tags = new HashSet<>();
+		for (ICVSRemoteResource f : folders) {
+			ICVSRemoteFolder folder = (ICVSRemoteFolder) f;
 			tags.addAll(Arrays.asList(getKnownTags(folder, tagType)));
 		}
-		return (CVSTag[]) tags.toArray(new CVSTag[tags.size()]);
+		return tags.toArray(new CVSTag[tags.size()]);
 	}
 	
 	public CVSTag[] getKnownTags(ICVSFolder project) throws CVSException {
@@ -184,12 +182,11 @@ public class RepositoryManager {
 	 * XXX I hope this methos is not needed in this form
 	 */
 	public Map getKnownProjectsAndVersions(ICVSRepositoryLocation location) {
-		Map knownTags = new HashMap();
+		Map<String, Set<CVSTag>> knownTags = new HashMap<>();
 		RepositoryRoot root = getRepositoryRootFor(location);
 		String[] paths = root.getKnownRemotePaths();
-		for (int i = 0; i < paths.length; i++) {
-			String path = paths[i];
-			Set result = new HashSet();
+		for (String path : paths) {
+			Set<CVSTag> result = new HashSet<>();
 			result.addAll(Arrays.asList(root.getAllKnownTags(path)));
 			knownTags.put(path, result);
 		}
@@ -218,17 +215,16 @@ public class RepositoryManager {
 				System.arraycopy(modules, 0, result, resources.length, modules.length);
 				return result;
 			}
-			Set result = new HashSet();
+			Set<ICVSRemoteFolder> result = new HashSet<>();
 			// Get the tags for the location
 			RepositoryRoot root = getRepositoryRootFor(location);
 			String[] paths = root.getRemoteChildrenForTag(null, tag);
-			for (int i = 0; i < paths.length; i++) {
-				String path = paths[i];
+			for (String path : paths) {
 				ICVSRemoteFolder remote = root.getRemoteFolder(path, tag,
 						Policy.subMonitorFor(monitor, 100));
 				result.add(remote);
 			}
-			return (ICVSRemoteResource[])result.toArray(new ICVSRemoteResource[result.size()]);
+			return result.toArray(new ICVSRemoteResource[result.size()]);
 		} finally {
 			monitor.done();
 		}
@@ -262,7 +258,7 @@ public class RepositoryManager {
 			return new ICVSRemoteResource[0];
 		}
 		monitor = Policy.monitorFor(monitor);
-		Set result = new HashSet();
+		Set<ICVSRemoteFolder> result = new HashSet<>();
 		RepositoryRoot root = getRepositoryRootFor(location);
 		// if remote folder is null return the subfolders of repository root
 		String[] paths = root.getRemoteChildrenForTag(
@@ -275,13 +271,12 @@ public class RepositoryManager {
 								new String[] { parentFolder.getName(),
 										tag.getName() }) }), 10 * paths.length);
 		try {
-			for (int i = 0; i < paths.length; i++) {
-				String path = paths[i];
+			for (String path : paths) {
 				ICVSRemoteFolder remote = root.getRemoteFolder(path, tag,
 						Policy.subMonitorFor(monitor, 10));
 				result.add(remote);
 			}
-			return (ICVSRemoteResource[]) result
+			return result
 					.toArray(new ICVSRemoteResource[result.size()]);
 		} finally {
 			monitor.done();
@@ -304,9 +299,7 @@ public class RepositoryManager {
 	 * A repository root has been added. Notify any listeners.
 	 */
 	public void rootAdded(ICVSRepositoryLocation root) {
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-			IRepositoryListener listener = (IRepositoryListener)it.next();
+		for (IRepositoryListener listener : listeners) {
 			listener.repositoryAdded(root);
 		}
 	}
@@ -316,7 +309,7 @@ public class RepositoryManager {
 	 * Remove the tags defined for this root and notify any listeners
 	 */
 	public void rootRemoved(ICVSRepositoryLocation root) {
-		RepositoryRoot repoRoot = (RepositoryRoot)repositoryRoots.remove(root.getLocation(false));
+		RepositoryRoot repoRoot = repositoryRoots.remove(root.getLocation(false));
 		if (repoRoot != null)
 			broadcastRepositoryChange(repoRoot);
 	}
@@ -374,32 +367,30 @@ public class RepositoryManager {
 	public void startup() {
 		loadState();
 		loadCommentHistory();
-        loadCommentTemplates();
+		loadCommentTemplates();
 		CVSProviderPlugin.getPlugin().addRepositoryListener(new ICVSListener() {
+			@Override
 			public void repositoryAdded(ICVSRepositoryLocation root) {
 				rootAdded(root);
 			}
+			@Override
 			public void repositoryRemoved(ICVSRepositoryLocation root) {
 				rootRemoved(root);
 			}
 		});
 		
 		IPreferenceStore store = CVSUIPlugin.getPlugin().getPreferenceStore();
-		store.addPropertyChangeListener(new IPropertyChangeListener() {
-
-			public void propertyChange(PropertyChangeEvent event) {
-				if (event.getProperty().equals(ICVSUIConstants.PREF_COMMIT_COMMENTS_MAX_HISTORY)) {
-					Object newValue = event.getNewValue();
-					if (newValue instanceof String) {
-						try {
-							setMaxComments(Integer.parseInt((String) newValue));
-						} catch (NumberFormatException e) {
-							// fail silently
-						}
+		store.addPropertyChangeListener(event -> {
+			if (event.getProperty().equals(ICVSUIConstants.PREF_COMMIT_COMMENTS_MAX_HISTORY)) {
+				Object newValue = event.getNewValue();
+				if (newValue instanceof String) {
+					try {
+						setMaxComments(Integer.parseInt((String) newValue));
+					} catch (NumberFormatException e) {
+						// fail silently
 					}
 				}
 			}
-			
 		});
 		setMaxComments(store.getInt(ICVSUIConstants.PREF_COMMIT_COMMENTS_MAX_HISTORY));
 	}
@@ -407,20 +398,15 @@ public class RepositoryManager {
 	public void shutdown() throws TeamException {
 		saveState();
 		saveCommentHistory();
-        saveCommentTemplates();
+		saveCommentTemplates();
 	}
 	
 	private void loadState() {
 		IPath pluginStateLocation = CVSUIPlugin.getPlugin().getStateLocation().append(REPOSITORIES_VIEW_FILE);
 		File file = pluginStateLocation.toFile();
 		if (file.exists()) {
-			try {
-				BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-				try {
-					readState(is);
-				} finally {
-					is.close();
-				}
+			try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(file))) {
+				readState(is);
 			} catch (IOException e) {
 				CVSUIPlugin.log(IStatus.ERROR, CVSUIMessages.RepositoryManager_ioException, e); 
 			} catch (TeamException e) {
@@ -431,11 +417,8 @@ public class RepositoryManager {
 			file = oldPluginStateLocation.toFile();
 			if (file.exists()) {
 				try {
-					DataInputStream dis = new DataInputStream(new FileInputStream(file));
-					try {
+					try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
 						readOldState(dis);
-					} finally {
-						dis.close();
 					}
 					saveState();
 					file.delete();
@@ -451,47 +434,34 @@ public class RepositoryManager {
 		IPath pluginStateLocation = CVSUIPlugin.getPlugin().getStateLocation().append(COMMENT_HIST_FILE);
 		File file = pluginStateLocation.toFile();
 		if (!file.exists()) return;
-		try {
-			BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-			try {
-				readCommentHistory(is);
-			} finally {
-				is.close();
-			}
+		try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(file))) {
+			readCommentHistory(is);
 		} catch (IOException e) {
 			CVSUIPlugin.log(IStatus.ERROR, CVSUIMessages.RepositoryManager_ioException, e); 
 		} catch (TeamException e) {
 			CVSUIPlugin.log(e);
 		}
 	}
-    private void loadCommentTemplates() {
-        IPath pluginStateLocation = CVSUIPlugin.getPlugin().getStateLocation().append(COMMENT_TEMPLATES_FILE);
-        File file = pluginStateLocation.toFile();
-        if (!file.exists()) return;
-        try {
-            BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
-            try {
-                readCommentTemplates(is);
-            } finally {
-                is.close();
-            }
-        } catch (IOException e) {
-            CVSUIPlugin.log(IStatus.ERROR, CVSUIMessages.RepositoryManager_ioException, e);
-        } catch (TeamException e) {
-            CVSUIPlugin.log(e);
-        }
-    }
+	private void loadCommentTemplates() {
+		IPath pluginStateLocation = CVSUIPlugin.getPlugin().getStateLocation().append(COMMENT_TEMPLATES_FILE);
+		File file = pluginStateLocation.toFile();
+		if (!file.exists()) return;
+		try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(file))) {
+			readCommentTemplates(is);
+		} catch (IOException e) {
+			CVSUIPlugin.log(IStatus.ERROR, CVSUIMessages.RepositoryManager_ioException, e);
+		} catch (TeamException e) {
+			CVSUIPlugin.log(e);
+		}
+	}
 	
 	protected void saveState() throws TeamException {
 		IPath pluginStateLocation = CVSUIPlugin.getPlugin().getStateLocation();
 		File tempFile = pluginStateLocation.append(REPOSITORIES_VIEW_FILE + ".tmp").toFile(); //$NON-NLS-1$
 		File stateFile = pluginStateLocation.append(REPOSITORIES_VIEW_FILE).toFile();
 		try {
-			XMLWriter writer = new XMLWriter(new BufferedOutputStream(new FileOutputStream(tempFile)));
-			try {
+			try (XMLWriter writer = new XMLWriter(new BufferedOutputStream(new FileOutputStream(tempFile)))) {
 				writeState(writer);
-			} finally {
-				writer.close();
 			}
 			if (stateFile.exists()) {
 				stateFile.delete();
@@ -572,12 +542,12 @@ public class RepositoryManager {
 			if (projSize > 0) {
 				for (int j = 0; j < projSize; j++) {
 					String name = dis.readUTF();
-					Set tagSet = new HashSet();
+					Set<CVSTag> tagSet = new HashSet<>();
 					int numTags = dis.readInt();
 					for (int k = 0; k < numTags; k++) {
 						tagSet.add(new CVSTag(dis.readUTF(), CVSTag.VERSION));
 					}
-					CVSTag[] tags = (CVSTag[]) tagSet.toArray(new CVSTag[tagSet.size()]);
+					CVSTag[] tags = tagSet.toArray(new CVSTag[tagSet.size()]);
 					repoRoot.addTags(name, tags);
 				}
 			}
@@ -588,12 +558,12 @@ public class RepositoryManager {
 					if (projSize > 0) {
 						for (int j = 0; j < projSize; j++) {
 							String name = dis.readUTF();
-							Set filenames = new HashSet();
+							Set<String> filenames = new HashSet<>();
 							int numFilenames = dis.readInt();
 							for (int k = 0; k < numFilenames; k++) {
 								filenames.add(name + "/" + dis.readUTF()); //$NON-NLS-1$
 							}
-							repoRoot.setAutoRefreshFiles(name, (String[]) filenames.toArray(new String[filenames.size()]));
+							repoRoot.setAutoRefreshFiles(name, filenames.toArray(new String[filenames.size()]));
 						}
 					}
 				} catch (EOFException e) {
@@ -609,22 +579,19 @@ public class RepositoryManager {
 		File tempFile = pluginStateLocation.append(COMMENT_HIST_FILE + ".tmp").toFile(); //$NON-NLS-1$
 		File histFile = pluginStateLocation.append(COMMENT_HIST_FILE).toFile();
 		try {
-				 XMLWriter writer = new XMLWriter(new BufferedOutputStream(new FileOutputStream(tempFile)));
-		 		 try {
-		 		 		 writeCommentHistory(writer);
-		 		 } finally {
-		 		 		 writer.close();
-		 		 }
-		 		 if (histFile.exists()) {
-		 		 		 histFile.delete();
-		 		 }
-		 		 boolean renamed = tempFile.renameTo(histFile);
-		 		 if (!renamed) {
-		 		 		 throw new TeamException(new Status(IStatus.ERROR, CVSUIPlugin.ID, TeamException.UNABLE, NLS.bind(CVSUIMessages.RepositoryManager_rename, new String[] { tempFile.getAbsolutePath() }), null)); 
-		 		 }
-		 } catch (IOException e) {
-		 		 throw new TeamException(new Status(IStatus.ERROR, CVSUIPlugin.ID, TeamException.UNABLE, NLS.bind(CVSUIMessages.RepositoryManager_save, new String[] { histFile.getAbsolutePath() }), e)); 
-		 }
+			try (XMLWriter writer = new XMLWriter(new BufferedOutputStream(new FileOutputStream(tempFile)))) {
+				writeCommentHistory(writer);
+			}
+			if (histFile.exists()) {
+				histFile.delete();
+			}
+			boolean renamed = tempFile.renameTo(histFile);
+			if (!renamed) {
+				throw new TeamException(new Status(IStatus.ERROR, CVSUIPlugin.ID, TeamException.UNABLE, NLS.bind(CVSUIMessages.RepositoryManager_rename, new String[] { tempFile.getAbsolutePath() }), null)); 
+			}
+		} catch (IOException e) {
+			throw new TeamException(new Status(IStatus.ERROR, CVSUIPlugin.ID, TeamException.UNABLE, NLS.bind(CVSUIMessages.RepositoryManager_save, new String[] { histFile.getAbsolutePath() }), e)); 
+		}
 	}
 	private void writeCommentHistory(XMLWriter writer) {
 		writer.startTag(ELEMENT_COMMIT_HISTORY, null, false);
@@ -632,7 +599,7 @@ public class RepositoryManager {
 			writer.printSimpleTag(ELEMENT_COMMIT_COMMENT, previousComments[i]);
 		writer.endTag(ELEMENT_COMMIT_HISTORY);
 	}
-		 
+		
 	public void addRepositoryListener(IRepositoryListener listener) {
 		listeners.add(listener);
 	}
@@ -648,11 +615,10 @@ public class RepositoryManager {
 	public String promptForComment(final Shell shell, IResource[] resourcesToCommit, String proposedComment) {
 		final int[] result = new int[1];
 		final ReleaseCommentDialog dialog = new ReleaseCommentDialog(shell, resourcesToCommit, proposedComment, IResource.DEPTH_INFINITE); 
-		shell.getDisplay().syncExec(new Runnable() {
-			public void run() {
-				result[0] = dialog.open();
-				if (result[0] != Window.OK) return;
-			}
+		shell.getDisplay().syncExec(() -> {
+			result[0] = dialog.open();
+			if (result[0] != Window.OK)
+				return;
 		});
 		if (result[0] != Window.OK) return null;
 		return dialog.getComment();
@@ -672,15 +638,13 @@ public class RepositoryManager {
 		final IResource[][] result = new IResource[1][0];
 		result[0] = null;
 		final AddToVersionControlDialog dialog = new AddToVersionControlDialog(shell, unadded);
-		shell.getDisplay().syncExec(new Runnable() {
-			public void run() {
-				int code = dialog.open();
-				if (code == IDialogConstants.YES_ID) {
-					result[0] = dialog.getResourcesToAdd();
-				} else if(code == IDialogConstants.NO_ID) {
-					// allow the commit to continue.
-					result[0] = new IResource[0];
-				}
+		shell.getDisplay().syncExec(() -> {
+			int code = dialog.open();
+			if (code == IDialogConstants.YES_ID) {
+				result[0] = dialog.getResourcesToAdd();
+			} else if (code == IDialogConstants.NO_ID) {
+				// allow the commit to continue.
+				result[0] = new IResource[0];
 			}
 		});
 		return result[0];
@@ -717,7 +681,7 @@ public class RepositoryManager {
 	}
 	
 	public RepositoryRoot getRepositoryRootFor(ICVSRepositoryLocation location) {
-		RepositoryRoot root = (RepositoryRoot)repositoryRoots.get(location.getLocation(false));
+		RepositoryRoot root = repositoryRoots.get(location.getLocation(false));
 		if (root == null) {
 			root = new RepositoryRoot(location);
 			add(root);
@@ -746,9 +710,7 @@ public class RepositoryManager {
 	
 	private void broadcastRepositoriesChanged(ICVSRepositoryLocation[] roots) {
 		if (roots.length == 0) return;
-		Iterator it = listeners.iterator();
-		while (it.hasNext()) {
-			IRepositoryListener listener = (IRepositoryListener)it.next();
+		for (IRepositoryListener listener : listeners) {
 			listener.repositoriesChanged(roots);
 		}
 	}
@@ -767,8 +729,8 @@ public class RepositoryManager {
 			notificationLevel = Math.max(0, notificationLevel - 1);
 			if (notificationLevel == 0) {
 				try {
-					Collection roots = changedRepositories.values();
-					broadcastRepositoriesChanged((ICVSRepositoryLocation[]) roots.toArray(new ICVSRepositoryLocation[roots.size()]));
+					Collection<ICVSRepositoryLocation> roots = changedRepositories.values();
+					broadcastRepositoriesChanged(roots.toArray(new ICVSRepositoryLocation[roots.size()]));
 				} finally {
 					changedRepositories.clear();
 				}
@@ -797,9 +759,8 @@ public class RepositoryManager {
 		if (workingSet == null) return resources;
 		// get the projects associated with the working set
 		IAdaptable[] adaptables = workingSet.getElements();
-		Set projects = new HashSet();
-		for (int i = 0; i < adaptables.length; i++) {
-			IAdaptable adaptable = adaptables[i];
+		Set<IProject> projects = new HashSet<>();
+		for (IAdaptable adaptable : adaptables) {
 			Object adapted = adaptable.getAdapter(IResource.class);
 			if (adapted != null) {
 				// Can this code be generalized?
@@ -807,9 +768,8 @@ public class RepositoryManager {
 				projects.add(project);
 			}
 		}
-		List result = new ArrayList();
-		for (int i = 0; i < resources.length; i++) {
-			ICVSRemoteResource resource = resources[i];
+		List<ICVSRemoteResource> result = new ArrayList<>();
+		for (ICVSRemoteResource resource : resources) {
 			for (Iterator iter = projects.iterator(); iter.hasNext();) {
 				IProject project = (IProject) iter.next();
 				if (project.getName().equals(resource.getName())) {
@@ -818,7 +778,7 @@ public class RepositoryManager {
 				}
 			}
 		}
-		return (ICVSRemoteResource[]) result.toArray(new ICVSRemoteResource[result.size()]);
+		return result.toArray(new ICVSRemoteResource[result.size()]);
 	}
 	
 	/**
@@ -853,20 +813,18 @@ public class RepositoryManager {
 			final CVSRepositoryLocation newLocation) {
 		
 		try {
-			run(new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					RepositoryRoot root = getRepositoryRootFor(oldLocation);
-					// Disposing of the old location will result in the deletion of the
-					// cached root through a listener callback
-					KnownRepositories.getInstance().disposeRepository(oldLocation);
-					
-					// Get the new location from the CVS plugin to ensure we use the
-					// instance that will be returned by future calls to getRepository()
-					boolean isNew = !KnownRepositories.getInstance().isKnownRepository(newLocation.getLocation());
-					root.setRepositoryLocation(
-							KnownRepositories.getInstance().addRepository(newLocation, isNew /* broadcast */));
-					add(root);
-				}
+			run(monitor -> {
+				RepositoryRoot root = getRepositoryRootFor(oldLocation);
+				// Disposing of the old location will result in the deletion of the
+				// cached root through a listener callback
+				KnownRepositories.getInstance().disposeRepository(oldLocation);
+
+				// Get the new location from the CVS plugin to ensure we use the
+				// instance that will be returned by future calls to getRepository()
+				boolean isNew = !KnownRepositories.getInstance().isKnownRepository(newLocation.getLocation());
+				root.setRepositoryLocation(
+						KnownRepositories.getInstance().addRepository(newLocation, isNew /* broadcast */));
+				add(root);
 			}, Policy.monitorFor(null));
 		} catch (InvocationTargetException e) {
 			CVSException.wrapException(e);
@@ -878,8 +836,7 @@ public class RepositoryManager {
 	 * Purge any cahced information.
 	 */
 	public void purgeCache() {
-		for (Iterator iter = repositoryRoots.values().iterator(); iter.hasNext();) {
-			RepositoryRoot root = (RepositoryRoot) iter.next();
+		for (RepositoryRoot root : repositoryRoots.values()) {
 			root.clearCache();
 		}
 	}
@@ -963,12 +920,9 @@ public class RepositoryManager {
 		File histFile = pluginStateLocation.append(COMMENT_TEMPLATES_FILE)
 				.toFile();
 		try {
-			XMLWriter writer = new XMLWriter(new BufferedOutputStream(
-					new FileOutputStream(tempFile)));
-			try {
+			try (XMLWriter writer = new XMLWriter(new BufferedOutputStream(
+					new FileOutputStream(tempFile)))) {
 				writeCommentTemplates(writer);
-			} finally {
-				writer.close();
 			}
 			if (histFile.exists()) {
 				histFile.delete();
@@ -991,14 +945,15 @@ public class RepositoryManager {
 	
 	private void writeCommentTemplates(XMLWriter writer) {
 		writer.startTag(ELEMENT_COMMENT_TEMPLATES, null, false);
-		for (int i = 0; i < commentTemplates.length; i++)
-			writer.printSimpleTag(ELEMENT_COMMIT_COMMENT, commentTemplates[i]);
+		for (String commentTemplate : commentTemplates) {
+			writer.printSimpleTag(ELEMENT_COMMIT_COMMENT, commentTemplate);
+		}
 		writer.endTag(ELEMENT_COMMENT_TEMPLATES);
 	}
 	
 	private boolean containsCommentTemplate(String comment) {
-		for (int i = 0; i < commentTemplates.length; i++) {
-			if (commentTemplates[i].equals(comment)) {
+		for (String commentTemplate : commentTemplates) {
+			if (commentTemplate.equals(comment)) {
 				return true;
 			}
 		}

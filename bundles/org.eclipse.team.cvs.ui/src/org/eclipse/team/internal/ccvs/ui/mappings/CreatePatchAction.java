@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -18,7 +21,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceTraversal;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.team.core.diff.*;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
@@ -35,9 +37,7 @@ public class CreatePatchAction extends CVSModelProviderAction implements IDiffCh
 		getSynchronizationContext().getDiffTree().addDiffChangeListener(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.mapping.ModelProviderAction#isEnabledForSelection(org.eclipse.jface.viewers.IStructuredSelection)
-	 */
+	@Override
 	protected boolean isEnabledForSelection(IStructuredSelection selection) {
 		return internalIsEnabled(selection);
 	}
@@ -50,13 +50,12 @@ public class CreatePatchAction extends CVSModelProviderAction implements IDiffCh
 		}
 		return getSynchronizationContext().getDiffTree().countFor(IThreeWayDiff.CONFLICTING, IThreeWayDiff.DIRECTION_MASK) > 0;
 	}
-    
+	
 	private IResource[] getVisibleResources(ResourceTraversal[] traversals) {
 		final Set resources = new HashSet();
 		final IResourceDiffTree diffTree = getSynchronizationContext().getDiffTree();
 		IDiff[] diffs = diffTree.getDiffs(traversals);
-		for (int i = 0; i < diffs.length; i++) {
-			IDiff diff = diffs[i];
+		for (IDiff diff : diffs) {
 			IResource child = diffTree.getResource(diff);
 			if (child.getType() == IResource.FILE && diff instanceof IThreeWayDiff) {
 				IThreeWayDiff twd = (IThreeWayDiff) diff;
@@ -69,23 +68,20 @@ public class CreatePatchAction extends CVSModelProviderAction implements IDiffCh
 		return (IResource[]) resources.toArray(new IResource[resources.size()]);
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ccvs.ui.mappings.CVSModelProviderAction#getBundleKeyPrefix()
-     */
-    protected String getBundleKeyPrefix() {
-    	return "GenerateDiffFileAction."; //$NON-NLS-1$
-    }
-    
-    public void execute() {
-    	final ResourceTraversal [][] traversals = new ResourceTraversal[][] { null };
+	@Override
+	protected String getBundleKeyPrefix() {
+		return "GenerateDiffFileAction."; //$NON-NLS-1$
+	}
+	
+	@Override
+	public void execute() {
+		final ResourceTraversal [][] traversals = new ResourceTraversal[][] { null };
 		try {
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						traversals[0] = getResourceTraversals(getStructuredSelection(), monitor);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					}
+			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(monitor -> {
+				try {
+					traversals[0] = getResourceTraversals(getStructuredSelection(), monitor);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -101,12 +97,14 @@ public class CreatePatchAction extends CVSModelProviderAction implements IDiffCh
 				GenerateDiffFileWizard.run(getConfiguration().getSite().getPart(), resources, false);
 			}
 		}
-    }
+	}
 
+	@Override
 	public void diffsChanged(IDiffChangeEvent event, IProgressMonitor monitor) {
 		updateEnablement();
 	}
 
+	@Override
 	public void propertyChanged(IDiffTree tree, int property, IPath[] paths) {
 		// Nothing to do
 	}

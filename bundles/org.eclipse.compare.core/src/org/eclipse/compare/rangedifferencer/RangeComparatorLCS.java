@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,9 +18,7 @@ import java.util.List;
 
 import org.eclipse.compare.internal.core.LCS;
 import org.eclipse.compare.internal.core.Messages;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.*;
 
 /* package */ class RangeComparatorLCS extends LCS {
 
@@ -70,7 +71,7 @@ import org.eclipse.core.runtime.SubMonitor;
 
 	public RangeDifference[] getDifferences(SubMonitor subMonitor, AbstractRangeDifferenceFactory factory) {
 		try {
-			List differences = new ArrayList();
+			List<RangeDifference> differences = new ArrayList<>();
 			int length = getLength();
 			if (length == 0) {
 				differences.add(factory.createRangeDifference(RangeDifference.CHANGE, 0, this.comparator2.getRangeCount(), 0, this.comparator1.getRangeCount()));
@@ -128,7 +129,7 @@ import org.eclipse.core.runtime.SubMonitor;
 				}
 
 			}
-			return (RangeDifference[]) differences.toArray(new RangeDifference[differences.size()]);
+			return differences.toArray(new RangeDifference[differences.size()]);
 		} finally {
 			subMonitor.done();
 		}
@@ -150,7 +151,7 @@ import org.eclipse.core.runtime.SubMonitor;
 	 * @param length The number of non-empty (i.e non-zero) entries in LCS
 	 * @param comparator The comparator used to generate the LCS
 	 */
-	 private void compactAndShiftLCS(int[] lcsSide, int length,
+	private void compactAndShiftLCS(int[] lcsSide, int length,
 			IRangeComparator comparator) {
 		// If the LCS is empty, just return
 		if (length == 0)
@@ -184,9 +185,6 @@ import org.eclipse.core.runtime.SubMonitor;
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.internal.LCS#longestCommonSubsequence(org.eclipse.core.runtime.SubMonitor)
-	 */
 	@Override
 	public void longestCommonSubsequence(SubMonitor subMonitor) {
 		super.longestCommonSubsequence(subMonitor);

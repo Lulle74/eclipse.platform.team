@@ -1,21 +1,30 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.mapping;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.team.core.diff.IDiff;
@@ -53,21 +62,19 @@ public abstract class ResourceMappingMerger implements IResourceMappingMerger {
 	 * changes in the context for the model provider of this merger.
 	 * By default, return a rule that covers all the projects for the mappings
 	 * that belong to the model provider of this merger.
-     * @param context the context that contains the changes to be merged
-     * @return the scheduling rule required by this merger to merge all
-     * the changes in the given context belonging to the merger's
-     * model provider.
+	 * @param context the context that contains the changes to be merged
+	 * @return the scheduling rule required by this merger to merge all
+	 * the changes in the given context belonging to the merger's
+	 * model provider.
 	 * @see org.eclipse.team.core.mapping.IResourceMappingMerger#getMergeRule(org.eclipse.team.core.mapping.IMergeContext)
 	 */
 	@Override
 	public ISchedulingRule getMergeRule(IMergeContext context) {
 		ResourceMapping[] mappings = context.getScope().getMappings(getModelProvider().getId());
 		ISchedulingRule rule = null;
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			IProject[] mappingProjects = mapping.getProjects();
-			for (int j = 0; j < mappingProjects.length; j++) {
-				IProject project = mappingProjects[j];
+			for (IProject project : mappingProjects) {
 				if (rule == null) {
 					rule = project;
 				} else {
@@ -97,14 +104,10 @@ public abstract class ResourceMappingMerger implements IResourceMappingMerger {
 	private IDiff[] getSetToMerge(IMergeContext mergeContext) {
 		ResourceMapping[] mappings = mergeContext.getScope().getMappings(getModelProvider().getDescriptor().getId());
 		Set<IDiff> result = new HashSet<>();
-		for (int i = 0; i < mappings.length; i++) {
-			ResourceMapping mapping = mappings[i];
+		for (ResourceMapping mapping : mappings) {
 			ResourceTraversal[] traversals = mergeContext.getScope().getTraversals(mapping);
 			IDiff[] deltas = mergeContext.getDiffTree().getDiffs(traversals);
-			for (int j = 0; j < deltas.length; j++) {
-				IDiff delta = deltas[j];
-				result.add(delta);
-			}
+			Collections.addAll(result, deltas);
 		}
 		return result.toArray(new IDiff[result.size()]);
 	}

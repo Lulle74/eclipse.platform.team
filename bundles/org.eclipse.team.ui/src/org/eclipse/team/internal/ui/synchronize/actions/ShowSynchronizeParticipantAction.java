@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,11 +26,15 @@ import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SubscriberRefreshSchedule;
 import org.eclipse.team.internal.ui.synchronize.SynchronizeView;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.AbstractSynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipantReference;
+import org.eclipse.team.ui.synchronize.ISynchronizeView;
+import org.eclipse.team.ui.synchronize.SubscriberParticipant;
 
 public class ShowSynchronizeParticipantAction extends Action implements IPropertyChangeListener {
 
-    private ISynchronizeParticipantReference fPage;
+	private ISynchronizeParticipantReference fPage;
 	private ISynchronizeView fView;
 
 	@Override
@@ -52,22 +59,22 @@ public class ShowSynchronizeParticipantAction extends Action implements IPropert
 		super(Utils.shortenText(SynchronizeView.MAX_NAME_LENGTH, ref.getDisplayName()), IAction.AS_RADIO_BUTTON);
 		fPage = ref;
 		fView = view;
-        setImageDescriptor( new ParticipantOverlay( ref));
+		setImageDescriptor( new ParticipantOverlay( ref));
 
-        try {
-          fPage.getParticipant().addPropertyChangeListener( this);
-        } catch( TeamException e) {
-          Utils.handle(e);
-        }
+		try {
+			fPage.getParticipant().addPropertyChangeListener( this);
+		} catch( TeamException e) {
+			Utils.handle(e);
+		}
 	}
 
 	@Override
 	public void propertyChange( PropertyChangeEvent event) {
-      String property = event.getProperty();
-      if( AbstractSynchronizeParticipant.P_PINNED.equals( property) ||
-          AbstractSynchronizeParticipant.P_SCHEDULED.equals(property)) {
-        setImageDescriptor(new ParticipantOverlay( fPage));
-      }
+		String property = event.getProperty();
+		if( AbstractSynchronizeParticipant.P_PINNED.equals( property) ||
+			AbstractSynchronizeParticipant.P_SCHEDULED.equals(property)) {
+			setImageDescriptor(new ParticipantOverlay( fPage));
+		}
 	}
 
 
@@ -93,18 +100,18 @@ public class ShowSynchronizeParticipantAction extends Action implements IPropert
 			if (this.participant.isPinned()) {
 				drawImage(pinnedData, this.imageData.width - pinnedData.width, 0);
 			}
-            if (this.participant instanceof SubscriberParticipant) {
-                SubscriberParticipant participant = ( SubscriberParticipant) this.participant;
-                SubscriberRefreshSchedule schedule = participant.getRefreshSchedule();
-                if(schedule!=null && schedule.isEnabled()) {
-                  drawImage(scheduledData, 0, 0);
-                }
-            } else {
-    			SubscriberRefreshSchedule schedule = Adapters.adapt(participant, SubscriberRefreshSchedule.class);
-                if(schedule!=null && schedule.isEnabled()) {
-                    drawImage(scheduledData, 0, 0);
-                }
-            }
+			if (this.participant instanceof SubscriberParticipant) {
+				SubscriberParticipant participant = ( SubscriberParticipant) this.participant;
+				SubscriberRefreshSchedule schedule = participant.getRefreshSchedule();
+				if(schedule!=null && schedule.isEnabled()) {
+					drawImage(scheduledData, 0, 0);
+				}
+			} else {
+				SubscriberRefreshSchedule schedule = Adapters.adapt(participant, SubscriberRefreshSchedule.class);
+				if(schedule!=null && schedule.isEnabled()) {
+					drawImage(scheduledData, 0, 0);
+				}
+			}
 		}
 
 		@Override

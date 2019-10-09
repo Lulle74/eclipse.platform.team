@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,9 +18,12 @@ import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.ResourceMapping;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.jface.util.*;
+import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.ui.IMemento;
 
@@ -94,9 +100,6 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 		init(memento);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.synchronize.ScopableSubscriberParticipant.ISynchronizeScope#addPropertyChangeListener(org.eclipse.jface.util.IPropertyChangeListener)
-	 */
 	@Override
 	public void addPropertyChangeListener(IPropertyChangeListener listener) {
 		synchronized(listeners) {
@@ -104,9 +107,6 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.synchronize.ScopableSubscriberParticipant.ISynchronizeScope#removePropertyChangeListener(org.eclipse.jface.util.IPropertyChangeListener)
-	 */
 	@Override
 	public void removePropertyChangeListener(IPropertyChangeListener listener) {
 		synchronized(listeners) {
@@ -114,9 +114,6 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ISynchronizeScope#dispose()
-	 */
 	@Override
 	public void dispose() {
 		// Do nothing by default
@@ -132,8 +129,8 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 		synchronized(listeners) {
 			allListeners = listeners.getListeners();
 		}
-		for (int i = 0; i < allListeners.length; i++) {
-			final IPropertyChangeListener listener = (IPropertyChangeListener)allListeners[i];
+		for (Object l : allListeners) {
+			final IPropertyChangeListener listener = (IPropertyChangeListener) l;
 			SafeRunner.run(new SafeRunnable() {
 				@Override
 				public void run() throws Exception {
@@ -180,8 +177,7 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 	public boolean contains(IResource resource) {
 		IResource[] roots = getRoots();
 		IPath resourcePath = resource.getFullPath();
-		for (int i = 0; i < roots.length; i++) {
-			IResource root = roots[i];
+		for (IResource root : roots) {
 			if (root.getFullPath().isPrefixOf(resourcePath)) {
 				return true;
 			}
@@ -199,8 +195,7 @@ public abstract class AbstractSynchronizeScope implements ISynchronizeScope {
 	public ResourceMapping[] getMappings() {
 		List result = new ArrayList();
 		IResource[] roots = getRoots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			result.add(resource.getAdapter(ResourceMapping.class));
 		}
 		return (ResourceMapping[]) result.toArray(new ResourceMapping[result.size()]);

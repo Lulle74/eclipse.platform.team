@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,9 +22,7 @@ import org.eclipse.team.internal.ccvs.core.ICVSResource;
  */
 public class NOOPCommand extends Command {
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#sendLocalResourceState(Session, GlobalOption[], LocalOption[], ICVSResource[], IProgressMonitor)
-	 */
+	@Override
 	protected ICVSResource[] sendLocalResourceState(
 		Session session,
 		GlobalOption[] globalOptions,
@@ -35,23 +36,17 @@ public class NOOPCommand extends Command {
 		return resources;
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.Request#getRequestId()
-	 */
+	@Override
 	protected String getRequestId() {
 		return "noop"; //$NON-NLS-1$
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#sendArguments(Session, String[])
-	 */
+	@Override
 	protected void sendArguments(Session session, String[] arguments)throws CVSException {
 		// don't send any arguments
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.Command#isWorkspaceModification()
-	 */
+	@Override
 	protected boolean isWorkspaceModification() {
 		return false;
 	}

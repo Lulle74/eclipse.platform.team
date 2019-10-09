@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -101,19 +104,24 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			return fText.getText();
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 		
 			final ILabelProvider labelProvider = new LabelProvider() {
+				@Override
 				public String getText(Object element) {
 					return ((Map.Entry)element).getKey() + " - " + ((Map.Entry)element).getValue(); //$NON-NLS-1$
 				}
 			};
 			
 			final IStructuredContentProvider contentsProvider = new IStructuredContentProvider() {
+				@Override
 				public Object[] getElements(Object inputElement) {
 					return ((Collection)inputElement).toArray();
 				}
+				@Override
 				public void dispose() {}
+				@Override
 				public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
 			};
 			
@@ -130,8 +138,8 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		
 			Object[] result = dialog.getResult();
 			
-			for (int i = 0; i < result.length; i++) {
-				fText.insert("{"+((Map.Entry)result[i]).getKey() +"}");   //$NON-NLS-1$ //$NON-NLS-2$
+			for (Object r : result) {
+				fText.insert("{" + ((Map.Entry) r).getKey() + "}"); //$NON-NLS-1$ //$NON-NLS-2$
 			}		
 		}
 
@@ -184,11 +192,13 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			item.setControl(composite);	
 		}
 		
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			setChanged();
 			notifyObservers();
 		}
 		
+		@Override
 		public void initializeValues(IPreferenceStore store) {
 			fDirty.setSelection(store.getBoolean(ICVSUIConstants.PREF_SHOW_DIRTY_DECORATION));
 			fAdded.setSelection(store.getBoolean(ICVSUIConstants.PREF_SHOW_ADDED_DECORATION));
@@ -196,6 +206,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			fNewResource.setSelection(store.getBoolean(ICVSUIConstants.PREF_SHOW_NEWRESOURCE_DECORATION));
 		}
 		
+		@Override
 		public void performOk(IPreferenceStore store) {
 			store.setValue(ICVSUIConstants.PREF_SHOW_DIRTY_DECORATION, fDirty.getSelection());
 			store.setValue(ICVSUIConstants.PREF_SHOW_ADDED_DECORATION, fAdded.getSelection());
@@ -203,6 +214,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			store.setValue(ICVSUIConstants.PREF_SHOW_NEWRESOURCE_DECORATION, fNewResource.getSelection());
 		}
 		
+		@Override
 		public void performDefaults(IPreferenceStore store) {
 			fDirty.setSelection(store.getDefaultBoolean(ICVSUIConstants.PREF_SHOW_DIRTY_DECORATION));
 			fAdded.setSelection(store.getDefaultBoolean(ICVSUIConstants.PREF_SHOW_ADDED_DECORATION));
@@ -210,6 +222,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			fNewResource.setSelection(store.getDefaultBoolean(ICVSUIConstants.PREF_SHOW_NEWRESOURCE_DECORATION));
 		}
 		
+		@Override
 		public void setPreferences(Preferences prefs) {
 			prefs.setDefault(ICVSUIConstants.PREF_SHOW_DIRTY_DECORATION, fDirty.getSelection());
 			prefs.setDefault(ICVSUIConstants.PREF_SHOW_ADDED_DECORATION, fAdded.getSelection());
@@ -217,6 +230,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			prefs.setDefault(ICVSUIConstants.PREF_SHOW_NEWRESOURCE_DECORATION, fNewResource.getSelection());
 		}
 
+		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 		}
 	}	
@@ -268,6 +282,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			item.setControl(composite);	
 		}
 		
+		@Override
 		public void initializeValues(IPreferenceStore store) {
 			fFileDecoration.initializeValue(store);
 			fFolderDecoration.initializeValue(store);
@@ -276,6 +291,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			dirtyFlag.setText(store.getString(ICVSUIConstants.PREF_DIRTY_FLAG));
 		}
 		
+		@Override
 		public void performOk(IPreferenceStore store) {
 			fFileDecoration.performOk(store);
 			fFolderDecoration.performOk(store);
@@ -284,6 +300,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			store.setValue(ICVSUIConstants.PREF_DIRTY_FLAG, dirtyFlag.getText());
 		}
 		
+		@Override
 		public void performDefaults(IPreferenceStore store) {
 			fFileDecoration.performDefaults(store);
 			fFolderDecoration.performDefaults(store);
@@ -305,11 +322,13 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			return fProjectDecoration.getText();
 		}
 
+		@Override
 		public void modifyText(ModifyEvent e) {
 			setChanged();
 			notifyObservers();
 		}
 
+		@Override
 		public void setPreferences(Preferences prefs) {
 			prefs.setDefault(ICVSUIConstants.PREF_CALCULATE_DIRTY, true);
 			prefs.setDefault(ICVSUIConstants.PREF_DIRTY_FLAG, dirtyFlag.getText());
@@ -325,8 +344,8 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			final Composite composite= SWTUtils.createHFillComposite(parent, SWTUtils.MARGINS_DEFAULT);
 			Dialog.applyDialogFont(composite);
 			
-            SWTUtils.createPreferenceLink((IWorkbenchPreferenceContainer) getContainer(), composite, CVSUIMessages.CVSDecoratorPreferencesPage_36, CVSUIMessages.CVSDecoratorPreferencesPage_37); 
-            
+			SWTUtils.createPreferenceLink((IWorkbenchPreferenceContainer) getContainer(), composite, CVSUIMessages.CVSDecoratorPreferencesPage_36, CVSUIMessages.CVSDecoratorPreferencesPage_37); 
+			
 			fShowDirty= SWTUtils.createCheckBox(composite, CVSUIMessages.CVSDecoratorPreferencesPage_16); 
 			SWTUtils.createLabel(composite, CVSUIMessages.CVSDecoratorPreferencesPage_17); 
 			
@@ -342,29 +361,35 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			item.setControl(composite);	
 		}
 
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			setChanged();
 			notifyObservers();
 		}
 		
+		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 		}
 
+		@Override
 		public void initializeValues(IPreferenceStore store) {
 			fShowDirty.setSelection(store.getBoolean(ICVSUIConstants.PREF_CALCULATE_DIRTY));
 			fUseFontDecorations.setSelection(store.getBoolean(ICVSUIConstants.PREF_USE_FONT_DECORATORS));
 		}
 
+		@Override
 		public void performDefaults(IPreferenceStore store) {
 			fShowDirty.setSelection(store.getDefaultBoolean(ICVSUIConstants.PREF_CALCULATE_DIRTY));
 			fUseFontDecorations.setSelection(store.getDefaultBoolean(ICVSUIConstants.PREF_USE_FONT_DECORATORS));
 		}
 		
+		@Override
 		public void performOk(IPreferenceStore store) {
 			store.setValue(ICVSUIConstants.PREF_CALCULATE_DIRTY, fShowDirty.getSelection());
 			store.setValue(ICVSUIConstants.PREF_USE_FONT_DECORATORS, fUseFontDecorations.getSelection());
 		}
 		
+		@Override
 		public void setPreferences(Preferences preferences) {
 			preferences.setValue(ICVSUIConstants.PREF_CALCULATE_DIRTY, fShowDirty.getSelection());
 			preferences.setValue(ICVSUIConstants.PREF_USE_FONT_DECORATORS, fUseFontDecorations.getSelection());
@@ -382,7 +407,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		private final TreeViewer fViewer; 
 		
 		public Preview(Composite composite) {
-            SWTUtils.createLabel(composite, CVSUIMessages.CVSDecoratorPreferencesPage_39);
+			SWTUtils.createLabel(composite, CVSUIMessages.CVSDecoratorPreferencesPage_39);
 			fImageCache= new LocalResourceManager(JFaceResources.getResources());
 			fViewer = new TreeViewer(composite);
 			fViewer.getControl().setLayoutData(SWTUtils.createHVFillGridData());
@@ -403,47 +428,54 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		}
 		
 		private void setColorsAndFonts(TreeItem[] items) {
-			for (int i = 0; i < items.length; i++) {
+			for (TreeItem item : items) {
 				if (fGeneralTab.isFontDecorationEnabled()) {
-					Color backGroundColor = getBackground(items[i].getData());
-					items[i].setBackground(backGroundColor);
-					Color foreGroundColor = getForeground(items[i].getData());
-					items[i].setForeground(foreGroundColor);
-					Font font = getFont(items[i].getData());
-					items[i].setFont(font);
+					Color backGroundColor = getBackground(item.getData());
+					item.setBackground(backGroundColor);
+					Color foreGroundColor = getForeground(item.getData());
+					item.setForeground(foreGroundColor);
+					Font font = getFont(item.getData());
+					item.setFont(font);
 				} else {
-					items[i].setBackground(null);
-					items[i].setForeground(null);
-					items[i].setFont(null);
+					item.setBackground(null);
+					item.setForeground(null);
+					item.setFont(null);
 				}
-				setColorsAndFonts(items[i].getItems());
+				setColorsAndFonts(item.getItems());
 			}
 		}
 		
+		@Override
 		public void update(Observable o, Object arg) {
 			refresh();
 		}
 		
+		@Override
 		public Object[] getChildren(Object parentElement) {
 			return ((PreviewFile)parentElement).children.toArray();
 		}
 
+		@Override
 		public Object getParent(Object element) {
 			return null;
 		}
 
+		@Override
 		public boolean hasChildren(Object element) {
 			return !((PreviewFile)element).children.isEmpty();
 		}
 
+		@Override
 		public Object[] getElements(Object inputElement) {
 			return ((Collection)inputElement).toArray();
 		}
 
+		@Override
 		public void dispose() {
-            fImageCache.dispose();
+			fImageCache.dispose();
 		}
 
+		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		}
 
@@ -459,9 +491,10 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			return getDecoration(element).getFont();
 		}
 		
+		@Override
 		public String getText(Object element) {
 			final CVSDecoration decoration = getDecoration(element);
-			final StringBuffer buffer = new StringBuffer();
+			final StringBuilder buffer = new StringBuilder();
 			final String prefix = decoration.getPrefix();
 			if (prefix != null)
 				buffer.append(prefix);
@@ -479,6 +512,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			return decoration;
 		}
 		
+		@Override
 		public Image getImage(Object element) {
 			final String s;
 			switch (((PreviewFile)element).type) {
@@ -494,11 +528,11 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 			if (overlay == null)
 				return baseImage;
 			try {
-                return fImageCache.createImage(new DecorationOverlayIcon(baseImage, overlay, IDecoration.BOTTOM_RIGHT));
-            } catch (DeviceResourceException e) {
-                CVSUIPlugin.log(new Status(IStatus.ERROR, CVSUIPlugin.ID, 0, "Error creating decorator image", e)); //$NON-NLS-1$
-            }
-            return null;
+				return fImageCache.createImage(new DecorationOverlayIcon(baseImage, overlay, IDecoration.BOTTOM_RIGHT));
+			} catch (DeviceResourceException e) {
+				CVSUIPlugin.log(new Status(IStatus.ERROR, CVSUIPlugin.ID, 0, "Error creating decorator image", e)); //$NON-NLS-1$
+			}
+			return null;
 		}
 	}
 	
@@ -509,6 +543,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		ThemeListener(Preview preview) {
 			fPreview= preview;
 		}
+		@Override
 		public void propertyChange(PropertyChangeEvent event) {
 			fPreview.refresh();
 		}
@@ -535,7 +570,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		FOLDER_BINDINGS.put(CVSDecoratorConfiguration.REMOTELOCATION_USER, CVSUIMessages.CVSDecoratorPreferencesPage_32);  
 		FOLDER_BINDINGS.put(CVSDecoratorConfiguration.REMOTELOCATION_ROOT, CVSUIMessages.CVSDecoratorPreferencesPage_33);  
 		FOLDER_BINDINGS.put(CVSDecoratorConfiguration.REMOTELOCATION_REPOSITORY, CVSUIMessages.CVSDecoratorPreferencesPage_34);  
-        FOLDER_BINDINGS.put(CVSDecoratorConfiguration.REMOTELOCATION_LABEL, CVSUIMessages.CVSDecoratorPreferencesPage_38);  
+		FOLDER_BINDINGS.put(CVSDecoratorConfiguration.REMOTELOCATION_LABEL, CVSUIMessages.CVSDecoratorPreferencesPage_38);  
 		FOLDER_BINDINGS.put(CVSDecoratorConfiguration.NEW_DIRTY_FLAG, CVSUIMessages.CVSDecoratorPreferencesPage_35); 
 		
 		final PreviewFile project= new PreviewFile("Project", IResource.PROJECT, false, false, false, false, true, null, "v1_0"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -559,6 +594,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 	private Preview fPreview;
 	private ThemeListener fThemeListener;
 	
+	@Override
 	protected Control createContents(Composite parent) {
 		
 		final Composite composite= SWTUtils.createHVFillComposite(parent, SWTUtils.MARGINS_NONE);
@@ -581,7 +617,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		fGeneralTab.addObserver(fPreview);
 
 		initializeValues();
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.DECORATORS_PREFERENCE_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.DECORATORS_PREFERENCE_PAGE);
 		Dialog.applyDialogFont(parent);
 		
 		PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(fThemeListener= new ThemeListener(fPreview));
@@ -589,11 +625,12 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		return tabFolder;
 	}
 	
+	@Override
 	public void dispose() {
 		if (fThemeListener != null)
 			PlatformUI.getWorkbench().getThemeManager().removePropertyChangeListener(fThemeListener);
-        if (fPreview != null)
-            fPreview.dispose();
+		if (fPreview != null)
+			fPreview.dispose();
 	}
 	
 	/**
@@ -608,9 +645,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 		setValid(true);
 	}
 
-	/**
-	* @see IWorkbenchPreferencePage#init(IWorkbench)
-	*/
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 
@@ -619,15 +654,16 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 	 *
 	 * @return whether it is okay to close the preference page
 	 */
+	@Override
 	public boolean performOk() {
 		final IPreferenceStore store = getPreferenceStore();
 		fTextTab.performOk(store);
 		fIconTab.performOk(store);
 		fGeneralTab.performOk(store);
-        if (store.needsSaving()) {
-    		CVSUIPlugin.broadcastPropertyChange(new PropertyChangeEvent(this, CVSUIPlugin.P_DECORATORS_CHANGED, null, null));
-    		CVSUIPlugin.getPlugin().savePluginPreferences();
-        }
+		if (store.needsSaving()) {
+			CVSUIPlugin.broadcastPropertyChange(new PropertyChangeEvent(this, CVSUIPlugin.P_DECORATORS_CHANGED, null, null));
+			CVSUIPlugin.getPlugin().savePluginPreferences();
+		}
 		return true;
 	}
 
@@ -635,6 +671,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 	 * Defaults was clicked. Restore the CVS preferences to
 	 * their default values
 	 */
+	@Override
 	protected void performDefaults() {
 		final IPreferenceStore store = getPreferenceStore();
 		
@@ -652,6 +689,7 @@ public class CVSDecoratorPreferencesPage extends PreferencePage implements IWork
 	*
 	* @return the preference store for this plugin
 	*/
+	@Override
 	protected IPreferenceStore doGetPreferenceStore() {
 		return CVSUIPlugin.getPlugin().getPreferenceStore();
 	}

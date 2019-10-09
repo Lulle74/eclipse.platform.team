@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -16,10 +19,9 @@ import java.util.Vector;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.team.internal.ccvs.core.CVSTag;
@@ -31,7 +33,7 @@ import org.eclipse.team.internal.ui.dialogs.DetailsDialog;
 
 public class TagAsVersionDialog extends DetailsDialog {
 
-    private static final int TAG_AREA_HEIGHT_HINT = 200;
+	private static final int TAG_AREA_HEIGHT_HINT = 200;
 
 	private static final int HISTORY_LENGTH = 10;
 
@@ -49,9 +51,9 @@ public class TagAsVersionDialog extends DetailsDialog {
 	private String tagName = ""; //$NON-NLS-1$
 	private boolean moveTag = false;
 
-    private TagSource tagSource;
+	private TagSource tagSource;
 
-    private TagSelectionArea tagArea;
+	private TagSelectionArea tagArea;
 	
 	public TagAsVersionDialog(Shell parentShell, String title, ITagOperation operation) {
 		super(parentShell, title);
@@ -59,9 +61,7 @@ public class TagAsVersionDialog extends DetailsDialog {
 		this.operation = operation;
 	}
 	
-	/**
-	 * @see DetailsDialog#createMainDialogArea(Composite)
-	 */
+	@Override
 	protected void createMainDialogArea(Composite parent) {
 		
 		final int width= convertHorizontalDLUsToPixels(IDialogConstants.MINIMUM_MESSAGE_AREA_WIDTH + 50);
@@ -74,16 +74,15 @@ public class TagAsVersionDialog extends DetailsDialog {
 		tagCombo.setItems(getTagNameHistory());
 		tagCombo.setText(tagName);
 		tagCombo.addModifyListener(
-			new ModifyListener() {
-				public void modifyText(ModifyEvent e) {
+				e -> {
 					tagName = tagCombo.getText();
 					updateEnablements();
-				}
 			}
 		);
 		
 		moveTagButton= SWTUtils.createCheckBox(parent, CVSUIMessages.TagAction_moveTag); 
 		moveTagButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				moveTag = moveTagButton.getSelection();
 			}
@@ -91,57 +90,52 @@ public class TagAsVersionDialog extends DetailsDialog {
 
 	}
 
-    /* (non-Javadoc)
-     * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#getHelpContextId()
-     */
-    protected String getHelpContextId() {
-        return IHelpContextIds.TAG_AS_VERSION_DIALOG;
-    }
+	@Override
+	protected String getHelpContextId() {
+		return IHelpContextIds.TAG_AS_VERSION_DIALOG;
+	}
 
 	public boolean shouldMoveTag()  {
 		return moveTag;
 	}
 	
-	/**
-	 * @see DetailsDialog#createDropDownDialogArea(Composite)
-	 */
+	@Override
 	protected Composite createDropDownDialogArea(Composite parent) {
 		
 		final PixelConverter converter= SWTUtils.createDialogPixelConverter(parent);
 		
 		final Composite composite = new Composite(parent, SWT.NONE);
-	    composite.setLayout(SWTUtils.createGridLayout(1, converter, SWTUtils.MARGINS_DIALOG));
-	    
-	    final GridData gridData = new GridData(GridData.FILL_BOTH);
-	    gridData.heightHint = TAG_AREA_HEIGHT_HINT;
-	    composite.setLayoutData(gridData);
+		composite.setLayout(SWTUtils.createGridLayout(1, converter, SWTUtils.MARGINS_DIALOG));
+		
+		final GridData gridData = new GridData(GridData.FILL_BOTH);
+		gridData.heightHint = TAG_AREA_HEIGHT_HINT;
+		composite.setLayoutData(gridData);
 		
 		tagArea = new TagSelectionArea(getShell(), tagSource, TagSelectionArea.INCLUDE_VERSIONS, null);
 		tagArea.setTagAreaLabel(CVSUIMessages.TagAction_existingVersions);  
 		tagArea.setIncludeFilterInputArea(false);
 		tagArea.createArea(composite);
-		tagArea.addPropertyChangeListener(new IPropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent event) {
-                if (event.getProperty().equals(TagSelectionArea.SELECTED_TAG)) {
-                    CVSTag tag = tagArea.getSelection();
-                    if (tag != null) {
-                        tagCombo.setText(tag.getName());
-                    }
-                } else if (event.getProperty().equals(TagSelectionArea.OPEN_SELECTED_TAG)) {
-                    CVSTag tag = tagArea.getSelection();
-                    if (tag != null) {
-                        tagCombo.setText(tag.getName());
-                        okPressed();
-                    }
-                }
-            }
-        });
+		tagArea.addPropertyChangeListener(event -> {
+			if (event.getProperty().equals(TagSelectionArea.SELECTED_TAG)) {
+				CVSTag tag1 = tagArea.getSelection();
+				if (tag1 != null) {
+					tagCombo.setText(tag1.getName());
+				}
+			} else if (event.getProperty().equals(TagSelectionArea.OPEN_SELECTED_TAG)) {
+				CVSTag tag2 = tagArea.getSelection();
+				if (tag2 != null) {
+					tagCombo.setText(tag2.getName());
+					okPressed();
+				}
+			}
+		});
 		return composite;
 	}
 	
 	/**
 	 * Validates tag name
 	 */
+	@Override
 	protected void updateEnablements() {
 		String message = null;
 		if(tagName.length() == 0) {
@@ -155,7 +149,7 @@ public class TagAsVersionDialog extends DetailsDialog {
 		setPageComplete(message == null);
 		setErrorMessage(message);
 		if (tagArea != null) {
-		    tagArea.setFilter(tagName);
+			tagArea.setFilter(tagName);
 		}
 	}
 	
@@ -177,12 +171,10 @@ public class TagAsVersionDialog extends DetailsDialog {
 		return operation;
 	}
 	
-	/* (non-Javadoc)
-     * @see org.eclipse.team.internal.ui.dialogs.DetailsDialog#isMainGrabVertical()
-     */
-    protected boolean isMainGrabVertical() {
-        return false;
-    }
+	@Override
+	protected boolean isMainGrabVertical() {
+		return false;
+	}
 
 	protected Combo createDropDownCombo(Composite parent) {
 		Combo combo = new Combo(parent, SWT.DROP_DOWN);
@@ -194,6 +186,7 @@ public class TagAsVersionDialog extends DetailsDialog {
 		return combo;
 	}
 
+	@Override
 	protected void okPressed() {
 		rememberTagName(tagName);
 		super.okPressed();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,11 +14,20 @@
 package org.eclipse.team.internal.ui.wizards;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.wizard.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.activities.IActivityManager;
 import org.eclipse.ui.activities.IIdentifier;
@@ -129,10 +141,9 @@ public class ConfigureProjectWizard extends Wizard {
 		IExtensionPoint point = registry.getExtensionPoint(TeamUIPlugin.PLUGIN_ID, PT_CONFIGURATION);
 		if (point != null) {
 			IExtension[] extensions = point.getExtensions();
-			for (int i = 0; i < extensions.length; i++) {
-				IConfigurationElement[] elements = extensions[i].getConfigurationElements();
-				for (int j = 0; j < elements.length; j++) {
-					IConfigurationElement element = elements[j];
+			for (IExtension extension : extensions) {
+				IConfigurationElement[] elements = extension.getConfigurationElements();
+				for (IConfigurationElement element : elements) {
 					if (element.getName().equals(TAG_WIZARD)) {
 						ConfigurationWizardElement wizard = createWizardElement(element);
 						if (wizard != null && filterItem(element)) {
@@ -150,9 +161,9 @@ public class ConfigureProjectWizard extends Wizard {
 	private static boolean filterItem(IConfigurationElement element) {
 		String extensionId = element.getAttribute(ATT_ID);
 		String extensionPluginId = element.getNamespaceIdentifier();
-	    IActivityManager activityMgr = PlatformUI.getWorkbench().getActivitySupport().getActivityManager();
-	    IIdentifier id = activityMgr.getIdentifier(extensionPluginId + "/" +  extensionId); //$NON-NLS-1$
-	    return (!id.isEnabled());
+		IActivityManager activityMgr = PlatformUI.getWorkbench().getActivitySupport().getActivityManager();
+		IIdentifier id = activityMgr.getIdentifier(extensionPluginId + "/" +  extensionId); //$NON-NLS-1$
+		return (!id.isEnabled());
 	}
 
 	/**

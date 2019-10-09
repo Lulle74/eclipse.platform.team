@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -160,7 +163,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	 * supplied operation will be run again.
 	 */
 	public static void runWithRefresh(Shell parent, IResource[] resources, 
-									  IRunnableWithProgress runnable, IProgressMonitor monitor) 
+										IRunnableWithProgress runnable, IProgressMonitor monitor) 
 	throws InvocationTargetException, InterruptedException {
 		boolean firstTime = true;
 		while(true) {
@@ -180,8 +183,8 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 				if (status.getCode() == IResourceStatus.OUT_OF_SYNC_LOCAL) {
 					if (promptToRefresh(parent, resources, status)) {
 						try {
-							for (int i = 0; i < resources.length; i++) {
-								resources[i].refreshLocal(IResource.DEPTH_INFINITE, null);
+							for (IResource resource : resources) {
+								resource.refreshLocal(IResource.DEPTH_INFINITE, null);
 							}
 						} catch (CoreException coreEx) {
 							// Throw the original exception to the caller
@@ -203,20 +206,20 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	
 	private static boolean promptToRefresh(final Shell shell, final IResource[] resources, final IStatus status) {
 		final boolean[] result = new boolean[] { false};
-		Runnable runnable = new Runnable() {
-			public void run() {
-				Shell shellToUse = shell;
-				if (shell == null) {
-					shellToUse = new Shell(Display.getCurrent());
-				}
-				String question;
-				if (resources.length == 1) {
-					question = NLS.bind(CVSUIMessages.CVSUIPlugin_refreshQuestion, new String[] { status.getMessage(), resources[0].getFullPath().toString() }); 
-				} else {
-					question = NLS.bind(CVSUIMessages.CVSUIPlugin_refreshMultipleQuestion, new String[] { status.getMessage() }); 
-				}
-				result[0] = MessageDialog.openQuestion(shellToUse, CVSUIMessages.CVSUIPlugin_refreshTitle, question); 
+		Runnable runnable = () -> {
+			Shell shellToUse = shell;
+			if (shell == null) {
+				shellToUse = new Shell(Display.getCurrent());
 			}
+			String question;
+			if (resources.length == 1) {
+				question = NLS.bind(CVSUIMessages.CVSUIPlugin_refreshQuestion,
+						new String[] { status.getMessage(), resources[0].getFullPath().toString() });
+			} else {
+				question = NLS.bind(CVSUIMessages.CVSUIPlugin_refreshMultipleQuestion,
+						new String[] { status.getMessage() });
+			}
+			result[0] = MessageDialog.openQuestion(shellToUse, CVSUIMessages.CVSUIPlugin_refreshTitle, question);
 		};
 		Display.getDefault().syncExec(runnable);
 		return result[0];
@@ -234,7 +237,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	 * @exception InterruptedException when the progress monitor is canceled
 	 */
 	public static void runWithProgress(Shell parent, boolean cancelable,
-									   final IRunnableWithProgress runnable) throws InvocationTargetException, InterruptedException {
+										final IRunnableWithProgress runnable) throws InvocationTargetException, InterruptedException {
 		Utils.runWithProgress(parent, cancelable, runnable);
 	}
 	
@@ -267,7 +270,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		}
 		return repositoryManager;
 	}
-    
+	
 	/**
 	 * Initializes the table of images used in this plugin.
 	 */
@@ -483,15 +486,11 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	private static IStatus openDialog(Shell providedShell, final String title,
 			final String message, final IStatus status, int flags) {
 		// Create a runnable that will display the error status
-		final IOpenableInShell openable = new IOpenableInShell() {
-			public void open(Shell shell) {
-				if (status.getSeverity() == IStatus.INFO
-						&& !status.isMultiStatus()) {
-					MessageDialog.openInformation(shell,
-							CVSUIMessages.information, status.getMessage());
-				} else {
-					ErrorDialog.openError(shell, title, message, status);
-				}
+		final IOpenableInShell openable = shell -> {
+			if (status.getSeverity() == IStatus.INFO && !status.isMultiStatus()) {
+				MessageDialog.openInformation(shell, CVSUIMessages.information, status.getMessage());
+			} else {
+				ErrorDialog.openError(shell, title, message, status);
 			}
 		};
 		openDialog(providedShell, openable, flags);
@@ -530,19 +529,17 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		
 		// Create a runnable that will display the error status
 		final Shell shell = providedShell;
-		Runnable outerRunnable = new Runnable() {
-			public void run() {
-				Shell displayShell;
-				if (shell == null) {
-					Display display = Display.getCurrent();
-					displayShell = new Shell(display);
-				} else {
-					displayShell = shell;
-				}
-				openable.open(displayShell);
-				if (shell == null) {
-					displayShell.dispose();
-				}
+		Runnable outerRunnable = () -> {
+			Shell displayShell;
+			if (shell == null) {
+				Display display = Display.getCurrent();
+				displayShell = new Shell(display);
+			} else {
+				displayShell = shell;
+			}
+			openable.open(displayShell);
+			if (shell == null) {
+				displayShell.dispose();
 			}
 		};
 		
@@ -567,6 +564,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	/**
 	 * Initializes the preferences for this plugin if necessary.
 	 */
+	@Override
 	protected void initializeDefaultPluginPreferences() {
 		IPreferenceStore store = getPreferenceStore();
 		// Get the plugin preferences for CVS Core
@@ -600,11 +598,11 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		store.setDefault(ICVSUIConstants.PREF_SHOW_COMPARE_REVISION_IN_DIALOG, false);
 		store.setDefault(ICVSUIConstants.PREF_COMMIT_SET_DEFAULT_ENABLEMENT, false);
 		store.setDefault(ICVSUIConstants.PREF_AUTO_REFRESH_TAGS_IN_TAG_SELECTION_DIALOG, false);
-        store.setDefault(ICVSUIConstants.PREF_AUTO_SHARE_ON_IMPORT, true);
-        store.setDefault(ICVSUIConstants.PREF_ENABLE_WATCH_ON_EDIT, false);
-        store.setDefault(ICVSUIConstants.PREF_USE_PROJECT_NAME_ON_CHECKOUT, false);
-        store.setDefault(ICVSUIConstants.PREF_COMMIT_FILES_DISPLAY_THRESHOLD, 1000);
-        store.setDefault(ICVSUIConstants.PREF_COMMIT_COMMENTS_MAX_HISTORY, RepositoryManager.DEFAULT_MAX_COMMENTS);
+		store.setDefault(ICVSUIConstants.PREF_AUTO_SHARE_ON_IMPORT, true);
+		store.setDefault(ICVSUIConstants.PREF_ENABLE_WATCH_ON_EDIT, false);
+		store.setDefault(ICVSUIConstants.PREF_USE_PROJECT_NAME_ON_CHECKOUT, false);
+		store.setDefault(ICVSUIConstants.PREF_COMMIT_FILES_DISPLAY_THRESHOLD, 1000);
+		store.setDefault(ICVSUIConstants.PREF_COMMIT_COMMENTS_MAX_HISTORY, RepositoryManager.DEFAULT_MAX_COMMENTS);
 		
 		PreferenceConverter.setDefault(store, ICVSUIConstants.PREF_CONSOLE_COMMAND_COLOR, new RGB(0, 0, 0));
 		PreferenceConverter.setDefault(store, ICVSUIConstants.PREF_CONSOLE_MESSAGE_COLOR, new RGB(0, 0, 255));
@@ -648,7 +646,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		store.setDefault(ICVSUIConstants.PREF_CHECKOUT_READ_ONLY, corePrefs.getDefaultBoolean(CVSProviderPlugin.READ_ONLY));
 		store.setDefault(ICVSUIConstants.PREF_EDIT_ACTION, ICVSUIConstants.PREF_EDIT_IN_BACKGROUND);
 		store.setDefault(ICVSUIConstants.PREF_EDIT_PROMPT, ICVSUIConstants.PREF_EDIT_PROMPT_IF_EDITORS);
-        store.setDefault(ICVSUIConstants.PREF_UPDATE_PROMPT, ICVSUIConstants.PREF_UPDATE_PROMPT_NEVER);
+		store.setDefault(ICVSUIConstants.PREF_UPDATE_PROMPT, ICVSUIConstants.PREF_UPDATE_PROMPT_NEVER);
 		// Ensure that the preference values in UI match Core
 		store.setValue(ICVSUIConstants.PREF_CHECKOUT_READ_ONLY, corePrefs.getBoolean(CVSProviderPlugin.READ_ONLY));
 		
@@ -667,20 +665,18 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		CVSProviderPlugin.getPlugin().setRepositoriesAreBinary(store.getBoolean(ICVSUIConstants.PREF_REPOSITORIES_ARE_BINARY));
 		CVSProviderPlugin.getPlugin().setDetermineVersionEnabled(store.getBoolean(ICVSUIConstants.PREF_DETERMINE_SERVER_VERSION));
 		CVSProviderPlugin.getPlugin().setDebugProtocol(CVSProviderPlugin.getPlugin().isDebugProtocol() || store.getBoolean(ICVSUIConstants.PREF_DEBUG_PROTOCOL));
-        CVSProviderPlugin.getPlugin().setAutoshareOnImport(store.getBoolean(ICVSUIConstants.PREF_AUTO_SHARE_ON_IMPORT));
-        
-        // code to transfer CVS preference to Team preference
-        if (store.getBoolean(ICVSUIConstants.PREF_SHOW_AUTHOR_IN_EDITOR)) {
-        	store.setValue(ICVSUIConstants.PREF_SHOW_AUTHOR_IN_EDITOR, false);
-        	IPreferenceStore teamStore = TeamUIPlugin.getPlugin().getPreferenceStore();
-        	if (teamStore.isDefault(IPreferenceIds.SHOW_AUTHOR_IN_COMPARE_EDITOR))
-        		teamStore.setValue(IPreferenceIds.SHOW_AUTHOR_IN_COMPARE_EDITOR, true);
-        }
+		CVSProviderPlugin.getPlugin().setAutoshareOnImport(store.getBoolean(ICVSUIConstants.PREF_AUTO_SHARE_ON_IMPORT));
+		
+		// code to transfer CVS preference to Team preference
+		if (store.getBoolean(ICVSUIConstants.PREF_SHOW_AUTHOR_IN_EDITOR)) {
+			store.setValue(ICVSUIConstants.PREF_SHOW_AUTHOR_IN_EDITOR, false);
+			IPreferenceStore teamStore = TeamUIPlugin.getPlugin().getPreferenceStore();
+			if (teamStore.isDefault(IPreferenceIds.SHOW_AUTHOR_IN_COMPARE_EDITOR))
+				teamStore.setValue(IPreferenceIds.SHOW_AUTHOR_IN_COMPARE_EDITOR, true);
+		}
 	}
 	
-	/**
-	 * @see Plugin#start(BundleContext)
-	 */
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 
@@ -698,11 +694,11 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 		Platform.getAdapterManager().registerAdapters(factory, RepositoryRoot.class);
 		
 		try {
-            console = new CVSOutputConsole();
-        } catch (RuntimeException e) {
-            // Don't let the console bring down the CVS UI
-            log(IStatus.ERROR, "Errors occurred starting the CVS console", e); //$NON-NLS-1$
-        }
+			console = new CVSOutputConsole();
+		} catch (RuntimeException e) {
+			// Don't let the console bring down the CVS UI
+			log(IStatus.ERROR, "Errors occurred starting the CVS console", e); //$NON-NLS-1$
+		}
 		
 		IPreferenceStore store = getPreferenceStore();
 		if (store.getBoolean(ICVSUIConstants.PREF_FIRST_STARTUP)) {
@@ -718,9 +714,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 
 	}
 	
-	/**
-	 * @see Plugin#stop(BundleContext)
-	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		try {
 			// unregister debug options listener
@@ -735,7 +729,7 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 			}
 			
 			if (console != null)
-			    console.shutdown();
+				console.shutdown();
 		} finally {
 			super.stop(context);
 		}
@@ -747,16 +741,16 @@ public class CVSUIPlugin extends AbstractUIPlugin {
 	public CVSOutputConsole getConsole() {
 		return console;
 	}
-    
-    public IEditorPart openEditor(ICVSRemoteFile file, IProgressMonitor monitor) throws InvocationTargetException {
-        IWorkbench workbench = getWorkbench();
-        IWorkbenchPage page = workbench.getActiveWorkbenchWindow().getActivePage();
-        try {
-			return Utils.openEditor(page, (IFileRevision)file.getAdapter(IFileRevision.class), monitor);
+	
+	public IEditorPart openEditor(ICVSRemoteFile file, IProgressMonitor monitor) throws InvocationTargetException {
+		IWorkbench workbench = getWorkbench();
+		IWorkbenchPage page = workbench.getActiveWorkbenchWindow().getActivePage();
+		try {
+			return Utils.openEditor(page, file.getAdapter(IFileRevision.class), monitor);
 		} catch (CoreException e) {
 			throw new InvocationTargetException(e);
 		}
-    }
+	}
 
 	/**
 	 * Helper method which access the preference store to determine if the 

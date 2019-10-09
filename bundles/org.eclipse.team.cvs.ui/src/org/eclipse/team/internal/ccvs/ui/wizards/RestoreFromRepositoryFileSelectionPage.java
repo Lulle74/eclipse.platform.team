@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,9 +20,9 @@ import java.util.*;
 
 import org.eclipse.compare.*;
 import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.osgi.util.NLS;
@@ -58,8 +61,8 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 	private IContainer folder;
 	private IFile selectedFile;
 	private ILogEntry selectedRevision;
-	private Map entriesCache = new HashMap();
-	private Map filesToRestore = new HashMap();
+	private Map<IFile, ILogEntry[]> entriesCache = new HashMap<>();
+	private Map<IFile, Object> filesToRestore = new HashMap<>();
 
 	private static final int WIZARD_WIDTH = 550;
 	
@@ -71,23 +74,29 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 			this.file= file;
 			this.logEntry = logEntry;
 		}
+		@Override
 		public InputStream getContents() throws CoreException {
 			IStorage s = getStorageFromLogEntry(logEntry);
 			if (s == null) return null;
 			return new BufferedInputStream(s.getContents());
 		}
+		@Override
 		public String getName() {
 			return file.getName();
 		}
+		@Override
 		public String getType() {
 			return file.getFileExtension();
 		}
+		@Override
 		public Image getImage() {
 			return CompareUI.getImage(file);
 		}
+		@Override
 		public long getModificationDate() {
 			return logEntry.getDate().getTime();
 		}
+		@Override
 		public String getCharset() throws CoreException {
 			IStorage s = getStorageFromLogEntry(logEntry);
 			if (s instanceof IEncodedStorage) {
@@ -112,14 +121,12 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 		super(pageName, title, titleImage, description);
 	}
 
-	/**
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite= createComposite(parent, 1, false);
 		setControl(composite);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.RESTORE_FROM_REPOSITORY_FILE_SELECTION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.RESTORE_FROM_REPOSITORY_FILE_SELECTION_PAGE);
 		
 		// Top and bottom panes: top is the two selection panes, bottom is the file content viewer
 		Splitter vsplitter= new Splitter(composite,  SWT.VERTICAL);
@@ -148,6 +155,7 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 		
 		// Bottom: File content viewer
 		fileContentPane = new CompareViewerSwitchingPane(vsplitter, SWT.BORDER | SWT.FLAT) {
+			@Override
 			protected Viewer getViewer(Viewer oldViewer, Object input) {
 				return CompareUI.findContentViewer(oldViewer, input, this, null);
 			}
@@ -157,25 +165,29 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 
 		initializeValues();
 		updateWidgetEnablements();
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 
 	protected CheckboxTableViewer createRevisionSelectionTable(CompareViewerPane composite, HistoryTableProvider tableProvider) {
 		CheckboxTableViewer table = tableProvider.createCheckBoxTable(composite);
 		table.setContentProvider(new IStructuredContentProvider() {
+			@Override
 			public Object[] getElements(Object inputElement) {
 				ILogEntry[] entries = getSelectedEntries();
 				if (entries != null) return entries;
 				return new Object[0];
 			}
+			@Override
 			public void dispose() {
 			}
+			@Override
 			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			}
 		});
 		table.setInput(this);
 		table.getTable().addSelectionListener(
 			new SelectionAdapter() {
+				@Override
 				public void widgetSelected(SelectionEvent e) {
 					// Handle check selection in the check state listener
 					if (e.detail == SWT.CHECK) return;
@@ -183,11 +195,7 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 				}
 			}
 		);
-		table.addCheckStateListener(new ICheckStateListener() {
-			public void checkStateChanged(CheckStateChangedEvent event) {
-				handleRevisionChecked(event);
-			}
-		});
+		table.addCheckStateListener(event -> handleRevisionChecked(event));
 		composite.setContent(table.getControl());
 		return table;
 	}
@@ -199,6 +207,7 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 		tree.setLabelProvider(
 			new DecoratingLabelProvider(
 				new WorkbenchLabelProvider() {
+					@Override
 					protected String decorateText(String input, Object element) {
 						String text;
 						if (element instanceof IFolder && element.equals(folder)) {
@@ -219,11 +228,7 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 		
 		GridData data = new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL);
 		tree.getTree().setLayoutData(data);
-		tree.addPostSelectionChangedListener(new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				handleFileSelection(event);
-			}
-		});
+		tree.addPostSelectionChangedListener(event -> handleFileSelection(event));
 		composite.setContent(tree.getControl());
 		return tree;
 	}
@@ -350,8 +355,7 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 			revisionsTable.setChecked(selectedEntry, true);
 		}
 		// Disable entries that represent deletions since they can't be loaded
-		for (int i = 0; i < entries.length; i++) {
-			ILogEntry entry = entries[i];
+		for (ILogEntry entry : entries) {
 			if (entry.isDeletion()) {
 				revisionsTable.setGrayed(entry, true);
 			}
@@ -397,16 +401,14 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 				final ICVSRemoteFile remoteFile = location.getRemoteFile(new Path(null, info.getRepository()).append(file.getName()).toString(), CVSTag.DEFAULT);
 				
 				// Then we need to fetch the log entries
-				getContainer().run(true, true, new IRunnableWithProgress() {
-					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							// fetch the entries
-							ILogEntry[] entries = remoteFile.getLogEntries(monitor);
-							// cache the entries with the selected file
-							entriesCache.put(selectedFile, entries);
-						} catch (TeamException e) {
-							throw new InvocationTargetException(e);
-						}
+				getContainer().run(true, true, monitor -> {
+					try {
+						// fetch the entries
+						ILogEntry[] entries = remoteFile.getLogEntries(monitor);
+						// cache the entries with the selected file
+						entriesCache.put(selectedFile, entries);
+					} catch (TeamException e) {
+						throw new InvocationTargetException(e);
 					}
 				});
 			} catch (CVSException e) {
@@ -429,20 +431,18 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 	}
 
 	private ILogEntry[] getSelectedEntries() {
-		return (ILogEntry[])entriesCache.get(selectedFile);
+		return entriesCache.get(selectedFile);
 	}
 	
 	private IStorage getStorageFromLogEntry(final ILogEntry logEntry) {
 		final IStorage[] s = new IStorage[] { null };
 		try {
-			getContainer().run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						ICVSRemoteFile remoteFile = logEntry.getRemoteFile();
-						s[0] = ((IResourceVariant)remoteFile).getStorage(monitor);
-					} catch (TeamException e) {
-						throw new InvocationTargetException(e);
-					}
+			getContainer().run(true, true, monitor -> {
+				try {
+					ICVSRemoteFile remoteFile = logEntry.getRemoteFile();
+					s[0] = ((IResourceVariant) remoteFile).getStorage(monitor);
+				} catch (TeamException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -503,23 +503,22 @@ public class RestoreFromRepositoryFileSelectionPage extends CVSWizardPage {
 	
 	public boolean restoreSelectedFiles() {
 		try {
-			getContainer().run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						monitor.beginTask(null, 100 * filesToRestore.size());
-						for (Iterator iter = filesToRestore.keySet().iterator();iter.hasNext();) {
-							IFile file = (IFile) iter.next();
-							ILogEntry entry = (ILogEntry)filesToRestore.get(file);
-							ensureParentExists(file);
-							file.create(entry.getRemoteFile().getContents(Policy.subMonitorFor(monitor, 50)), false, Policy.subMonitorFor(monitor, 50));
-						}
-					} catch (TeamException e) {
-						throw new InvocationTargetException(e);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					} finally {
-						monitor.done();
+			getContainer().run(true, true, monitor -> {
+				try {
+					monitor.beginTask(null, 100 * filesToRestore.size());
+					for (Iterator iter = filesToRestore.keySet().iterator(); iter.hasNext();) {
+						IFile file = (IFile) iter.next();
+						ILogEntry entry = (ILogEntry) filesToRestore.get(file);
+						ensureParentExists(file);
+						file.create(entry.getRemoteFile().getContents(Policy.subMonitorFor(monitor, 50)), false,
+								Policy.subMonitorFor(monitor, 50));
 					}
+				} catch (TeamException e1) {
+					throw new InvocationTargetException(e1);
+				} catch (CoreException e2) {
+					throw new InvocationTargetException(e2);
+				} finally {
+					monitor.done();
 				}
 			});
 		} catch (InvocationTargetException e) {

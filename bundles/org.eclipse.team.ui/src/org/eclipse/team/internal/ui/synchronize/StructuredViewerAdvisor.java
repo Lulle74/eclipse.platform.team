@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,17 +14,35 @@
 package org.eclipse.team.internal.ui.synchronize;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.util.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.events.*;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.OpenStrategy;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.internal.ui.IPreferenceIds;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.mapping.DiffTreeStatusLineContributionGroup;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.SynchronizeModelAction;
+import org.eclipse.team.ui.synchronize.SynchronizePageActionGroup;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IWorkbenchPartSite;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.OpenAndLinkWithEditorHelper;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 
@@ -148,7 +169,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 
 		viewer.addDoubleClickListener(event -> handleDoubleClick(viewer, event));
 
-		viewer.addSelectionChangedListener(event -> updateActionBars((IStructuredSelection)viewer.getSelection()));
+		viewer.addSelectionChangedListener(event -> updateActionBars(viewer.getStructuredSelection()));
 		TeamUIPlugin.getPlugin().getPreferenceStore().addPropertyChangeListener(propertyListener);
 	}
 
@@ -164,7 +185,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 			IResource resource = syncNode.getResource();
 			if (syncNode != null && resource != null && resource.getType() == IResource.FILE) {
 				// The open is handled by the open strategy but say we handled
-			    // it so that overriding methods will not do anything
+				// it so that overriding methods will not do anything
 				return true;
 			}
 		}
@@ -197,8 +218,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 				o = ISynchronizePageConfiguration.DEFAULT_TOOLBAR_MENU;
 			}
 			String[] groups = (String[])o;
-			for (int i = 0; i < groups.length; i++) {
-				String group = groups[i];
+			for (String group : groups) {
 				// The groupIds must be converted to be unique since the toolbar is shared
 				manager.add(new Separator(getGroupId(group)));
 			}
@@ -213,8 +233,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 				}
 				groups = (String[]) o;
 				initializeStatusLine(actionBars);
-				for (int i = 0; i < groups.length; i++) {
-					String group = groups[i];
+				for (String group : groups) {
 					// The groupIds must be converted to be unique since the
 					// view menu is shared
 					menu.add(new Separator(getGroupId(group)));
@@ -268,8 +287,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 			@Override
 			public void menuShown(MenuEvent e) {
 				IContributionItem[] items = menuMgr.getItems();
-				for (int i = 0; i < items.length; i++) {
-					IContributionItem item = items[i];
+				for (IContributionItem item : items) {
 					if (item instanceof ActionContributionItem) {
 						IAction actionItem = ((ActionContributionItem) item).getAction();
 						if (actionItem instanceof SynchronizeModelAction) {
@@ -354,8 +372,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 			o = ISynchronizePageConfiguration.DEFAULT_CONTEXT_MENU;
 		}
 		String[] groups = (String[])o;
-		for (int i = 0; i < groups.length; i++) {
-			String group = groups[i];
+		for (String group : groups) {
 			// There is no need to adjust the group ids in a context menu (see setActionBars)
 			manager.add(new Separator(group));
 		}
@@ -367,7 +384,7 @@ public abstract class StructuredViewerAdvisor extends AbstractViewerAdvisor {
 	 */
 	protected void fillActionBars(IActionBars actionBars) {
 		getActionGroup().fillActionBars(actionBars);
-		updateActionBars((IStructuredSelection) getViewer().getSelection());
+		updateActionBars(getViewer().getStructuredSelection());
 		Object input = getViewer().getInput();
 		if (input instanceof ISynchronizeModelElement) {
 			getActionGroup().modelChanged((ISynchronizeModelElement) input);

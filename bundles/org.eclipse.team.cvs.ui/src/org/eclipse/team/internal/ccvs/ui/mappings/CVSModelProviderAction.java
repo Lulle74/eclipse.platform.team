@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -40,14 +43,14 @@ public abstract class CVSModelProviderAction extends ResourceModelParticipantAct
 	}
 
 	protected ResourceMapping[] getResourceMappings(IStructuredSelection selection) {
-		List mappings = new ArrayList();
+		List<ResourceMapping> mappings = new ArrayList<>();
 		for (Iterator iter = selection.iterator(); iter.hasNext();) {
-			Object element = (Object) iter.next();
+			Object element = iter.next();
 			ResourceMapping mapping = Utils.getResourceMapping(element);
 			if (mapping != null)
 				mappings.add(mapping);
 		}
-		return (ResourceMapping[]) mappings.toArray(new ResourceMapping[mappings.size()]);
+		return mappings.toArray(new ResourceMapping[mappings.size()]);
 	}
 	
 	/**
@@ -68,27 +71,22 @@ public abstract class CVSModelProviderAction extends ResourceModelParticipantAct
 	protected IResource[] getTargetResources() {
 		IStructuredSelection selection = getStructuredSelection();
 		Object[] objects = selection.toArray();
-		Set roots = new HashSet();
-		for (int i = 0; i < objects.length; i++) {
-			Object object = objects[i];
+		Set<IResource> roots = new HashSet<>();
+		for (Object object : objects) {
 			ResourceMapping mapping = Utils.getResourceMapping(object);
 			if (mapping != null) {
 				try {
 					ResourceTraversal[] traversals = mapping.getTraversals(ResourceMappingContext.LOCAL_CONTEXT, null);
-					for (int j = 0; j < traversals.length; j++) {
-						ResourceTraversal traversal = traversals[j];
+					for (ResourceTraversal traversal : traversals) {
 						IResource[] resources = traversal.getResources();
-						for (int k = 0; k < resources.length; k++) {
-							IResource resource = resources[k];
-							roots.add(resource);
-						}
+						Collections.addAll(roots, resources);
 					}
 				} catch (CoreException e) {
 					TeamUIPlugin.log(e);
 				}
 			}
 		}
-		return (IResource[]) roots.toArray(new IResource[roots.size()]);
+		return roots.toArray(new IResource[roots.size()]);
 	}
 
 	/**
@@ -124,6 +122,7 @@ public abstract class CVSModelProviderAction extends ResourceModelParticipantAct
 		return true;
 	}
 	
+	@Override
 	public void run() {
 		if (saveDirtyEditors())
 			execute();

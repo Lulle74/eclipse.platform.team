@@ -1,23 +1,32 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.ui.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * A synchronize scope whose roots are defined by a working set.
@@ -89,17 +98,15 @@ public class WorkingSetScope extends AbstractSynchronizeScope implements IProper
 			return null;
 		}
 		HashSet<IResource> roots = new HashSet<>();
-		for (int i = 0; i < sets.length; i++) {
-			IWorkingSet set = sets[i];
+		for (IWorkingSet set : sets) {
 			IResource[] resources = Utils.getResources(set.getElements());
 			addNonOverlapping(roots, resources);
-	}
+		}
 		return roots.toArray(new IResource[roots.size()]);
 	}
 
 	private void addNonOverlapping(HashSet<IResource> roots, IResource[] resources) {
-		for (int i = 0; i < resources.length; i++) {
-			IResource newResource = resources[i];
+		for (IResource newResource : resources) {
 			boolean add = true;
 			for (Iterator iter = roots.iterator(); iter.hasNext();) {
 				IResource existingResource = (IResource) iter.next();
@@ -128,8 +135,7 @@ public class WorkingSetScope extends AbstractSynchronizeScope implements IProper
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty() == IWorkingSetManager.CHANGE_WORKING_SET_CONTENT_CHANGE) {
 			IWorkingSet newSet = (IWorkingSet) event.getNewValue();
-			for (int i = 0; i < sets.length; i++) {
-				IWorkingSet set = sets[i];
+			for (IWorkingSet set : sets) {
 				if (newSet == set) {
 					fireRootsChanges();
 					return;
@@ -150,8 +156,7 @@ public class WorkingSetScope extends AbstractSynchronizeScope implements IProper
 	@Override
 	public void saveState(IMemento memento) {
 		super.saveState(memento);
-		for (int i = 0; i < sets.length; i++) {
-			IWorkingSet set = sets[i];
+		for (IWorkingSet set : sets) {
 			IMemento rootNode = memento.createChild(CTX_SETS);
 			rootNode.putString(CTX_SET_NAME, set.getName());
 		}
@@ -163,8 +168,7 @@ public class WorkingSetScope extends AbstractSynchronizeScope implements IProper
 		IMemento[] rootNodes = memento.getChildren(CTX_SETS);
 		if (rootNodes != null) {
 			List<IWorkingSet> sets = new ArrayList<>();
-			for (int i = 0; i < rootNodes.length; i++) {
-				IMemento rootNode = rootNodes[i];
+			for (IMemento rootNode : rootNodes) {
 				String setName = rootNode.getString(CTX_SET_NAME);
 				IWorkingSet set = PlatformUI.getWorkbench().getWorkingSetManager().getWorkingSet(setName);
 				if (set != null) {

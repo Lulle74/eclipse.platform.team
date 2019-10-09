@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,8 +16,12 @@ package org.eclipse.team.internal.ui.actions;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.WorkspaceJob;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeListener;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ui.Utils;
@@ -36,53 +43,53 @@ public class JobRunnableContext implements ITeamRunnableContext {
 	 * that subclasses can do belongsTo family checking.
 	 */
 	public interface IContextJob {
-	    IRunnableWithProgress getRunnable();
+		IRunnableWithProgress getRunnable();
 	}
 
 	/*
 	 * Class that provides a basic job (i.e. no resource specific interactions)
 	 */
 	private class BasicJob extends Job implements IContextJob {
-        private final IRunnableWithProgress runnable;
-        public BasicJob(String name, IRunnableWithProgress runnable) {
-            super(name);
-            this.runnable = runnable;
-        }
-        @Override
+		private final IRunnableWithProgress runnable;
+		public BasicJob(String name, IRunnableWithProgress runnable) {
+			super(name);
+			this.runnable = runnable;
+		}
+		@Override
 		public IStatus run(IProgressMonitor monitor) {
 			return JobRunnableContext.this.run(runnable, monitor);
 		}
 		@Override
 		public boolean belongsTo(Object family) {
-		    return JobRunnableContext.this.belongsTo(this, family);
+			return JobRunnableContext.this.belongsTo(this, family);
 		}
-        @Override
+		@Override
 		public IRunnableWithProgress getRunnable() {
-            return runnable;
-        }
+			return runnable;
+		}
 	}
 
 	/*
 	 * Class that provides a resource job (i.e. resource specific interactions)
 	 */
 	private class ResourceJob extends WorkspaceJob implements IContextJob {
-        private final IRunnableWithProgress runnable;
-        public ResourceJob(String name, IRunnableWithProgress runnable) {
-            super(name);
-            this.runnable = runnable;
-        }
-        @Override
+		private final IRunnableWithProgress runnable;
+		public ResourceJob(String name, IRunnableWithProgress runnable) {
+			super(name);
+			this.runnable = runnable;
+		}
+		@Override
 		public IStatus runInWorkspace(IProgressMonitor monitor) {
 			return JobRunnableContext.this.run(runnable, monitor);
 		}
 		@Override
 		public boolean belongsTo(Object family) {
-		    return JobRunnableContext.this.belongsTo(this, family);
+			return JobRunnableContext.this.belongsTo(this, family);
 		}
-        @Override
+		@Override
 		public IRunnableWithProgress getRunnable() {
-            return runnable;
-        }
+			return runnable;
+		}
 	}
 	public JobRunnableContext(String jobName, IJobChangeListener listener, IWorkbenchSite site) {
 		this.jobName = jobName;
@@ -90,9 +97,6 @@ public class JobRunnableContext implements ITeamRunnableContext {
 		this.site = site;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.operations.ITeamRunnableContext#run(java.lang.String, boolean, org.eclipse.jface.operation.IRunnableWithProgress)
-	 */
 	@Override
 	public void run(IRunnableWithProgress runnable) {
 		Job job;
@@ -118,7 +122,7 @@ public class JobRunnableContext implements ITeamRunnableContext {
 		if (schedulingRule != null) {
 			job.setRule(schedulingRule);
 		}
-	    job.setUser(isUser());
+		job.setUser(isUser());
 	}
 
 	/**
@@ -161,19 +165,19 @@ public class JobRunnableContext implements ITeamRunnableContext {
 	 * Return the completions status for the job.
 	 * By default, <code>Status.OK_STATUS</code>
 	 * is returned.
-     * @return the completions status for the job
-     */
-    protected IStatus getCompletionStatus() {
-        return Status.OK_STATUS;
-    }
+	 * @return the completions status for the job
+	 */
+	protected IStatus getCompletionStatus() {
+		return Status.OK_STATUS;
+	}
 
-    /**
+	/**
 	 * Return whether the job for this context is in the given family.
 	 * By default, <code>false</code> is returned. Subclasses may override.
-     * @param family the job family being queried
-     */
-    protected boolean belongsTo(IContextJob job, Object family) {
-        return false;
-    }
+	 * @param family the job family being queried
+	 */
+	protected boolean belongsTo(IContextJob job, Object family) {
+		return false;
+	}
 
 }

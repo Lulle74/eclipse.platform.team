@@ -1,27 +1,43 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IContributionManager;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.team.core.synchronize.SyncInfoSet;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
+import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.SynchronizePageActionGroup;
 import org.eclipse.ui.IActionBars;
 
 /**
@@ -61,9 +77,6 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 			setChecked(getSelectedProviderId().equals(descriptor.getId()));
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
-		 */
 		@Override
 		public void propertyChange(PropertyChangeEvent event) {
 			if (event.getProperty().equals(SynchronizePageConfiguration.P_MODEL)) {
@@ -110,10 +123,10 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 	protected String getDefaultProviderId() {
 		String defaultLayout = TeamUIPlugin.getPlugin().getPreferenceStore().getString(IPreferenceIds.SYNCVIEW_DEFAULT_LAYOUT);
 		if (defaultLayout.equals(IPreferenceIds.TREE_LAYOUT)) {
-		    return HierarchicalModelProvider.HierarchicalModelProviderDescriptor.ID;
+			return HierarchicalModelProvider.HierarchicalModelProviderDescriptor.ID;
 		}
 		if (defaultLayout.equals(IPreferenceIds.FLAT_LAYOUT)) {
-		    return FlatModelProvider.FlatModelProviderDescriptor.ID;
+			return FlatModelProvider.FlatModelProviderDescriptor.ID;
 		}
 		// Return compressed folder is the others were not a match
 		return CompressedFoldersModelProvider.CompressedFolderModelProviderDescriptor.ID;
@@ -143,7 +156,7 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 	 */
 	protected void setInput(String id, IProgressMonitor monitor) {
 		if(modelProvider != null) {
-		    modelProvider.saveState();
+			modelProvider.saveState();
 			modelProvider.dispose();
 		}
 		modelProvider = createModelProvider(id);
@@ -213,9 +226,6 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.IActionContribution#initialize(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-	 */
 	@Override
 	public void initialize(ISynchronizePageConfiguration configuration) {
 		super.initialize(configuration);
@@ -223,8 +233,7 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 		// We only need switching of layouts if there is more than one model provider
 		if (providers.length > 1) {
 			toggleModelProviderActions = new ArrayList();
-			for (int i = 0; i < providers.length; i++) {
-				final ISynchronizeModelProviderDescriptor provider = providers[i];
+			for (ISynchronizeModelProviderDescriptor provider : providers) {
 				toggleModelProviderActions.add(new ToggleModelProviderAction(provider));
 			}
 		}
@@ -238,13 +247,10 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 			}
 			setInput(defaultProviderId, null);
 		} else {
-		    setInput();
+			setInput();
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.IActionContribution#setActionBars(org.eclipse.ui.IActionBars)
-	 */
 	@Override
 	public void fillActionBars(IActionBars actionBars) {
 		if (toggleModelProviderActions == null) return;
@@ -273,9 +279,6 @@ public abstract class SynchronizeModelManager extends SynchronizePageActionGroup
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.IActionContribution#dispose()
-	 */
 	@Override
 	public void dispose() {
 		if(modelProvider != null) {

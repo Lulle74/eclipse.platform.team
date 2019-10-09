@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,20 +16,29 @@ package org.eclipse.team.internal.ui.mapping;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.ICompareInputLabelProvider;
+import org.eclipse.compare.IResourceProvider;
+import org.eclipse.compare.ITypedElement;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffChangeEvent;
+import org.eclipse.team.core.diff.IDiffChangeListener;
+import org.eclipse.team.core.diff.IDiffTree;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.core.mapping.provider.ResourceDiffTree;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.history.FileRevisionTypedElement;
 import org.eclipse.team.internal.ui.synchronize.LocalResourceTypedElement;
 
@@ -205,22 +217,19 @@ public class ResourceCompareInputChangeNotifier extends CompareInputChangeNotifi
 	public void diffsChanged(IDiffChangeEvent event, IProgressMonitor monitor) {
 		Set<ICompareInput> changedInputs = new HashSet<>();
 		IDiff[] added = event.getAdditions();
-		for (int i = 0; i < added.length; i++) {
-			IDiff diff = added[i];
+		for (IDiff diff : added) {
 			ICompareInput input = findInput(ResourceDiffTree.getResourceFor(diff));
 			if (input != null)
 				changedInputs.add(input);
 		}
 		IDiff[] changed = event.getChanges();
-		for (int i = 0; i < changed.length; i++) {
-			IDiff diff = changed[i];
+		for (IDiff diff : changed) {
 			ICompareInput input = findInput(ResourceDiffTree.getResourceFor(diff));
 			if (input != null)
 				changedInputs.add(input);
 		}
 		IPath[] paths = event.getRemovals();
-		for (int i = 0; i < paths.length; i++) {
-			IPath path = paths[i];
+		for (IPath path : paths) {
 			ICompareInput input = findInput(path);
 			if (input != null)
 				changedInputs.add(input);
@@ -253,8 +262,7 @@ public class ResourceCompareInputChangeNotifier extends CompareInputChangeNotifi
 
 	private ICompareInput findInput(IPath path) {
 		ICompareInput[] inputs = getConnectedInputs();
-		for (int i = 0; i < inputs.length; i++) {
-			ICompareInput input = inputs[i];
+		for (ICompareInput input : inputs) {
 			IResource inputResource = getResource(input);
 			if (inputResource != null && inputResource.getFullPath().equals(path)) {
 				return input;
@@ -265,8 +273,7 @@ public class ResourceCompareInputChangeNotifier extends CompareInputChangeNotifi
 
 	private ICompareInput findInput(IResource resource) {
 		ICompareInput[] inputs = getConnectedInputs();
-		for (int i = 0; i < inputs.length; i++) {
-			ICompareInput input = inputs[i];
+		for (ICompareInput input : inputs) {
 			IResource inputResource = getResource(input);
 			if (inputResource != null && inputResource.equals(resource)) {
 				return input;

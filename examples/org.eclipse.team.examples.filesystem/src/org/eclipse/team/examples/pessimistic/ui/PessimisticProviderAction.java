@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,9 +14,16 @@
 package org.eclipse.team.examples.pessimistic.ui;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
@@ -34,7 +44,7 @@ import org.eclipse.ui.IWorkbenchPart;
  * Provides convenience methods an abstractions.
  */
 public abstract class PessimisticProviderAction
-	implements IObjectActionDelegate {
+implements IObjectActionDelegate {
 
 	/*
 	 * The current selection.
@@ -45,31 +55,27 @@ public abstract class PessimisticProviderAction
 	 */
 	protected Shell fShell;
 
-	/*
-	 * @see org.eclipse.ui.IActionDelegate#selectionChanged(IAction, ISelection)
-	 */
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		fSelection = selection;
-		
+
 		boolean enabled= action.isEnabled();
 		if (enabled != checkEnablement()) {
 			action.setEnabled(!enabled);
 		}
 	}
-	
-	/*
-	 * @see org.eclipse.ui.IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
-	 */
+
+	@Override
 	public void setActivePart(IAction action, IWorkbenchPart part) {
 		fShell= part.getSite().getShell();
-	}	
+	}
 
 	/**
 	 * Answers <code>true</code> if this action should be enabled
 	 * for the given <code>resource</code>.
 	 */
 	protected abstract boolean shouldEnableFor(IResource resource);
-	
+
 	/*
 	 * Checks to see if this action should be enabled.
 	 */
@@ -86,26 +92,26 @@ public abstract class PessimisticProviderAction
 		}
 		return enabled;
 	}
-	
+
 	/**
 	 * Convenience method to get an array of resources from the selection.
 	 */
 	protected IResource[] getSelectedResources() {
-		ArrayList resources = null;
+		ArrayList<IResource> resources = null;
 		if (!fSelection.isEmpty()) {
-			resources = new ArrayList();
+			resources = new ArrayList<>();
 			Iterator elements = ((IStructuredSelection) fSelection).iterator();
 			while (elements.hasNext()) {
 				Object next = elements.next();
 				if (next instanceof IResource) {
-					resources.add(next);
+					resources.add((IResource) next);
 					continue;
 				}
 				if (next instanceof IAdaptable) {
 					IAdaptable a = (IAdaptable) next;
 					Object adapter = a.getAdapter(IResource.class);
 					if (adapter instanceof IResource) {
-						resources.add(adapter);
+						resources.add((IResource) adapter);
 						continue;
 					}
 				}
@@ -116,9 +122,9 @@ public abstract class PessimisticProviderAction
 			resources.toArray(result);
 			return result;
 		}
-		return new IResource[0];		
+		return new IResource[0];
 	}
-	
+
 	/**
 	 * Convenience method which answers <code>true</code> if the
 	 * resource is controlled by a <code>PessimisticFilesystemProvider</code>.
@@ -129,7 +135,7 @@ public abstract class PessimisticProviderAction
 			return false;
 		return provider.isControlled(resource);
 	}
-	
+
 	/**
 	 * Convenience method which answers <code>true</code> if and only if the
 	 * resource is controlled by a <code>PessimisticFilesystemProvider</code>
@@ -156,7 +162,7 @@ public abstract class PessimisticProviderAction
 
 	/**
 	 * Convenience method which answers the <code>PessimisticFilesystemProvider</code>
-	 * for the given <code>resource</code> or <code>null</code> if the 
+	 * for the given <code>resource</code> or <code>null</code> if the
 	 * <code>resource</code> is not associated with a <code>PessimisticFilesystemProvider</code>.
 	 */
 	protected PessimisticFilesystemProvider getProvider(IResource resource) {
@@ -174,7 +180,7 @@ public abstract class PessimisticProviderAction
 	 * Convenience method which walks a resource tree and collects the
 	 * resources that this action would enable for.
 	 */
-	protected void recursivelyAdd(IResource resource, Set resources) {
+	protected void recursivelyAdd(IResource resource, Set<IResource> resources) {
 		if (isControlled(resource) && !isIgnored(resource)) {
 			if (shouldEnableFor(resource)) {
 				resources.add(resource);
@@ -189,27 +195,26 @@ public abstract class PessimisticProviderAction
 					PessimisticFilesystemProviderPlugin.getInstance().logError(e, "Exception traversing members");
 				}
 				if (members != null) {
-					for (int i = 0; i < members.length; i++) {
-						recursivelyAdd(members[i], resources);
+					for (IResource member : members) {
+						recursivelyAdd(member, resources);
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	/**
 	 * Convenience method which sorts the given <code>resources</code>
 	 * into a map of IProject -> Set of IResource objects.
 	 */
-	protected Map sortByProject(Set resources) {
-		Map byProject= new HashMap();
+	protected Map<IProject, Set<IResource>> sortByProject(Set<IResource> resources) {
+		Map<IProject, Set<IResource>> byProject = new HashMap<>();
 		if (resources != null) {
-			for (Iterator i= resources.iterator(); i.hasNext();) {
-				IResource resource= (IResource) i.next();
+			for (IResource resource : resources) {
 				IProject project= resource.getProject();
-				Set set= (Set)byProject.get(project);
+				Set<IResource> set = byProject.get(project);
 				if (set == null) {
-					set= new HashSet(1);
+					set = new HashSet<>(1);
 					byProject.put(project, set);
 				}
 				set.add(resource);
@@ -217,7 +222,7 @@ public abstract class PessimisticProviderAction
 		}
 		return byProject;
 	}
-	
+
 	/**
 	 * Convenience method for displaying runnable progress
 	 * with a <code>ProgressMonitorDialog</code>.

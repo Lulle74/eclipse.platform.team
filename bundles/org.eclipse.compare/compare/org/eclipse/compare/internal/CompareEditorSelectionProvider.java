@@ -1,33 +1,33 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.widgets.Widget;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.ListenerList;
-
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.text.TextViewer;
 import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.text.TextViewer;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.widgets.Widget;
 
 
 /**
@@ -45,17 +45,17 @@ public class CompareEditorSelectionProvider implements IPostSelectionProvider {
 			doSelectionChanged(event);
 		}
 
-	    @Override
+		@Override
 		public void focusGained(FocusEvent e) {
-	    	// expecting a StyledText widget here
-	    	doFocusChanged(e.widget);
-	    }
+			// expecting a StyledText widget here
+			doFocusChanged(e.widget);
+		}
 
-	    @Override
+		@Override
 		public void focusLost(FocusEvent e) {
-	    	// do not reset due to focus behavior on GTK
-	    	//fViewerInFocus= null;
-	    }
+			// do not reset due to focus behavior on GTK
+			//fViewerInFocus= null;
+		}
 	}
 
 	private class InternalPostSelectionListener implements ISelectionChangedListener {
@@ -88,8 +88,7 @@ public class CompareEditorSelectionProvider implements IPostSelectionProvider {
 		InternalListener listener= new InternalListener();
 		fViewerInFocus= viewerInFocus;
 
-		for (int i= 0; i < fViewers.length; i++) {
-			TextViewer viewer= fViewers[i];
+		for (TextViewer viewer : fViewers) {
 			viewer.addSelectionChangedListener(listener);
 			viewer.addPostSelectionChangedListener(new InternalPostSelectionListener());
 			StyledText textWidget = viewer.getTextWidget();
@@ -98,9 +97,9 @@ public class CompareEditorSelectionProvider implements IPostSelectionProvider {
 	}
 
 	private void doFocusChanged(Widget control) {
-		for (int i= 0; i < fViewers.length; i++) {
-			if (fViewers[i].getTextWidget() == control) {
-				propagateFocusChanged(fViewers[i]);
+		for (TextViewer viewer : fViewers) {
+			if (viewer.getTextWidget() == control) {
+				propagateFocusChanged(viewer);
 				return;
 			}
 		}
@@ -198,8 +197,9 @@ public class CompareEditorSelectionProvider implements IPostSelectionProvider {
 		if (fViewers == null)
 			return;
 
-		for (int i= 0; i < fViewers.length; i++)
-			fViewers[i].setVisibleRegion(0, fViewers[i].getDocument().getLength());
+		for (TextViewer viewer : fViewers) {
+			viewer.setVisibleRegion(0, viewer.getDocument().getLength());
+		}
 	}
 
 	/**

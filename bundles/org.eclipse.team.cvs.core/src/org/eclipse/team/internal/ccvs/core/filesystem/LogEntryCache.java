@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -129,8 +132,7 @@ class LogEntryCache implements ILogEntryListener {
 	 * Return null if the revision wasn't found.
 	 */
 	ICVSRemoteFile findRevison(ILogEntry[] allLogs, String predecessorRevision) throws TeamException {
-		for (int i = 0; i < allLogs.length; i++) {
-			ILogEntry entry = allLogs[i];
+		for (ILogEntry entry : allLogs) {
 			ICVSRemoteFile file = entry.getRemoteFile();
 			if (file.getRevision().equals(predecessorRevision)) {
 				return file;
@@ -145,7 +147,7 @@ class LogEntryCache implements ILogEntryListener {
 	String getPredecessorRevision(String revision) {
 		int digits[] = Util.convertToDigits(revision);
 		digits[digits.length - 1]--;
-		StringBuffer buffer = new StringBuffer(revision.length());
+		StringBuilder buffer = new StringBuilder(revision.length());
 		for (int i = 0; i < digits.length; i++) {
 			buffer.append(Integer.toString(digits[i]));
 			if (i < digits.length - 1) {
@@ -174,7 +176,7 @@ class LogEntryCache implements ILogEntryListener {
 		if (length % 2 == 1) {
 			length--;
 		}
-		StringBuffer buffer = new StringBuffer(revision.length());
+		StringBuilder buffer = new StringBuilder(revision.length());
 		for (int i = 0; i < length; i++) {
 			buffer.append(Integer.toString(digits[i]));
 			if (i < length - 1) {
@@ -193,9 +195,7 @@ class LogEntryCache implements ILogEntryListener {
 		entries.remove(remotePath);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.listeners.ILogEntryListener#addEntry(org.eclipse.team.internal.ccvs.core.client.listeners.LogEntry)
-	 */
+	@Override
 	public void handleLogEntryReceived(ILogEntry entry) {
 		ICVSRemoteFile file = entry.getRemoteFile();
 		String fullPath = getFullPath(file);

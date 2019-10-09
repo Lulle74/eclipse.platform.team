@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,30 +15,35 @@ package org.eclipse.compare.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ResourceBundle;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ResourceBundle;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.graphics.Image;
-
+import org.eclipse.compare.EditionSelectionDialog;
+import org.eclipse.compare.HistoryItem;
+import org.eclipse.compare.IEncodedStreamContentAccessor;
+import org.eclipse.compare.IStreamContentAccessor;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.ResourceNode;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFileState;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.BadLocationException;
-
-import org.eclipse.ui.*;
-import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
-
-import org.eclipse.compare.*;
-import org.eclipse.compare.ITypedElement;
-import org.eclipse.compare.IStreamContentAccessor;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 
 public class EditionAction extends BaseCompareAction {
@@ -98,8 +106,9 @@ public class EditionAction extends BaseCompareAction {
 	@Override
 	protected void run(ISelection selection) {
 		IFile[] files= Utilities.getFiles(selection);
-		for (int i= 0; i < files.length; i++)
-			doFromHistory(files[i]);
+		for (IFile file : files) {
+			doFromHistory(file);
+		}
 	}
 
 	private void doFromHistory(final IFile file) {
@@ -203,9 +212,7 @@ public class EditionAction extends BaseCompareAction {
 		try {
 			String text= Utilities.readString(sa);
 			document.replace(0, document.getLength(), text);
-		} catch (CoreException e) {
-			throw new InvocationTargetException(e);
-		} catch (BadLocationException e) {
+		} catch (CoreException | BadLocationException e) {
 			throw new InvocationTargetException(e);
 		}
 	}
@@ -223,12 +230,10 @@ public class EditionAction extends BaseCompareAction {
 
 		FileEditorInput test= new FileEditorInput(file);
 
-		for (int i= 0; i < ws.length; i++) {
-			IWorkbenchWindow w= ws[i];
+		for (IWorkbenchWindow w : ws) {
 			IWorkbenchPage[] wps= w.getPages();
 			if (wps != null) {
-				for (int j= 0; j < wps.length; j++) {
-					IWorkbenchPage wp= wps[j];
+				for (IWorkbenchPage wp : wps) {
 					IEditorPart ep= wp.findEditor(test);
 					if (ep instanceof ITextEditor) {
 						ITextEditor te= (ITextEditor) ep;

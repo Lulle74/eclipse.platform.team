@@ -1,27 +1,42 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.structuremergeviewer.DiffNode;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IDecoration;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.team.core.synchronize.SyncInfo;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IPreferenceIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.ui.ISharedImages;
 import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -68,8 +83,8 @@ public class SynchronizeModelElementLabelProvider extends LabelProvider implemen
 				if (busyFont == null) {
 					Font defaultFont = JFaceResources.getDefaultFont();
 					FontData[] data = defaultFont.getFontData();
-					for (int i = 0; i < data.length; i++) {
-						data[i].setStyle(SWT.ITALIC);
+					for (FontData d : data) {
+						d.setStyle(SWT.ITALIC);
 					}
 					busyFont = new Font(TeamUIPlugin.getStandardDisplay(), data);
 				}
@@ -195,7 +210,7 @@ public class SynchronizeModelElementLabelProvider extends LabelProvider implemen
 
 	@Override
 	public void dispose() {
-        workbenchLabelProvider.dispose();
+		workbenchLabelProvider.dispose();
 		if(busyFont != null) {
 			busyFont.dispose();
 		}

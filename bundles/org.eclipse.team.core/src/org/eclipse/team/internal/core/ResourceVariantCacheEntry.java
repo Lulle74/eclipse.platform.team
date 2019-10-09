@@ -1,16 +1,28 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -45,9 +57,6 @@ public class ResourceVariantCacheEntry {
 		registerHit();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.ICacheEntry#getContents()
-	 */
 	public InputStream getContents() throws TeamException {
 		if (state != READY) return null;
 		registerHit();
@@ -156,14 +165,14 @@ public class ResourceVariantCacheEntry {
 
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * @see org.eclipse.team.core.sync.ICacheEntry#getState()
 	 */
 	public int getState() {
 		return state;
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * @see org.eclipse.team.core.sync.ICacheEntry#getSize()
 	 */
 	public long getSize() {
@@ -175,7 +184,7 @@ public class ResourceVariantCacheEntry {
 		return 0;
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * @see org.eclipse.team.core.sync.ICacheEntry#getLastAccessTimeStamp()
 	 */
 	public long getLastAccessTimeStamp() {

@@ -1,27 +1,34 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare.internal;
 
-import java.util.ResourceBundle;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ResourceBundle;
 
-import org.eclipse.swt.widgets.Shell;
-
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFileState;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelection;
-
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
 
 
 public class AddFromHistoryAction extends BaseCompareAction {
@@ -48,8 +55,7 @@ public class AddFromHistoryAction extends BaseCompareAction {
 
 		Object[] s= Utilities.getResources(selection);
 
-		for (int i= 0; i < s.length; i++) {
-			Object o= s[i];
+		for (Object o : s) {
 			if (o instanceof IContainer) {
 				IContainer container= (IContainer) o;
 
@@ -121,12 +127,11 @@ public class AddFromHistoryAction extends BaseCompareAction {
 					String taskName= Utilities.getString(bundle, "taskName"); //$NON-NLS-1$
 					pm.beginTask(taskName, selected.length);
 
-					for (int i= 0; i < selected.length; i++) {
-						IFile file= selected[i].fFile;
-						IFileState fileState= selected[i].fFileState;
+					for (AddFromHistoryDialog.HistoryInput s : selected) {
+						IFile file = s.fFile;
+						IFileState fileState = s.fFileState;
 						createContainers(file);
-
-						SubProgressMonitor subMonitor= new SubProgressMonitor(pm, 1);
+						SubMonitor subMonitor= SubMonitor.convert(pm, 1);
 						try {
 							file.create(fileState.getContents(), false, subMonitor);
 						} finally {

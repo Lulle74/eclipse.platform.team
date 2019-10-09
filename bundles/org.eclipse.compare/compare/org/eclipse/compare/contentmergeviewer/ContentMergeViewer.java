@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -57,12 +60,18 @@ import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ContentViewer;
+import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -78,27 +87,31 @@ import org.eclipse.ui.Saveable;
 
 
 /**
- * An abstract compare and merge viewer with two side-by-side content areas
- * and an optional content area for the ancestor. The implementation makes no
+ * An abstract compare and merge viewer with two side-by-side content areas and
+ * an optional content area for the ancestor. The implementation makes no
  * assumptions about the content type.
  * <p>
  * <code>ContentMergeViewer</code>
+ * </p>
  * <ul>
- * <li>implements the overall layout and defines hooks so that subclasses
- *	can easily provide an implementation for a specific content type,
+ * <li>implements the overall layout and defines hooks so that subclasses can
+ * easily provide an implementation for a specific content type,
  * <li>implements the UI for making the areas resizable,
- * <li>has an action for controlling whether the ancestor area is visible or not,
+ * <li>has an action for controlling whether the ancestor area is visible or
+ * not,
  * <li>has actions for copying one side of the input to the other side,
- * <li>tracks the dirty state of the left and right sides and send out notification
- *	on state changes.
+ * <li>tracks the dirty state of the left and right sides and send out
+ * notification on state changes.
  * </ul>
- * A <code>ContentMergeViewer</code> accesses its
- * model by means of a content provider which must implement the
- * <code>IMergeViewerContentProvider</code> interface.
+ * <p>
+ * A <code>ContentMergeViewer</code> accesses its model by means of a content
+ * provider which must implement the <code>IMergeViewerContentProvider</code>
+ * interface.
  * </p>
  * <p>
- * Clients may wish to use the standard concrete subclass <code>TextMergeViewer</code>,
- * or define their own subclass.
+ * Clients may wish to use the standard concrete subclass
+ * <code>TextMergeViewer</code>, or define their own subclass.
+ * </p>
  *
  * @see IMergeViewerContentProvider
  * @see TextMergeViewer
@@ -339,7 +352,7 @@ public abstract class ContentMergeViewer extends ContentViewer
 	private Image fRightArrow;
 	private Image fLeftArrow;
 	private Image fBothArrow;
-	Cursor fNormalCursor;
+	private Cursor fNormalCursor;
 	private Cursor fHSashCursor;
 	private Cursor fVSashCursor;
 	private Cursor fHVSashCursor;
@@ -591,27 +604,27 @@ public abstract class ContentMergeViewer extends ContentViewer
 			case VERTICAL:
 				if (fAncestorVisible) {
 					if (fVSashCursor == null)
-						fVSashCursor= new Cursor(c.getDisplay(), SWT.CURSOR_SIZENS);
+						fVSashCursor=c.getDisplay().getSystemCursor(SWT.CURSOR_SIZENS);
 					cursor= fVSashCursor;
 				} else {
 					if (fNormalCursor == null)
-						fNormalCursor= new Cursor(c.getDisplay(), SWT.CURSOR_ARROW);
+						fNormalCursor= c.getDisplay().getSystemCursor(SWT.CURSOR_ARROW);
 					cursor= fNormalCursor;
 				}
 				break;
 			case HORIZONTAL:
 				if (fHSashCursor == null)
-					fHSashCursor= new Cursor(c.getDisplay(), SWT.CURSOR_SIZEWE);
+					fHSashCursor= c.getDisplay().getSystemCursor(SWT.CURSOR_SIZEWE);
 				cursor= fHSashCursor;
 				break;
 			case VERTICAL + HORIZONTAL:
 				if (fAncestorVisible) {
 					if (fHVSashCursor == null)
-						fHVSashCursor= new Cursor(c.getDisplay(), SWT.CURSOR_SIZEALL);
+						fHVSashCursor= c.getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL);
 					cursor= fHVSashCursor;
 				} else {
 					if (fHSashCursor == null)
-						fHSashCursor= new Cursor(c.getDisplay(), SWT.CURSOR_SIZEWE);
+						fHSashCursor= c.getDisplay().getSystemCursor(SWT.CURSOR_SIZEWE);
 					cursor= fHSashCursor;
 				}
 				break;
@@ -1054,25 +1067,8 @@ public abstract class ContentMergeViewer extends ContentViewer
 			fBothArrow= null;
 		}
 
-		if (fNormalCursor != null) {
-			fNormalCursor.dispose();
-			fNormalCursor= null;
-		}
-		if (fHSashCursor != null) {
-			fHSashCursor.dispose();
-			fHSashCursor= null;
-		}
-		if (fVSashCursor != null) {
-			fVSashCursor.dispose();
-			fVSashCursor= null;
-		}
-		if (fHVSashCursor != null) {
-			fHVSashCursor.dispose();
-			fHVSashCursor= null;
-		}
-
 		super.handleDispose(event);
-  	}
+	}
 
 	/**
 	 * Updates the enabled state of the toolbar items.
@@ -1281,7 +1277,7 @@ public abstract class ContentMergeViewer extends ContentViewer
 	}
 
 	/**
-	 * @param monitor
+	 * @param monitor The progress monitor to report progress.
 	 * @noreference This method is not intended to be referenced by clients.
 	 */
 	@Override
@@ -1290,7 +1286,7 @@ public abstract class ContentMergeViewer extends ContentViewer
 	}
 
 	/**
-	 * @param monitor
+	 * @param monitor The progress monitor to report progress.
 	 * @noreference This method is not intended to be referenced by clients.
 	 */
 	@Override
@@ -1402,9 +1398,9 @@ public abstract class ContentMergeViewer extends ContentViewer
 		}
 		if (source != null) {
 			Saveable[] saveables = source.getSaveables();
-			for (int i = 0; i < saveables.length; i++) {
-				if (saveables[i] instanceof ISavingSaveable) {
-					ISavingSaveable saveable = (ISavingSaveable) saveables[i];
+			for (Saveable s : saveables) {
+				if (s instanceof ISavingSaveable) {
+					ISavingSaveable saveable = (ISavingSaveable) s;
 					if (saveable.isSaving())
 						return true;
 				}

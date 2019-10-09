@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,16 +15,18 @@ package org.eclipse.team.tests.ccvs.core.provider;
 
 import java.io.IOException;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ccvs.core.CVSProviderPlugin;
 import org.eclipse.team.internal.ccvs.core.CVSTag;
 import org.eclipse.team.tests.ccvs.core.CVSTestSetup;
 import org.eclipse.team.tests.ccvs.core.EclipseTest;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 /**
  * Test the cvs watch/edit functionality
@@ -48,6 +53,7 @@ public class WatchEditTest extends EclipseTest {
 		//return new CVSTestSetup(new WatchEditTest("testReadOnly"));
 	}
 	
+	@Override
 	protected boolean isFailOnSyncInfoMismatch() {
 		// See  bug 198382
 		return CVSTestSetup.FAIL_ON_BAD_DIFF ;
@@ -78,7 +84,7 @@ public class WatchEditTest extends EclipseTest {
 		assertEquals(project, copy);
 	}
 	
-	public void testCommit() throws CoreException, TeamException, IOException {
+	public void testCommit() throws CoreException, TeamException {
 		// Create a project
 		IProject project = createProject("testCommit", new String[] { "changed.txt", "deleted.txt", "folder1/", "folder1/a.txt" });
 		// XXX project will not be read-only at this point because "cvs add" followed by a "cvs commit" doesn't set the resource "read-only"
@@ -113,17 +119,13 @@ public class WatchEditTest extends EclipseTest {
 		assertEquals(project, copy);
 	}
 	
-	/**
-	 * @see junit.framework.TestCase#setUp()
-	 */
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		setReadOnly(true);
 	}
 
-	/**
-	 * @see junit.framework.TestCase#tearDown()
-	 */
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		setReadOnly(false);

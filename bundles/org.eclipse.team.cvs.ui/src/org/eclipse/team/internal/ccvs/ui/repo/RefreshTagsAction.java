@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,17 +21,13 @@ import org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation;
  */
 public class RefreshTagsAction extends CVSRepoViewAction {
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#execute(org.eclipse.jface.action.IAction)
-	 */
+	@Override
 	protected void execute(IAction action) {
 		ICVSRepositoryLocation[] locations = getSelectedRepositoryLocations();
 		RefreshRemoteProjectWizard.execute(getShell(), locations[0]);
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ui.actions.TeamAction#isEnabled()
-	 */
+	@Override
 	public boolean isEnabled() {
 		ICVSRepositoryLocation[] locations = getSelectedRepositoryLocations();
 		if (locations.length != 1) return false;

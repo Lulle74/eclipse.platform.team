@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -64,6 +67,7 @@ public final class SameResultEnv extends JUnitTestCase {
 	 * Always to be called in the setUp of the testCase that wants to 
 	 * use the same-result environment.
 	 */
+	@Override
 	public void setUp() throws Exception {
 		super.setUp();
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
@@ -88,6 +92,7 @@ public final class SameResultEnv extends JUnitTestCase {
 	 * Always to be called in the tearDown of the testCase that wants to 
 	 * use the same-result environment.
 	 */
+	@Override
 	public void tearDown() throws Exception {
 		// we deliberately don't clean up test projects to simplify debugging
 		super.tearDown();
@@ -155,6 +160,7 @@ public final class SameResultEnv extends JUnitTestCase {
 	/**
 	 * Deletes files on the both of the cvs-servers.
 	 */
+	@Override
 	public void magicDeleteRemote(String remoteName) throws CVSException {
 		super.magicDeleteRemote(CompatibleTestSetup.referenceClientRepository, remoteName);
 		super.magicDeleteRemote(CompatibleTestSetup.eclipseClientRepository, remoteName);		
@@ -178,6 +184,7 @@ public final class SameResultEnv extends JUnitTestCase {
 	 * Set up both of the repos on the cvs-server(s) with a file structure
 	 * resulting for your input in the parameter createResources.
 	 */
+	@Override
 	public void magicSetUpRepo(String projectName, String[] createResources)
 		throws IOException, CoreException, CVSException {
 		magicDeleteRemote(projectName);
@@ -225,8 +232,8 @@ public final class SameResultEnv extends JUnitTestCase {
 		} else if (! pathRelativeToRoot.endsWith("/")) {
 			pathRelativeToRoot += "/";
 		}
-		for (int i = 0; i < relativeFileNames.length; i++) {
-			createRandomFile(pathRelativeToRoot + relativeFileNames[i]);
+		for (String relativeFileName : relativeFileNames) {
+			createRandomFile(pathRelativeToRoot + relativeFileName);
 		}
 	}
 	
@@ -362,22 +369,18 @@ public final class SameResultEnv extends JUnitTestCase {
 		assertEquals(mFile1.isReadOnly(), mFile2.isReadOnly());
 					
 		// Compare the content of the files
-		try {
-			InputStream in1 = mFile1.getContents();
-			InputStream in2 = mFile2.getContents();
-			byte[] buffer1 = new byte[(int)mFile1.getSize()];
-			byte[] buffer2 = new byte[(int)mFile2.getSize()];
+		byte[] buffer1 = new byte[(int) mFile1.getSize()];
+		byte[] buffer2 = new byte[(int) mFile2.getSize()];
+		try (InputStream in1 = mFile1.getContents(); InputStream in2 = mFile2.getContents()) {
 			// This is not the right way to do it, because the Stream
 			// may read less than the whole file
 			in1.read(buffer1);
 			in2.read(buffer2);
-			in1.close();
-			in2.close();
-			assertEquals("Length differs for file " + mFile1.getName(), buffer1.length, buffer2.length);
-			assertEquals("Contents differs for file " + mFile1.getName(), new String(buffer1),new String(buffer2));
 		} catch (IOException e) {
 			throw new CVSException("Error in TestCase");
 		}
+		assertEquals("Length differs for file " + mFile1.getName(), buffer1.length, buffer2.length);
+		assertEquals("Contents differs for file " + mFile1.getName(), new String(buffer1),new String(buffer2));
 
 		// We can not do the check, because the reference client does
 		// check out dirty files ?!?
@@ -435,16 +438,16 @@ public final class SameResultEnv extends JUnitTestCase {
 		ICVSResource[] resourceList1 = mFolder1.members(ICVSFolder.FILE_MEMBERS | ICVSFolder.FOLDER_MEMBERS);
 		ICVSResource[] resourceList2 = mFolder2.members(ICVSFolder.FILE_MEMBERS | ICVSFolder.FOLDER_MEMBERS);
 		assertEquals(resourceList1.length, resourceList2.length);
-		for (int i=0; i<resourceList1.length; i++) {
+		for (ICVSResource r : resourceList1) {
 			boolean resourceFound = false;
-			for (int j=0; j<resourceList2.length; j++) {
-				if (resourceList1[i].getName().equals(resourceList2[j].getName())) {
-					assertEquals(resourceList1[i], resourceList2[j]);
+			for (ICVSResource _r : resourceList2) {
+				if (r.getName().equals(_r.getName())) {
+					assertEquals(r, _r);
 					resourceFound = true;
 					break;
 				}
 			}
-			assertTrue("Resource " + resourceList1[i].getName() + " not found in the list",resourceFound);
+			assertTrue("Resource " + r.getName() + " not found in the list", resourceFound);
 		}
 	}
 	
@@ -466,7 +469,7 @@ public final class SameResultEnv extends JUnitTestCase {
 		String hostAndPath = root.substring(indexOfHostSeparator);
 		root = root.substring(0, indexOfHostSeparator);
 		StringTokenizer tok = new StringTokenizer(root, ":", true);
-		StringBuffer filteredRoot = new StringBuffer();
+		StringBuilder filteredRoot = new StringBuilder();
 		int colonCounter = 3;
 		while (tok.hasMoreTokens()) {
 			String token = tok.nextToken();

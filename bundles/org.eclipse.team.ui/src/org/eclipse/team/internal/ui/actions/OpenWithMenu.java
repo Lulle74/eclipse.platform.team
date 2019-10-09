@@ -1,20 +1,29 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.actions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -22,18 +31,27 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.history.AbstractHistoryCategory;
 import org.eclipse.team.internal.ui.history.FileRevisionEditorInput;
 import org.eclipse.team.ui.history.HistoryPage;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorRegistry;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.EditorSelectionDialog;
 import org.eclipse.ui.internal.WorkbenchPage;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.statushandlers.*;
+import org.eclipse.ui.statushandlers.IStatusAdapterConstants;
+import org.eclipse.ui.statushandlers.StatusAdapter;
+import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.ibm.icu.text.Collator;
 
@@ -218,8 +236,7 @@ public class OpenWithMenu extends ContributionItem {
 		// if the same editor goes to two mappings.
 		ArrayList<IEditorDescriptor> alreadyMapped = new ArrayList<>();
 
-		for (int i = 0; i < editors.length; i++) {
-			IEditorDescriptor editor = editors[i];
+		for (IEditorDescriptor editor : editors) {
 			if (!alreadyMapped.contains(editor)) {
 				createMenuItem(menu, editor, preferredEditor);
 				if (defaultTextEditor != null
@@ -307,8 +324,7 @@ public class OpenWithMenu extends ContributionItem {
 
 		Object[] objArray = structSel.toArray();
 
-		for (int i = 0; i < objArray.length; i++) {
-			Object tempRevision = objArray[i];
+		for (Object tempRevision : objArray) {
 			// If not a revision, don't try opening
 			if (tempRevision instanceof AbstractHistoryCategory)
 				continue;

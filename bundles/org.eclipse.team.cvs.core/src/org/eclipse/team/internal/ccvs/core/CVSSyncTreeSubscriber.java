@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2018 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -54,23 +57,19 @@ public abstract class CVSSyncTreeSubscriber extends ResourceVariantTreeSubscribe
 		this.comparisonCriteria = new CVSRevisionNumberCompareCriteria(isThreeWay());
 	}
 
-	/* (non-Javadoc)
+	/*
 	 * @see org.eclipse.team.core.sync.ISyncTreeSubscriber#getId()
 	 */
 	public QualifiedName getId() {
 		return id;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.ISyncTreeSubscriber#getName()
-	 */
+	@Override
 	public String getName() {
 		return name;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.ISyncTreeSubscriber#getSyncInfo(org.eclipse.core.resources.IResource)
-	 */
+	@Override
 	public SyncInfo getSyncInfo(IResource resource) throws TeamException {
 		if (!isSupervised(resource)) return null;
 		if(resource.getType() == IResource.FILE || !isThreeWay()) {
@@ -82,9 +81,7 @@ public abstract class CVSSyncTreeSubscriber extends ResourceVariantTreeSubscribe
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.ISyncTreeSubscriber#isSupervised(org.eclipse.core.resources.IResource)
-	 */
+	@Override
 	public boolean isSupervised(IResource resource) throws TeamException {
 		try {
 			RepositoryProvider provider = RepositoryProvider.getProvider(resource.getProject(), CVSProviderPlugin.getTypeId());
@@ -107,16 +104,12 @@ public abstract class CVSSyncTreeSubscriber extends ResourceVariantTreeSubscribe
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.subscribers.TeamSubscriber#getDefaultComparisonCriteria()
-	 */
+	@Override
 	public IResourceVariantComparator getResourceComparator() {
 		return comparisonCriteria;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.core.subscribers.caches.ResourceVariantTreeSubscriber#getSyncInfo(org.eclipse.core.resources.IResource, org.eclipse.team.core.synchronize.IResourceVariant, org.eclipse.team.core.synchronize.IResourceVariant)
-	 */
+	@Override
 	protected SyncInfo getSyncInfo(IResource local, IResourceVariant base, IResourceVariant remote) throws TeamException {
 		CVSSyncInfo info = new CVSSyncInfo(local, base, remote, this);
 		info.init();
@@ -138,8 +131,8 @@ public abstract class CVSSyncTreeSubscriber extends ResourceVariantTreeSubscribe
 	}
 	
 	protected boolean rootsEqual(Subscriber other) {
-		Set roots1 = new HashSet(Arrays.asList(other.roots()));
-		Set roots2 = new HashSet(Arrays.asList(roots()));
+		Set<IResource> roots1 = new HashSet<>(Arrays.asList(other.roots()));
+		Set<IResource> roots2 = new HashSet<>(Arrays.asList(roots()));
 		if(roots1.size() != roots2.size()) return false;
 		return roots2.containsAll(roots1);
 	}

@@ -1,32 +1,56 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.wizards;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.team.core.*;
-import org.eclipse.team.internal.ui.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.core.ProjectSetCapability;
+import org.eclipse.team.core.RepositoryProvider;
+import org.eclipse.team.core.RepositoryProviderType;
+import org.eclipse.team.core.TeamException;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.UIProjectSetSerializationContext;
+import org.eclipse.ui.IExportWizard;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.XMLMemento;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -93,8 +117,7 @@ public class ProjectSetExportWizard extends Wizard implements IExportWizard {
 					// Hash the projects by provider
 					IProject[] projects = mainPage.getSelectedProjects();
 					Map<String, Set<IProject>> map = new HashMap<>();
-					for (int i = 0; i < projects.length; i++) {
-						IProject project = projects[i];
+					for (IProject project : projects) {
 						RepositoryProvider provider = RepositoryProvider.getProvider(project);
 						if (provider != null) {
 							String id = provider.getID();
@@ -131,17 +154,17 @@ public class ProjectSetExportWizard extends Wizard implements IExportWizard {
 							ProjectSetCapability serializer = providerType.getProjectSetCapability();
 							ProjectSetCapability.ensureBackwardsCompatible(providerType, serializer);
 							if (serializer != null) {
-								String[] references = serializer.asReference(projectArray, context, new SubProgressMonitor(monitor, 990));
-								for (int i = 0; i < references.length; i++) {
+								String[] references = serializer.asReference(projectArray, context, SubMonitor.convert(monitor, 990));
+								for (String reference : references) {
 									IMemento proj = memento.createChild("project"); //$NON-NLS-1$
-									proj.putString("reference", references[i]); //$NON-NLS-1$
+									proj.putString("reference", reference); //$NON-NLS-1$
 								}
 							}
 						}
 						if (workingSets != null){
-							for (int i = 0; i < workingSets.length; i++) {
+							for (IWorkingSet workingSet : workingSets) {
 								IMemento memento =xmlMemento.createChild("workingSets"); //$NON-NLS-1$
-								workingSets[i].saveState(memento);
+								workingSet.saveState(memento);
 							}
 						}
 						xmlMemento.save(writer);
@@ -169,13 +192,12 @@ public class ProjectSetExportWizard extends Wizard implements IExportWizard {
 						}
 
 					// notify provider types of the project set write
-					for (Iterator iter = map.keySet().iterator();iter.hasNext();) {
-						String id = (String) iter.next();
+					for (String id : map.keySet()) {
 						RepositoryProviderType type = RepositoryProviderType.getProviderType(id);
 						if (type != null) {
 							ProjectSetCapability capability = type.getProjectSetCapability();
 							if (capability != null) {
-								capability.projectSetCreated(file, context, new SubProgressMonitor(monitor, 10));
+								capability.projectSetCreated(file, context, SubMonitor.convert(monitor, 10));
 							}
 						}
 					}
@@ -185,16 +207,16 @@ public class ProjectSetExportWizard extends Wizard implements IExportWizard {
 
 				private XMLMemento getXMLMementoRoot() {
 					Document document;
-			        try {
-			            document = DocumentBuilderFactory.newInstance()
-			                    .newDocumentBuilder().newDocument();
-			            Element element = document.createElement("psf"); //$NON-NLS-1$
-			            element.setAttribute("version", "2.0"); //$NON-NLS-1$ //$NON-NLS-2$
-			            document.appendChild(element);
-			            return new XMLMemento(document, element);
-			        } catch (ParserConfigurationException e) {
-			            throw new Error(e.getMessage());
-			        }
+					try {
+						document = DocumentBuilderFactory.newInstance()
+								.newDocumentBuilder().newDocument();
+						Element element = document.createElement("psf"); //$NON-NLS-1$
+						element.setAttribute("version", "2.0"); //$NON-NLS-1$ //$NON-NLS-2$
+						document.appendChild(element);
+						return new XMLMemento(document, element);
+					} catch (ParserConfigurationException e) {
+						throw new Error(e.getMessage());
+					}
 				}
 
 			});

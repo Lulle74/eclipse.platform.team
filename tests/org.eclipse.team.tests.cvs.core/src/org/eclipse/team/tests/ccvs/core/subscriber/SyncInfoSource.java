@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -12,7 +15,6 @@ package org.eclipse.team.tests.ccvs.core.subscriber;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
@@ -48,8 +50,8 @@ import junit.framework.AssertionFailedError;
 public class SyncInfoSource {
 
 	protected static IProgressMonitor DEFAULT_MONITOR = new NullProgressMonitor();
-	protected List mergeSubscribers = new ArrayList();
-	protected List compareSubscribers = new ArrayList();
+	protected List<CVSMergeSubscriber> mergeSubscribers = new ArrayList<>();
+	protected List<CVSCompareSubscriber> compareSubscribers = new ArrayList<>();
 	
 	public CVSMergeSubscriber createMergeSubscriber(IProject project, CVSTag root, CVSTag branch) {
 		return createMergeSubscriber(project, root, branch, false /*default*/);
@@ -71,6 +73,9 @@ public class SyncInfoSource {
 		// Nothing to do
 	}
 	
+	/**
+	 * @throws TeamException  
+	 */
 	public Subscriber createWorkspaceSubscriber() throws TeamException {
 		return CVSProviderPlugin.getPlugin().getCVSWorkspaceSubscriber();
 	}
@@ -99,14 +104,13 @@ public class SyncInfoSource {
 	/**
 	 * Refresh the subscriber for the given resources
 	 */
-    public void refresh(Subscriber subscriber, IResource[] resources) throws TeamException {
-        subscriber.refresh(resources, IResource.DEPTH_INFINITE, DEFAULT_MONITOR);
-    }
-    
-	protected void assertProjectRemoved(Subscriber subscriber, IProject project) throws TeamException {
+	public void refresh(Subscriber subscriber, IResource[] resources) throws TeamException {
+		subscriber.refresh(resources, IResource.DEPTH_INFINITE, DEFAULT_MONITOR);
+	}
+	
+	protected void assertProjectRemoved(Subscriber subscriber, IProject project) {
 		IResource[] roots = subscriber.roots();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			if (resource.equals(project)) {
 				throw new AssertionFailedError();
 			}
@@ -114,8 +118,7 @@ public class SyncInfoSource {
 	}
 
 	public void tearDown() {
-		for (Iterator it = mergeSubscribers.iterator(); it.hasNext(); ) {
-			CVSMergeSubscriber s = (CVSMergeSubscriber) it.next();
+		for (CVSMergeSubscriber s : mergeSubscribers) {
 			s.cancel();
 		}
 	}
@@ -142,9 +145,9 @@ public class SyncInfoSource {
 			// Only test if kinds are equal
 			assertDiffKindEquals(message, subscriber, resource, SyncInfoToDiffConverter.asDiffFlags(syncKind));
 		}
-		junit.framework.Assert.assertTrue(message + ": improper sync state for " + resource + " expected " + 
-				   SyncInfo.kindToString(kindOther) + " but was " +
-				   SyncInfo.kindToString(kind), kind == kindOther);
+		Assert.assertTrue(message + ": improper sync state for " + resource + " expected " + 
+					SyncInfo.kindToString(kindOther) + " but was " +
+					SyncInfo.kindToString(kind), kind == kindOther);
 		
 	}
 	
@@ -218,7 +221,7 @@ public class SyncInfoSource {
 		mergeResources(subscriber, infos, allowOverwrite);
 	}
 	
-	private void mergeResources(Subscriber subscriber, SyncInfo[] infos, boolean allowOverwrite) throws TeamException, InvocationTargetException, InterruptedException {
+	private void mergeResources(Subscriber subscriber, SyncInfo[] infos, boolean allowOverwrite) throws InvocationTargetException, InterruptedException {
 		TestMergeUpdateOperation action = new TestMergeUpdateOperation(getElements(infos), allowOverwrite);
 		action.run(DEFAULT_MONITOR);
 	}

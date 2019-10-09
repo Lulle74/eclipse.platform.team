@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,8 +18,13 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.CompareUI;
 import org.eclipse.core.resources.mapping.RemoteResourceMappingContext;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
 import org.eclipse.team.core.mapping.provider.SynchronizationContext;
@@ -57,9 +65,6 @@ public abstract class ModelParticipantMergeOperation extends ModelMergeOperation
 		super(part, manager);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ModelMergeOperation#initializeContext(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	protected void initializeContext(IProgressMonitor monitor) throws CoreException {
 		if (participant == null) {
@@ -81,9 +86,6 @@ public abstract class ModelParticipantMergeOperation extends ModelMergeOperation
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ModelMergeOperation#execute(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	protected void execute(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		try {
@@ -94,18 +96,12 @@ public abstract class ModelParticipantMergeOperation extends ModelMergeOperation
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.mapping.ModelMergeOperation#executeMerge(org.eclipse.core.runtime.IProgressMonitor)
-	 */
 	@Override
 	protected void executeMerge(IProgressMonitor monitor) throws CoreException {
 		if (!sentToSyncView)
 			super.executeMerge(monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ModelMergeOperation#handlePreviewRequest()
-	 */
 	@Override
 	protected void handlePreviewRequest() {
 		Job job = new WorkbenchJob(getJobName()) {
@@ -166,9 +162,6 @@ public abstract class ModelParticipantMergeOperation extends ModelMergeOperation
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingOperation#getContext()
-	 */
 	@Override
 	protected ISynchronizationContext getContext() {
 		if (participant != null)
@@ -176,9 +169,6 @@ public abstract class ModelParticipantMergeOperation extends ModelMergeOperation
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ResourceMappingOperation#getPreviewRequestMessage()
-	 */
 	@Override
 	protected String getPreviewRequestMessage() {
 		if (!isPreviewRequested()) {

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,7 +23,10 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ViewerSorter;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.team.core.synchronize.ISyncInfoSetChangeListener;
+import org.eclipse.team.core.synchronize.ISyncInfoTreeChangeEvent;
+import org.eclipse.team.core.synchronize.SyncInfo;
+import org.eclipse.team.core.synchronize.SyncInfoSet;
 import org.eclipse.team.ui.synchronize.ISynchronizeModelElement;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
 
@@ -42,7 +48,7 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 
 	protected final Map<IResource, ISynchronizeModelElement> resourceMap = Collections.synchronizedMap(new HashMap<>());
 
-    protected static final boolean DEBUG = false;
+	protected static final boolean DEBUG = false;
 
 	public SynchronizeModelProvider(ISynchronizePageConfiguration configuration, SyncInfoSet set) {
 		super(configuration, set);
@@ -53,10 +59,10 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 		associateRoot(modelRoot);
 	}
 
-    private void associateRoot(ISynchronizeModelElement modelRoot) {
-        // associate the root resource with the provider's root element
+	private void associateRoot(ISynchronizeModelElement modelRoot) {
+		// associate the root resource with the provider's root element
 		resourceMap.put(ResourcesPlugin.getWorkspace().getRoot(), modelRoot);
-    }
+	}
 
 	/**
 	 * Dispose of the builder
@@ -86,14 +92,14 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 		return resourceMap.get(resource);
 	}
 
-    @Override
+	@Override
 	protected ISynchronizeModelElement[] getModelObjects(IResource resource) {
-        ISynchronizeModelElement element = getModelObject(resource);
-        if (element == null) {
-            return new ISynchronizeModelElement[0];
-        }
-        return new ISynchronizeModelElement[] { element };
-    }
+		ISynchronizeModelElement element = getModelObject(resource);
+		if (element == null) {
+			return new ISynchronizeModelElement[0];
+		}
+		return new ISynchronizeModelElement[] { element };
+	}
 
 	protected void associateDiffNode(ISynchronizeModelElement node) {
 		IResource resource = node.getResource();
@@ -124,16 +130,15 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 	 * @param resources the resources to remove
 	 */
 	protected void removeFromViewer(IResource[] resources) {
-	    List<ISynchronizeModelElement> elements = new ArrayList<>();
-	    for (int i = 0; i < resources.length; i++) {
-            IResource resource = resources[i];
+		List<ISynchronizeModelElement> elements = new ArrayList<>();
+		for (IResource resource : resources) {
 			ISynchronizeModelElement element = getModelObject(resource);
 			if(element != null) {
-			    elements.add(element);
+				elements.add(element);
 			}
-        }
+		}
 		if (!elements.isEmpty()) {
-		    removeFromViewer(elements.toArray(new ISynchronizeModelElement[elements.size()]));
+			removeFromViewer(elements.toArray(new ISynchronizeModelElement[elements.size()]));
 		}
 	}
 
@@ -141,11 +146,11 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 	protected void recursiveClearModelObjects(ISynchronizeModelElement node) {
 		super.recursiveClearModelObjects(node);
 		if (node == getModelRoot()) {
-	        // If we are clearing everything under the root
-	        // than just purge the resource map
-	        resourceMap.clear();
-	        // Reassociate the root node to allow the children to be readded
-	        associateRoot(getModelRoot());
+			// If we are clearing everything under the root
+			// than just purge the resource map
+			resourceMap.clear();
+			// Reassociate the root node to allow the children to be readded
+			associateRoot(getModelRoot());
 		} else {
 			IResource resource = node.getResource();
 			if (resource != null) {
@@ -160,10 +165,10 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 		super.addToViewer(node);
 	}
 
-    @Override
+	@Override
 	protected boolean hasViewerState() {
-        return ! resourceMap.isEmpty();
-    }
+		return ! resourceMap.isEmpty();
+	}
 
 	@Override
 	public ISynchronizeModelElement[] getClosestExistingParents(IResource resource) {
@@ -175,22 +180,21 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 			} while(element == null && resource != null);
 		}
 		if (element == null) {
-		    return new ISynchronizeModelElement[0];
+			return new ISynchronizeModelElement[0];
 		}
 		return new ISynchronizeModelElement[] { element };
 	}
 
-    @Override
+	@Override
 	protected final void handleChanges(ISyncInfoTreeChangeEvent event, IProgressMonitor monitor) {
-        super.handleChanges(event, monitor);
-    }
+		super.handleChanges(event, monitor);
+	}
 
 	@Override
 	protected void handleResourceChanges(ISyncInfoTreeChangeEvent event) {
 		// Refresh the viewer for each changed resource
 		SyncInfo[] infos = event.getChangedResources();
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			IResource local = info.getLocal();
 			ISynchronizeModelElement diffNode = getModelObject(local);
 			if (diffNode != null) {
@@ -199,12 +203,12 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 		}
 	}
 
-    /**
-     * The sync state for the existing diff node has changed and the new state
-     * is provided by the given sync info.
-     * @param diffNode the changed diff node
-     * @param info the new sync state
-     */
+	/**
+	 * The sync state for the existing diff node has changed and the new state
+	 * is provided by the given sync info.
+	 * @param diffNode the changed diff node
+	 * @param info the new sync state
+	 */
 	protected void handleChange(ISynchronizeModelElement diffNode, SyncInfo info) {
 		IResource local = info.getLocal();
 
@@ -221,30 +225,29 @@ public abstract class SynchronizeModelProvider extends AbstractSynchronizeModelP
 		}
 	}
 
-    /**
-     * Add the give sync infos to the provider, creating
-     * any intermediate nodes a required.
-     * @param added the added infos
-     */
+	/**
+	 * Add the give sync infos to the provider, creating
+	 * any intermediate nodes a required.
+	 * @param added the added infos
+	 */
 	protected void addResources(SyncInfo[] added) {
-		for (int i = 0; i < added.length; i++) {
-			SyncInfo info = added[i];
-            addResource(info);
+		for (SyncInfo info : added) {
+			addResource(info);
 		}
 	}
 
 	/**
-     * Add the give sync info to the provider, creating
-     * any intermediate nodes a required and adding any children as well
-     * @param info the added infos
-     */
-    protected abstract void addResource(SyncInfo info);
+	 * Add the give sync info to the provider, creating
+	 * any intermediate nodes a required and adding any children as well
+	 * @param info the added infos
+	 */
+	protected abstract void addResource(SyncInfo info);
 
-    /**
+	/**
 	 * Create the model object for the given sync info as a child of the given parent node.
 	 * @param parent the parent
 	 * @param info the info to be used for the new node
 	 * @return the created node
 	 */
-    protected abstract ISynchronizeModelElement createModelObject(ISynchronizeModelElement parent, SyncInfo info);
+	protected abstract ISynchronizeModelElement createModelObject(ISynchronizeModelElement parent, SyncInfo info);
 }

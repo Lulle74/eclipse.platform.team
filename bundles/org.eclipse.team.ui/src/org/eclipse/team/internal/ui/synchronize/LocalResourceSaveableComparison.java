@@ -1,21 +1,32 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.synchronize;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.IContentChangeListener;
+import org.eclipse.compare.IContentChangeNotifier;
+import org.eclipse.compare.ISharedDocumentAdapter;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.SharedDocumentAdapter;
 import org.eclipse.compare.contentmergeviewer.ContentMergeViewer;
 import org.eclipse.compare.internal.ISavingSaveable;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -23,7 +34,11 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.mapping.SaveableComparison;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.Saveable;
@@ -43,7 +58,7 @@ public abstract class LocalResourceSaveableComparison extends SaveableComparison
 	private final CompareEditorInput editorInput;
 	private boolean isSaving;
 	private IContentChangeListener contentChangeListener;
-    private ITypedElement fileElement;
+	private ITypedElement fileElement;
 	private IDocument document;
 
 	/**
@@ -108,7 +123,7 @@ public abstract class LocalResourceSaveableComparison extends SaveableComparison
 		// Discard of the buffer
 		ITypedElement left = getFileElement();
 		if (left instanceof LocalResourceTypedElement)
-			 ((LocalResourceTypedElement) left).discardBuffer();
+			((LocalResourceTypedElement) left).discardBuffer();
 		document = null;
 	}
 
@@ -230,7 +245,7 @@ public abstract class LocalResourceSaveableComparison extends SaveableComparison
 		// Only the left is ever editable
 		ITypedElement left = getFileElement();
 		if (left instanceof LocalResourceTypedElement)
-			 ((LocalResourceTypedElement) left).discardBuffer();
+			((LocalResourceTypedElement) left).discardBuffer();
 	}
 
 	@Override
@@ -302,9 +317,6 @@ public abstract class LocalResourceSaveableComparison extends SaveableComparison
 		return input.hashCode();
 	}
 
-	/*
-	 * @see org.eclipse.ui.Saveable#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

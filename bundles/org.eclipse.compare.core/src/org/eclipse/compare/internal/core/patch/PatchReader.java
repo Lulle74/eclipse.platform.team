@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,20 +16,11 @@ package org.eclipse.compare.internal.core.patch;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.eclipse.compare.patch.IFilePatch2;
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.*;
 
 import com.ibm.icu.text.DateFormat;
 import com.ibm.icu.text.SimpleDateFormat;
@@ -85,8 +79,8 @@ public class PatchReader {
 	}
 
 	public void parse(BufferedReader reader) throws IOException {
-		List<FilePatch2> diffs= new ArrayList<FilePatch2>();
-		HashMap<String, DiffProject> diffProjects= new HashMap<String, DiffProject>(4);
+		List<FilePatch2> diffs= new ArrayList<>();
+		HashMap<String, DiffProject> diffProjects= new HashMap<>(4);
 		String line= null;
 		boolean reread= false;
 		String diffArgs= null;
@@ -98,9 +92,7 @@ public class PatchReader {
 		this.fIsGitPatch = false;
 
 		LineReader lr= new LineReader(reader);
-		if (!Platform.WS_CARBON.equals(Platform.getWS()))
-			lr.ignoreSingleCR(); // Don't treat single CRs as line feeds to be consistent with command line patch
-
+		lr.ignoreSingleCR(); // Don't treat single CRs as line feeds to be consistent with command line patch
 		// Test for our format
 		line= lr.readLine();
 		if (line != null && line.startsWith(PatchReader.MULTIPROJECTPATCH_HEADER)) {
@@ -165,10 +157,9 @@ public class PatchReader {
 	}
 
 	private String readUnifiedDiff(List<FilePatch2> diffs, LineReader lr, String line, String diffArgs, String fileName, DiffProject diffProject) throws IOException {
-		List<FilePatch2> newDiffs= new ArrayList<FilePatch2>();
+		List<FilePatch2> newDiffs= new ArrayList<>();
 		String nextLine= readUnifiedDiff(newDiffs, lr, line, diffArgs, fileName);
-		for (Iterator<FilePatch2> iter= newDiffs.iterator(); iter.hasNext();) {
-			FilePatch2 diff= iter.next();
+		for (FilePatch2 diff : newDiffs) {
 			diffProject.add(diff);
 			diffs.add(diff);
 		}
@@ -176,11 +167,11 @@ public class PatchReader {
 	}
 
 	public void parse(LineReader lr, String line) throws IOException {
-		List<FilePatch2> diffs= new ArrayList<FilePatch2>();
+		List<FilePatch2> diffs= new ArrayList<>();
 		boolean reread= false;
 		String diffArgs= null;
 		String fileName= null;
-		List<String> headerLines = new ArrayList<String>();
+		List<String> headerLines = new ArrayList<>();
 		boolean foundDiff= false;
 
 		// read leading garbage
@@ -255,7 +246,7 @@ public class PatchReader {
 		int[] newRange= new int[2];
 		int remainingOld= -1; // remaining old lines for current hunk
 		int remainingNew= -1; // remaining new lines for current hunk
-		List<String> lines= new ArrayList<String>();
+		List<String> lines= new ArrayList<>();
 
 		boolean encounteredPlus = false;
 		boolean encounteredMinus = false;
@@ -379,8 +370,8 @@ public class PatchReader {
 
 		int[] oldRange= new int[2];
 		int[] newRange= new int[2];
-		List<String> oldLines= new ArrayList<String>();
-		List<String> newLines= new ArrayList<String>();
+		List<String> oldLines= new ArrayList<>();
+		List<String> newLines= new ArrayList<>();
 		List<String> lines= oldLines;
 
 
@@ -479,7 +470,7 @@ public class PatchReader {
 	 * two Lists of lines in the 'classic' format.
 	 */
 	private List<String> unifyLines(List<String> oldLines, List<String> newLines) {
-		List<String> result= new ArrayList<String>();
+		List<String> result= new ArrayList<>();
 
 		String[] ol= oldLines.toArray(new String[oldLines.size()]);
 		String[] nl= newLines.toArray(new String[newLines.size()]);
@@ -603,10 +594,10 @@ public class PatchReader {
 	private long extractDate(String[] args, int n) {
 		if (n < args.length) {
 			String line= args[n];
-			for (int i= 0; i < this.fDateFormats.length; i++) {
-				this.fDateFormats[i].setLenient(true);
+			for (DateFormat dateFormat : this.fDateFormats) {
+				dateFormat.setLenient(true);
 				try {
-					Date date= this.fDateFormats[i].parse(line);
+					Date date = dateFormat.parse(line);
 					return date.getTime();
 				} catch (ParseException ex) {
 					// silently ignored
@@ -679,7 +670,7 @@ public class PatchReader {
 		while (st.hasMoreElements()) {
 			String token= st.nextToken().trim();
 			if (token.length() > 0)
- 				l.add(token);
+				l.add(token);
 		}
 		return l.toArray(new String[l.size()]);
 	}
@@ -703,9 +694,8 @@ public class PatchReader {
 	public FilePatch2[] getAdjustedDiffs() {
 		if (!isWorkspacePatch() || this.fDiffs.length == 0)
 			return this.fDiffs;
-		List<FilePatch2> result = new ArrayList<FilePatch2>();
-		for (int i = 0; i < this.fDiffs.length; i++) {
-			FilePatch2 diff = this.fDiffs[i];
+		List<FilePatch2> result = new ArrayList<>();
+		for (FilePatch2 diff : this.fDiffs) {
 			result.add(diff.asRelativeDiff());
 		}
 		return result.toArray(new FilePatch2[result.size()]);

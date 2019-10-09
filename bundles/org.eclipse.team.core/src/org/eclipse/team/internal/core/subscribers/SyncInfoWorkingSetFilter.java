@@ -1,21 +1,29 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core.subscribers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.core.subscribers.*;
-import org.eclipse.team.core.synchronize.*;
+import org.eclipse.team.core.subscribers.Subscriber;
+import org.eclipse.team.core.synchronize.FastSyncInfoFilter;
+import org.eclipse.team.core.synchronize.SyncInfo;
 import org.eclipse.team.internal.core.TeamPlugin;
 
 /**
@@ -38,8 +46,7 @@ public class SyncInfoWorkingSetFilter extends FastSyncInfoFilter {
 	private boolean isIncluded(IResource resource) {
 		// otherwise, if their is a parent of the resource in the set,
 		// it is included
-		for (int i = 0; i < resources.length; i++) {
-			IResource setResource = resources[i];
+		for (IResource setResource : resources) {
 			if (isParent(setResource, resource)) {
 				return true;
 			}
@@ -57,8 +64,7 @@ public class SyncInfoWorkingSetFilter extends FastSyncInfoFilter {
 
 		// filter the roots by the selected working set
 		Set<IResource> result = new HashSet<>();
-		for (int i = 0; i < roots.length; i++) {
-			IResource resource = roots[i];
+		for (IResource resource : roots) {
 			result.addAll(Arrays.asList(getIntersectionWithSet(subscriber, resource)));
 		}
 		return result.toArray(new IResource[result.size()]);
@@ -70,8 +76,7 @@ public class SyncInfoWorkingSetFilter extends FastSyncInfoFilter {
 	 */
 	private IResource[] getIntersectionWithSet(Subscriber subscriber, IResource resource) {
 		List<IResource> result = new ArrayList<>();
-		for (int i = 0; i < resources.length; i++) {
-			IResource setResource = resources[i];
+		for (IResource setResource : resources) {
 			if (setResource != null) {
 				if (isParent(resource, setResource)) {
 					try {

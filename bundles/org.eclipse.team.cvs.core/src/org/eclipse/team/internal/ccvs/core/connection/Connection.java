@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2014 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -170,7 +173,7 @@ public class Connection {
 
 		String result = new String(buffer, 0, index, getEncoding(location));
 		if (Policy.isDebugProtocol())
-		    Policy.printProtocolLine(result);
+			Policy.printProtocolLine(result);
 		return result;
 	}
 
@@ -180,7 +183,7 @@ public class Connection {
 	 * Sends the given string to the server.
 	 */
 	public void write(String s) throws CVSException {
-        try {
+		try {
 			write(s.getBytes(fServerEncoding), false);
 		} catch (UnsupportedEncodingException e) {
 			IStatus status = new CVSStatus(IStatus.ERROR, CVSStatus.SERVER_ERROR, e.getMessage(), e, fCVSRoot);
@@ -221,7 +224,7 @@ public class Connection {
 			throw new CVSCommunicationException(CVSMessages.Connection_writeUnestablishedConnection,fCVSRoot,null);
 			
 		if (Policy.isDebugProtocol())
-		    Policy.printProtocol(new String(b, off, len), newline);
+			Policy.printProtocol(new String(b, off, len), newline);
 	
 		try {
 			OutputStream out= getOutputStream();

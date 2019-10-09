@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +21,8 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -64,15 +68,13 @@ public class CheckoutAsMainPage extends CVSWizardPage {
 		this.allowProjectConfiguration = allowProjectConfiguration;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 
 		Composite composite = createComposite(parent, 1, false);
 		setControl(composite);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_CONFIGURATION_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.CHECKOUT_CONFIGURATION_PAGE);
 		
 		if (isSingleFolder()) {
 			createSingleFolderArea(composite);
@@ -81,7 +83,7 @@ public class CheckoutAsMainPage extends CVSWizardPage {
 		}
 
 		updateEnablements();
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 
 	/*
@@ -125,11 +127,7 @@ public class CheckoutAsMainPage extends CVSWizardPage {
 		
 		// Should sub-folders of the folder be checked out?
 		recurseCheck = createCheckBox(composite, CVSUIMessages.CheckoutAsProjectSelectionPage_recurse); 
-		recurseCheck.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				recurse = recurseCheck.getSelection();
-			}
-		});
+		recurseCheck.addListener(SWT.Selection, event -> recurse = recurseCheck.getSelection());
 		recurseCheck.setSelection(recurse);
 		
 		addWorkingSetSection(composite, CVSUIMessages.CheckoutAsMainPage_WorkingSetSingle);
@@ -194,11 +192,7 @@ public class CheckoutAsMainPage extends CVSWizardPage {
 		projectNameField.selectAll();
 	
 		// Set the listener to capture modify events
-		projectNameField.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				updateEnablements();
-			}
-		});
+		projectNameField.addModifyListener(e -> updateEnablements());
 	}
 	
 	/**
@@ -239,12 +233,12 @@ public class CheckoutAsMainPage extends CVSWizardPage {
 	public boolean isPerformCheckoutAs() {
 		return simpleProjectButton.getSelection();
 	}
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.wizards.CVSWizardPage#createRadioButton(org.eclipse.swt.widgets.Composite, java.lang.String, int)
-	 */
+
+	@Override
 	protected Button createRadioButton(Composite parent, String label, int span) {
 		Button radio = super.createRadioButton(parent, label, span);
 		radio.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				updateEnablements();
 			}

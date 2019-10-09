@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -30,13 +33,12 @@ public class CommitAction extends AbstractCommitAction implements IPropertyChang
 		setActionDefinitionId(ICVSUIConstants.CMD_COMMIT);
 	}
 	
+	@Override
 	protected String getBundleKeyPrefix() {
 		return "WorkspaceCommitAction."; //$NON-NLS-1$
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.mapping.ModelProviderAction#isEnabledForSelection(org.eclipse.jface.viewers.IStructuredSelection)
-	 */
+	@Override
 	protected boolean isEnabledForSelection(IStructuredSelection selection) {
 		return internalIsEnabled(selection);
 	}
@@ -50,20 +52,20 @@ public class CommitAction extends AbstractCommitAction implements IPropertyChang
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse.jface.util.PropertyChangeEvent)
-	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getSource() == getConfiguration() && event.getProperty() == ISynchronizePageConfiguration.P_MODE) {
 			setEnabled(internalIsEnabled(getStructuredSelection()));
 		}
 	}
 
+	@Override
 	protected ResourceTraversal[] getCommitTraversals(IStructuredSelection selection, IProgressMonitor monitor)
 			throws CoreException {
 		return getResourceTraversals(selection, monitor);
 	}
 
+	@Override
 	protected IStructuredSelection getActualSelection() throws CVSException {
 		IStructuredSelection selection = getStructuredSelection();
 		IStructuredSelection actualSelection = internalGetActualSelection();

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,16 +14,25 @@
 package org.eclipse.team.internal.ui.synchronize.actions;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SaveablesCompareEditorInput;
-import org.eclipse.team.ui.synchronize.*;
-import org.eclipse.ui.*;
-import org.eclipse.ui.actions.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ISynchronizePageSite;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
+import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.actions.ContributionItemFactory;
+import org.eclipse.ui.actions.OpenWithMenu;
 import org.eclipse.ui.keys.IBindingService;
 
 /**
@@ -77,11 +89,11 @@ public class OpenWithActionGroup extends ActionGroup {
 	 */
 	private void fillOpenWithMenu(IMenuManager menu, String groupId, IStructuredSelection selection) {
 
-        // Only supported if at least one file is selected.
-        if (selection == null || selection.size() < 1)
-            return;
-        Object[] elements = selection.toArray();
-        IResource resources[] = Utils.getResources(elements);
+		// Only supported if at least one file is selected.
+		if (selection == null || selection.size() < 1)
+			return;
+		Object[] elements = selection.toArray();
+		IResource resources[] = Utils.getResources(elements);
 		if (resources.length == 0) {
 			if (openInCompareAction != null) {
 				// We can still show the compare editor open if the element has
@@ -91,8 +103,8 @@ public class OpenWithActionGroup extends ActionGroup {
 					if (participant instanceof ModelSynchronizeParticipant) {
 						ModelSynchronizeParticipant msp = (ModelSynchronizeParticipant) participant;
 						boolean allElementsHaveCompareInput = true;
-						for (int i = 0; i < elements.length; i++) {
-							if (!msp.hasCompareInputFor(elements[i])) {
+						for (Object element : elements) {
+							if (!msp.hasCompareInputFor(element)) {
 								allElementsHaveCompareInput = false;
 								break;
 							}
@@ -106,14 +118,14 @@ public class OpenWithActionGroup extends ActionGroup {
 			return;
 		}
 
-        if (elements.length != resources.length){
-        	// Only supported if all the items are resources.
-        	return;
-        }
+		if (elements.length != resources.length){
+			// Only supported if all the items are resources.
+			return;
+		}
 
-        boolean allFiles = true;
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i].getType() != IResource.FILE) {
+		boolean allFiles = true;
+		for (IResource resource : resources) {
+			if (resource.getType() != IResource.FILE) {
 				// Open actions are only supported if all the items are files.
 				allFiles = false;
 				break;
@@ -126,8 +138,8 @@ public class OpenWithActionGroup extends ActionGroup {
 			}
 		}
 
-		for (int i = 0; i < resources.length; i++) {
-			if (!resources[i].exists()) {
+		for (IResource resource : resources) {
+			if (!resource.exists()) {
 				// Only support non-compare actions if all resources exist.
 				return;
 			}
@@ -161,7 +173,7 @@ public class OpenWithActionGroup extends ActionGroup {
 			showInSubmenu.add(showInMenu);
 			menu.appendToGroup(groupId, showInSubmenu);
 		}
-    }
+	}
 
 	/**
 	 * {@link SaveablesCompareEditorInput#getShowInMenuLabel}

@@ -1,33 +1,54 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.mapping;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
 import org.eclipse.core.resources.mapping.ModelProvider;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.SWTUtils;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 
 public class ModelEnablementPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
@@ -126,10 +147,10 @@ public class ModelEnablementPreferencePage extends PreferencePage implements IWo
 				if (e1 instanceof ITeamContentProviderDescriptor && e2 instanceof ITeamContentProviderDescriptor) {
 					ITeamContentProviderDescriptor d1 = (ITeamContentProviderDescriptor) e1;
 					ITeamContentProviderDescriptor d2 = (ITeamContentProviderDescriptor) e2;
-				    IModelProviderDescriptor md1 = ModelProvider.getModelProviderDescriptor(d1.getModelProviderId());
-				    IModelProviderDescriptor md2 = ModelProvider.getModelProviderDescriptor(d2.getModelProviderId());
-				    if (md1 != null && md2 != null)
-				    	return getLabel(md1).compareTo(getLabel(md2));
+					IModelProviderDescriptor md1 = ModelProvider.getModelProviderDescriptor(d1.getModelProviderId());
+					IModelProviderDescriptor md2 = ModelProvider.getModelProviderDescriptor(d2.getModelProviderId());
+					if (md1 != null && md2 != null)
+						return getLabel(md1).compareTo(getLabel(md2));
 				}
 				return super.compare(viewer, e1, e2);
 			}
@@ -146,8 +167,7 @@ public class ModelEnablementPreferencePage extends PreferencePage implements IWo
 
 	private void updateChecks() {
 		ITeamContentProviderDescriptor[] descriptors = TeamUI.getTeamContentProviderManager().getDescriptors();
-		for (int i = 0; i < descriptors.length; i++) {
-			ITeamContentProviderDescriptor descriptor = descriptors[i];
+		for (ITeamContentProviderDescriptor descriptor : descriptors) {
 			if (descriptor.isEnabled()) {
 				previosulyEnabled.add(descriptor);
 			}
@@ -171,11 +191,10 @@ public class ModelEnablementPreferencePage extends PreferencePage implements IWo
 
 	private boolean hasDescriptorEnablementChanged(Object[] checked) {
 		ITeamContentProviderDescriptor[] descriptors = TeamUI.getTeamContentProviderManager().getDescriptors();
-		for (int i = 0; i < descriptors.length; i++) {
-			ITeamContentProviderDescriptor descriptor = descriptors[i];
+		for (ITeamContentProviderDescriptor descriptor : descriptors) {
 			boolean enable = false;
-			for (int j = 0; j < checked.length; j++) {
-				ITeamContentProviderDescriptor checkedDesc = (ITeamContentProviderDescriptor)checked[j];
+			for (Object c : checked) {
+				ITeamContentProviderDescriptor checkedDesc = (ITeamContentProviderDescriptor) c;
 				if (checkedDesc.getModelProviderId().equals(descriptor.getModelProviderId())) {
 					enable = true;
 					break;

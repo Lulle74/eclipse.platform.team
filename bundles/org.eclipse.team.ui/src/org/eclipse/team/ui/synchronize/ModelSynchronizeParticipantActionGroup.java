@@ -1,26 +1,38 @@
 /*******************************************************************************
  * Copyright (c) 2005, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.ui.synchronize;
 
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.team.core.mapping.IMergeContext;
 import org.eclipse.team.core.mapping.ISynchronizationContext;
 import org.eclipse.team.internal.ui.Utils;
-import org.eclipse.team.internal.ui.mapping.*;
+import org.eclipse.team.internal.ui.mapping.CommonMenuManager;
+import org.eclipse.team.internal.ui.mapping.MergeAction;
+import org.eclipse.team.internal.ui.mapping.MergeIncomingChangesAction;
+import org.eclipse.team.internal.ui.mapping.ModelSelectionDropDownAction;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.team.internal.ui.synchronize.actions.OpenInCompareAction;
 import org.eclipse.team.internal.ui.synchronize.actions.SyncViewerShowPreferencesAction;
 import org.eclipse.team.ui.mapping.SynchronizationActionProvider;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IKeyBindingService;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchSite;
 
 /**
  * Action group that contributes the merge actions to the model
@@ -72,9 +84,6 @@ public class ModelSynchronizeParticipantActionGroup extends SynchronizePageActio
 	private MergeAction overwrite;
 	private MergeAction markAsMerged;
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SynchronizePageActionGroup#initialize(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-	 */
 	@Override
 	public void initialize(ISynchronizePageConfiguration configuration) {
 		super.initialize(configuration);
@@ -111,15 +120,12 @@ public class ModelSynchronizeParticipantActionGroup extends SynchronizePageActio
 	@Override
 	public void fillActionBars(IActionBars actionBars) {
 		super.fillActionBars(actionBars);
-        if (actionBars != null && showPreferences != null) {
-        	IMenuManager menu = actionBars.getMenuManager();
-        	appendToGroup(menu, ISynchronizePageConfiguration.PREFERENCES_GROUP, showPreferences);
-        }
+		if (actionBars != null && showPreferences != null) {
+			IMenuManager menu = actionBars.getMenuManager();
+			appendToGroup(menu, ISynchronizePageConfiguration.PREFERENCES_GROUP, showPreferences);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SynchronizePageActionGroup#fillContextMenu(org.eclipse.jface.action.IMenuManager)
-	 */
 	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		super.fillContextMenu(menu);
@@ -128,22 +134,22 @@ public class ModelSynchronizeParticipantActionGroup extends SynchronizePageActio
 			addMergeActions(cmm);
 		}
 		Object[] elements = ((IStructuredSelection)getContext().getSelection()).toArray();
-    	if (elements.length > 0 && openInCompareAction != null) {
-    		IContributionItem fileGroup = findGroup(menu, ISynchronizePageConfiguration.FILE_GROUP);
-    		if (fileGroup != null) {
-    			ModelSynchronizeParticipant msp = ((ModelSynchronizeParticipant)getConfiguration().getParticipant());
-    			boolean allElementsHaveCompareInput = true;
-    			for (int i = 0; i < elements.length; i++) {
-    				if (!msp.hasCompareInputFor(elements[i])) {
-    					allElementsHaveCompareInput = false;
-    					break;
-    				}
-    			}
-    			if (allElementsHaveCompareInput) {
-    				menu.appendToGroup(fileGroup.getId(), openInCompareAction);
-    			}
-    		}
-    	}
+		if (elements.length > 0 && openInCompareAction != null) {
+			IContributionItem fileGroup = findGroup(menu, ISynchronizePageConfiguration.FILE_GROUP);
+			if (fileGroup != null) {
+				ModelSynchronizeParticipant msp = ((ModelSynchronizeParticipant)getConfiguration().getParticipant());
+				boolean allElementsHaveCompareInput = true;
+				for (Object element : elements) {
+					if (!msp.hasCompareInputFor(element)) {
+						allElementsHaveCompareInput = false;
+						break;
+					}
+				}
+				if (allElementsHaveCompareInput) {
+					menu.appendToGroup(fileGroup.getId(), openInCompareAction);
+				}
+			}
+		}
 	}
 
 	/*
@@ -271,9 +277,6 @@ public class ModelSynchronizeParticipantActionGroup extends SynchronizePageActio
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.SynchronizePageActionGroup#dispose()
-	 */
 	@Override
 	public void dispose() {
 		if (modelPicker != null)

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,8 +18,9 @@ import org.eclipse.compare.Splitter;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.*;
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -28,7 +32,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.team.core.diff.*;
 import org.eclipse.team.core.mapping.IResourceDiffTree;
-import org.eclipse.team.internal.ccvs.ui.*;
+import org.eclipse.team.internal.ccvs.ui.CVSUIMessages;
+import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
 import org.eclipse.team.internal.ccvs.ui.IHelpContextIds;
 import org.eclipse.team.internal.ccvs.ui.mappings.ModelSynchronizeWizard;
 import org.eclipse.team.internal.ui.*;
@@ -66,9 +71,7 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		this.project = project;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
+	@Override
 	public void createControl(Composite parent) {
 		
 		final PixelConverter converter= SWTUtils.createDialogPixelConverter(parent);
@@ -87,7 +90,7 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		
 		updatePage();
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_SYNC_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_SYNC_PAGE);
 		Dialog.applyDialogFont(parent);	
 	}
 	
@@ -125,21 +128,19 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 
 	/* private */ void showErrors(final IStatus[] status) {
 		if (status.length == 0) return;
-		getShell().getDisplay().syncExec(new Runnable() {
-		
-			public void run() {
-				String title = CVSUIMessages.SharingWizardSyncPage_8; 
-				if (status.length == 1) {
-					IStatus s = status[0];
-					if (s.getException() instanceof CoreException) {
-						s = ((CoreException)s.getException()).getStatus();
-					}
-					ErrorDialog.openError(getShell(), title, null, s);
-				} else {
-					MultiStatus multi = new MultiStatus(CVSUIPlugin.ID, 0, status, CVSUIMessages.SharingWizardSyncPage_9, null); 
-					ErrorDialog.openError(getShell(), title, null, multi);
+		getShell().getDisplay().syncExec(() -> {
+			String title = CVSUIMessages.SharingWizardSyncPage_8;
+			if (status.length == 1) {
+				IStatus s = status[0];
+				if (s.getException() instanceof CoreException) {
+					s = ((CoreException) s.getException()).getStatus();
 				}
-			}	
+				ErrorDialog.openError(getShell(), title, null, s);
+			} else {
+				MultiStatus multi = new MultiStatus(CVSUIPlugin.ID, 0, status, CVSUIMessages.SharingWizardSyncPage_9,
+						null);
+				ErrorDialog.openError(getShell(), title, null, multi);
+			}
 		});
 	}
 	
@@ -155,6 +156,7 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		cc.setLeftEditable(false);
 		cc.setRightEditable(false);
 		ParticipantPageCompareEditorInput part = new ParticipantPageCompareEditorInput(cc, configuration, participant) {
+			@Override
 			protected boolean isOfferToRememberParticipant() {
 				return false;
 			}
@@ -166,32 +168,27 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		return ModelSynchronizeWizard.createWorkspaceParticipant(Utils.getResourceMappings(new IProject[] { project }), getShell());
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#dispose()
-	 */
+	@Override
 	public void dispose() {
 		if (input != null) {
 			input.getParticipant().dispose();
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.WizardPage#setPreviousPage(org.eclipse.jface.wizard.IWizardPage)
-	 */
+	@Override
 	public void setPreviousPage(IWizardPage page) {
 		// There's no going back from this page
 		super.setPreviousPage(null);
 	}
 
 	private void updatePage() {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				if (pageBook.isDisposed()) return;
-				if (getDiffTree().isEmpty()) {
-					pageBook.showPage(noChangesPage);
-				} else {
-					pageBook.showPage(syncPage);
-				}
+		Display.getDefault().syncExec(() -> {
+			if (pageBook.isDisposed())
+				return;
+			if (getDiffTree().isEmpty()) {
+				pageBook.showPage(noChangesPage);
+			} else {
+				pageBook.showPage(syncPage);
 			}
 		});
 	}
@@ -200,9 +197,7 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		return (ModelSynchronizeParticipant)configuration.getParticipant();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.IDialogPage#setVisible(boolean)
-	 */
+	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (syncPage.isVisible()) {
@@ -250,6 +245,7 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 	private boolean hasOutgoingChanges() {
 		IResourceDiffTree tree = getDiffTree();
 		return tree != null && tree.hasMatchingDiffs(ResourcesPlugin.getWorkspace().getRoot().getFullPath(), new FastDiffFilter() {
+			@Override
 			public boolean select(IDiff diff) {
 				if (diff instanceof IThreeWayDiff) {
 					IThreeWayDiff twd = (IThreeWayDiff) diff;
@@ -267,11 +263,13 @@ public class SharingWizardSyncPage extends CVSWizardPage implements IDiffChangeL
 		return project;
 	}
 
+	@Override
 	public void diffsChanged(IDiffChangeEvent event, IProgressMonitor monitor) {
 		showErrors(event.getErrors());
 		updatePage();
 	}
 
+	@Override
 	public void propertyChanged(IDiffTree tree, int property, IPath[] paths) {
 		// Ignore
 	}

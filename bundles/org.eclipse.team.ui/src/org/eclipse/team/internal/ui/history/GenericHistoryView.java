@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,29 +14,65 @@
  *******************************************************************************/
 package org.eclipse.team.internal.ui.history;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Adapters;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuCreator;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.team.core.RepositoryProvider;
 import org.eclipse.team.core.history.IFileHistoryProvider;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement;
-import org.eclipse.team.ui.history.*;
-import org.eclipse.ui.*;
+import org.eclipse.team.ui.history.ElementLocalHistoryPageSource;
+import org.eclipse.team.ui.history.HistoryPage;
+import org.eclipse.team.ui.history.IHistoryPage;
+import org.eclipse.team.ui.history.IHistoryPageSource;
+import org.eclipse.team.ui.history.IHistoryView;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.ide.ResourceUtil;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.IPage;
+import org.eclipse.ui.part.IPageBookViewPage;
+import org.eclipse.ui.part.IShowInTarget;
+import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.PageBookView;
+import org.eclipse.ui.part.PluginTransfer;
+import org.eclipse.ui.part.ResourceTransfer;
+import org.eclipse.ui.part.ShowInContext;
 
 import com.ibm.icu.text.SimpleDateFormat;
 
@@ -139,8 +178,7 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 		public void updateName(IHistoryPage historyPage,
 				IHistoryPageSource pageSource) {
 			NavigationHistoryEntry[] historyEntries = getEntries();
-			for (int i = 0; i < historyEntries.length; i++) {
-				NavigationHistoryEntry historyEntry = historyEntries[i];
+			for (NavigationHistoryEntry historyEntry : historyEntries) {
 				if (historyEntry.matches(historyPage, pageSource))
 					historyEntry.name = historyPage.getName();
 			}
@@ -246,9 +284,8 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 
 		private IAction[] createActions() {
 			NavigationHistoryEntry[] entries = getDropDownEntries();
-			List<NavigationHistoryEntryAction> actions = new ArrayList<NavigationHistoryEntryAction>();
-			for (int i = 0; i < entries.length; i++) {
-				NavigationHistoryEntry navigationHistoryEntry = entries[i];
+			List<NavigationHistoryEntryAction> actions = new ArrayList<>();
+			for (NavigationHistoryEntry navigationHistoryEntry : entries) {
 				actions.add(new NavigationHistoryEntryAction(navigationHistoryEntry));
 			}
 			return actions.toArray(new IAction[actions.size()]);
@@ -278,8 +315,7 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 
 		private void updateCheckState() {
 			IAction[] actions = getActions();
-			for (int i = 0; i < actions.length; i++) {
-				IAction action = actions[i];
+			for (IAction action : actions) {
 				if (action instanceof NavigationHistoryEntryAction) {
 					NavigationHistoryEntryAction a = (NavigationHistoryEntryAction) action;
 					a.update();
@@ -696,9 +732,9 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 	private IHistoryPage searchHistoryViewsForObject(Object object, boolean  refresh, IHistoryPageSource pageSource) {
 		IWorkbenchPage page = getSite().getPage();
 		IViewReference[] historyViews = page.getViewReferences();
-		for (int i = 0; i < historyViews.length; i++) {
-			if (historyViews[i].getId().equals(VIEW_ID)){
-				IViewPart historyView = historyViews[i].getView(true);
+		for (IViewReference h : historyViews) {
+			if (h.getId().equals(VIEW_ID)) {
+				IViewPart historyView = h.getView(true);
 				if (historyView instanceof GenericHistoryView) {
 					GenericHistoryView ghv = (GenericHistoryView)historyView;
 					IHistoryPage historyPage = ghv.checkForExistingPage(object, refresh, pageSource);
@@ -714,9 +750,9 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 	public GenericHistoryView findUnpinnedHistoryView(){
 		IWorkbenchPage page = getSite().getPage();
 		IViewReference[] historyViews = page.getViewReferences();
-		for (int i = 0; i < historyViews.length; i++) {
-			if (historyViews[i].getId().equals(VIEW_ID)){
-				IViewPart historyView = historyViews[i].getView(false);
+		for (IViewReference h : historyViews) {
+			if (h.getId().equals(VIEW_ID)) {
+				IViewPart historyView = h.getView(false);
 				if (!((GenericHistoryView)historyView).isViewPinned())
 					return (GenericHistoryView) historyView;
 			}
@@ -811,7 +847,6 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 
 	@Override
 	public void dispose() {
-		super.dispose();
 		//Remove the drop listener
 		if (dropTarget != null && !dropTarget.isDisposed())
 			dropTarget.removeDropListener(dropAdapter);
@@ -819,6 +854,7 @@ public class GenericHistoryView extends PageBookView implements IHistoryView, IP
 		//Remove the selection listener
 		getSite().getPage().removePostSelectionListener(selectionListener);
 		navigateAction.dispose();
+		super.dispose();
 	}
 
 	@Override

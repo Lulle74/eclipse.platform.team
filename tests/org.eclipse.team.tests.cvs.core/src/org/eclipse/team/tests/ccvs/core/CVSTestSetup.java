@@ -1,25 +1,41 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2013 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.tests.ccvs.core;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 
-import junit.extensions.TestSetup;
-import junit.framework.Test;
-
-import org.eclipse.core.runtime.*;
-import org.eclipse.team.internal.ccvs.core.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.team.internal.ccvs.core.CVSException;
+import org.eclipse.team.internal.ccvs.core.CVSProviderPlugin;
+import org.eclipse.team.internal.ccvs.core.CVSStatus;
+import org.eclipse.team.internal.ccvs.core.ICVSRepositoryLocation;
 import org.eclipse.team.internal.ccvs.core.connection.CVSCommunicationException;
 import org.eclipse.team.internal.ccvs.core.connection.CVSRepositoryLocation;
 import org.eclipse.team.internal.ccvs.core.util.KnownRepositories;
+
+import junit.extensions.TestSetup;
+import junit.framework.Test;
 
 public class CVSTestSetup extends TestSetup {
 	public static final String REPOSITORY_LOCATION;
@@ -30,10 +46,10 @@ public class CVSTestSetup extends TestSetup {
 	public static final int WAIT_FACTOR;
 	public static final int COMPRESSION_LEVEL;
 	public static final boolean FAIL_IF_EXCEPTION_LOGGED;
-    public static final boolean RECORD_PROTOCOL_TRAFFIC;
-    public static final boolean ENSURE_SEQUENTIAL_ACCESS;
-    public static final boolean FAIL_ON_BAD_DIFF;
-    public static final int TIMEOUT = 600;
+	public static final boolean RECORD_PROTOCOL_TRAFFIC;
+	public static final boolean ENSURE_SEQUENTIAL_ACCESS;
+	public static final boolean FAIL_ON_BAD_DIFF;
+	public static final int TIMEOUT = 600;
 	
 	public static CVSRepositoryLocation repository;
 	public static CVSTestLogListener logListener;
@@ -49,9 +65,9 @@ public class CVSTestSetup extends TestSetup {
 		WAIT_FACTOR = Integer.parseInt(System.getProperty("eclipse.cvs.waitFactor", "1"));
 		COMPRESSION_LEVEL = Integer.parseInt(System.getProperty("eclipse.cvs.compressionLevel", "0"));
 		FAIL_IF_EXCEPTION_LOGGED = Boolean.valueOf(System.getProperty("eclipse.cvs.failLog", "true")).booleanValue();
-        RECORD_PROTOCOL_TRAFFIC = Boolean.valueOf(System.getProperty("eclipse.cvs.recordProtocolTraffic", "false")).booleanValue();
-        ENSURE_SEQUENTIAL_ACCESS = Boolean.valueOf(System.getProperty("eclipse.cvs.sequentialAccess", "false")).booleanValue();
-        FAIL_ON_BAD_DIFF = Boolean.valueOf(System.getProperty("eclipse.cvs.failOnBadDiff", "false")).booleanValue();
+		RECORD_PROTOCOL_TRAFFIC = Boolean.valueOf(System.getProperty("eclipse.cvs.recordProtocolTraffic", "false")).booleanValue();
+		ENSURE_SEQUENTIAL_ACCESS = Boolean.valueOf(System.getProperty("eclipse.cvs.sequentialAccess", "false")).booleanValue();
+		FAIL_ON_BAD_DIFF = Boolean.valueOf(System.getProperty("eclipse.cvs.failOnBadDiff", "false")).booleanValue();
 	}
 
 	public static void loadProperties() {
@@ -59,18 +75,14 @@ public class CVSTestSetup extends TestSetup {
 		if (propertiesFile == null) return;
 		File file = new File(propertiesFile);
 		if (file.isDirectory()) file = new File(file, "repository.properties");
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			try {
-				for (String line; (line = reader.readLine()) != null; ) {
-					if (line.startsWith("#")) continue;					
-					int sep = line.indexOf("=");
-					String property = line.substring(0, sep).trim();
-					String value = line.substring(sep + 1).trim();
-					System.setProperty("eclipse.cvs." + property, value);
-				}
-			} finally {
-				reader.close();
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			for (String line; (line = reader.readLine()) != null;) {
+				if (line.startsWith("#"))
+					continue;
+				int sep = line.indexOf("=");
+				String property = line.substring(0, sep).trim();
+				String value = line.substring(sep + 1).trim();
+				System.setProperty("eclipse.cvs." + property, value);
 			}
 		} catch (Exception e) {
 			System.err.println("Could not read repository properties file: " + file.getAbsolutePath());

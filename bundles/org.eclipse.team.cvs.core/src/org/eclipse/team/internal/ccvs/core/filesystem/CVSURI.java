@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -75,7 +78,7 @@ public class CVSURI {
 	}
 
 	private static URI convert(URI uri) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		String ssp = uri.getSchemeSpecificPart();
 		int i = ssp.lastIndexOf(':');
 		sb.append(ssp.substring(0, i)).append('#');
@@ -84,15 +87,15 @@ public class CVSURI {
 			sb.append(ssp.substring(i + 1, j));
 			String[] params = ssp.substring(j).split(";"); //$NON-NLS-1$
 			String projectName = ""; //$NON-NLS-1$
-			for (int k = 0; k < params.length; k++) {
+			for (String param : params) {
 				// PDE way of providing tags
-				if (params[k].startsWith("tag=")) { //$NON-NLS-1$
+				if (param.startsWith("tag=")) { //$NON-NLS-1$
 					sb.append(",version="); //$NON-NLS-1$
-					sb.append(params[k].substring(params[k].indexOf('=') + 1));
-				} else if (params[k].startsWith("version=")) { //$NON-NLS-1$
-					sb.append(',').append(params[k]);
-				} else if (params[k].startsWith("project=")) { //$NON-NLS-1$
-					projectName = params[k].substring(params[k].indexOf('=') + 1);
+					sb.append(param.substring(param.indexOf('=') + 1));
+				} else if (param.startsWith("version=")) { //$NON-NLS-1$
+					sb.append(',').append(param);
+				} else if (param.startsWith("project=")) { //$NON-NLS-1$
+					projectName = param.substring(param.indexOf('=') + 1);
 				}
 			}
 			sb.append(',').append(projectName); // can be ""

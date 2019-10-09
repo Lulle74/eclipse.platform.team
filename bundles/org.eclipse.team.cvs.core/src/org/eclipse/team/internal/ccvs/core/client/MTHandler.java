@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,23 +21,17 @@ public class MTHandler extends ResponseHandler {
 	private String nextLine;
 	private boolean isLineAvailable;
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.client.ResponseHandler#getInstance()
-	 */
+	@Override
 	ResponseHandler getInstance() {
 		return new MTHandler();
 	}
 
-	/**
-	 * @see ResponseHandler#getResponseID()
-	 */
+	@Override
 	public String getResponseID() {
 		return "MT"; //$NON-NLS-1$
 	}
 
-	/**
-	 * @see ResponseHandler#handle(Session, String, IProgressMonitor)
-	 */
+	@Override
 	public void handle(Session session, String argument, IProgressMonitor monitor)
 		throws CVSException {
 		

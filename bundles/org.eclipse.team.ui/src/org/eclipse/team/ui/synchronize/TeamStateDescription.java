@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -77,8 +80,7 @@ public class TeamStateDescription implements ITeamStateDescription {
 			if (dsd.getStateFlags() == state) {
 				if (haveSameProperties(this, dsd)) {
 					String[] properties = getPropertyNames();
-					for (int i = 0; i < properties.length; i++) {
-						String property = properties[i];
+					for (String property : properties) {
 						Object o1 = this.getProperty(property);
 						Object o2 = dsd.getProperty(property);
 						if (!o1.equals(o2)) {
@@ -99,11 +101,9 @@ public class TeamStateDescription implements ITeamStateDescription {
 		if (p1.length != p2.length) {
 			return false;
 		}
-		for (int i = 0; i < p1.length; i++) {
-			String s1 = p1[i];
+		for (String s1 : p1) {
 			boolean found = false;
-			for (int j = 0; j < p2.length; j++) {
-				String s2 = p2[j];
+			for (String s2 : p2) {
 				if (s1.equals(s2)) {
 					found = true;
 					break;

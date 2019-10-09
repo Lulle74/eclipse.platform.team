@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -24,20 +27,14 @@ public class RepositoryProviderWithLinking extends RepositoryProvider {
 
 	private static boolean canHandleLinkedURI;
 
-	/**
-	 * @see org.eclipse.team.core.RepositoryProvider#configureProject()
-	 */
+	@Override
 	public void configureProject() throws CoreException {
 	}
-	/**
-	 * @see org.eclipse.team.core.RepositoryProvider#getID()
-	 */
+	@Override
 	public String getID() {
 		return TYPE_ID;
 	}
-	/**
-	 * @see org.eclipse.core.resources.IProjectNature#deconfigure()
-	 */
+	@Override
 	public void deconfigure() throws CoreException {
 	}
 
@@ -45,9 +42,7 @@ public class RepositoryProviderWithLinking extends RepositoryProvider {
 		RepositoryProviderWithLinking.canHandleLinking = canHandleLinking;
 	}
 
-	/**
-	 * @see org.eclipse.team.core.RepositoryProvider#canHandleLinkedResources()
-	 */
+	@Override
 	public boolean canHandleLinkedResources() {
 		return canHandleLinking;
 	}
@@ -56,9 +51,7 @@ public class RepositoryProviderWithLinking extends RepositoryProvider {
 		RepositoryProviderWithLinking.canHandleLinkedURI = canHandleLinkedURI;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.RepositoryProvider#canHandleLinkedResourceURI()
-	 */
+	@Override
 	public boolean canHandleLinkedResourceURI() {
 		return RepositoryProviderWithLinking.canHandleLinkedURI;
 	}

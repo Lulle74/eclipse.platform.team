@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -23,9 +26,7 @@ public class CVSMergeSyncInfo extends CVSSyncInfo {
 		super(local, base, remote, subscriber);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.CVSSyncInfo#handleDeletionConflicts(int)
-	 */
+	@Override
 	protected int handleDeletionConflicts(int kind) {
 		// (see bug 40053).
 		if(kind == (SyncInfo.CONFLICTING | SyncInfo.DELETION | SyncInfo.PSEUDO_CONFLICT)) {
@@ -50,9 +51,7 @@ public class CVSMergeSyncInfo extends CVSSyncInfo {
 		return kind;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.CVSSyncInfo#makeOutgoing(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	public IStatus makeOutgoing(IProgressMonitor monitor) throws TeamException {
 		// Make the resource outgoing by marking it as merged with the subscriber
 		CVSMergeSubscriber subscriber = (CVSMergeSubscriber)getSubscriber();

@@ -1,16 +1,22 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ui.registry;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
@@ -52,7 +58,7 @@ public class SynchronizeWizardDescription {
 
 		// Sanity check.
 		if ((label == null) || (className == null) || (identifier == null) || (description == null)) {
-			throw new CoreException(new Status(IStatus.ERROR, configElement.getNamespace(), 0, "Invalid extension (missing label or class name): " + identifier, //$NON-NLS-1$
+			throw new CoreException(new Status(IStatus.ERROR, configElement.getContributor().getName(), 0, "Invalid extension (missing label or class name): " + identifier, //$NON-NLS-1$
 					null));
 		}
 

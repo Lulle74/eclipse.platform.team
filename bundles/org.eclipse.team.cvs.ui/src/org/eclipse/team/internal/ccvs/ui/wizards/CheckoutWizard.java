@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,8 +16,6 @@ package org.eclipse.team.internal.ccvs.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -45,9 +46,7 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		setWindowTitle(CVSUIMessages.CheckoutWizard_0); 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#addPages()
-	 */
+	@Override
 	public void addPages() {
 		setNeedsProgressMonitor(true);
 		
@@ -74,6 +73,7 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		
 		// Dummy page to allow lazy creation of CheckoutAsWizard
 		dummyPage = new CVSWizardPage("dummyPage") { //$NON-NLS-1$
+			@Override
 			public void createControl(Composite parent) {
 				Composite composite = createComposite(parent, 1, false);
 				setControl(composite);
@@ -86,17 +86,13 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		return CVSUIPlugin.getPlugin().getImageDescriptor(ICVSUIConstants.IMG_WIZBAN_CHECKOUT);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#canFinish()
-	 */
+	@Override
 	public boolean canFinish() {
 		return (wizard == null && getSelectedModules().length > 0) || 
 			(wizard != null && wizard.canFinish());
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#performFinish()
-	 */
+	@Override
 	public boolean performFinish() {
 		if (wizard != null) {
 			// The finish of the child wizard will get called directly.
@@ -127,9 +123,7 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#performCancel()
-	 */
+	@Override
 	public boolean performCancel() {
 		if (location != null && isNewLocation) {
 			KnownRepositories.getInstance().disposeRepository(location);
@@ -138,18 +132,14 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		return wizard == null || wizard.performCancel();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.IWizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
-	 */
+	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 		// Assume the page is about to be shown when this method is
 		// invoked
 		return getNextPage(page, true /* about to show*/);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.wizards.ICVSWizard#getNextPage(org.eclipse.jface.wizard.IWizardPage, boolean)
-	 */
+	@Override
 	public IWizardPage getNextPage(IWizardPage page, boolean aboutToShow) {
 		if (page == locationPage) {
 			if (locationPage.getLocation() == null) {
@@ -181,8 +171,7 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		if (page == modulePage) {
 			ICVSRemoteFolder[] selectedModules = getSelectedModules();
 			if (selectedModules.length == 0) return null;
-			for (int i = 0; i < selectedModules.length; i++) {
-				ICVSRemoteFolder folder = selectedModules[i];
+			for (ICVSRemoteFolder folder : selectedModules) {
 				if (folder.isDefinedModule()) {
 					// No further configuration is possible for defined modules
 					return null;
@@ -201,13 +190,12 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 						final ICVSRemoteFolder[] folderResult = new ICVSRemoteFolder [1];
 						final boolean[] booleanResult = new boolean[] { true };
 						
-						getContainer().run(true, true, new IRunnableWithProgress() {
-							public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-								ProjectMetaFileOperation op = new ProjectMetaFileOperation(getPart(), new ICVSRemoteFolder[] {folders[0]}, withName);
-								op.run(monitor);
-								folderResult[0] = op.getUpdatedFolders()[0];
-								booleanResult[0] = op.metaFileExists();
-							}
+						getContainer().run(true, true, monitor -> {
+							ProjectMetaFileOperation op = new ProjectMetaFileOperation(getPart(),
+									new ICVSRemoteFolder[] { folders[0] }, withName);
+							op.run(monitor);
+							folderResult[0] = op.getUpdatedFolders()[0];
+							booleanResult[0] = op.metaFileExists();
 						});
 						hasMetafile = booleanResult[0];
 						if (withName && hasMetafile)
@@ -258,13 +246,11 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		// Otherwise, get the location from the create location page
 		final ICVSRepositoryLocation[] locations = new ICVSRepositoryLocation[] { null };
 		final CVSException[] exception = new CVSException[] { null };
-		getShell().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				try {
-					locations[0] = createLocationPage.getLocation();
-				} catch (CVSException e) {
-					exception[0] = e;
-				}
+		getShell().getDisplay().syncExec(() -> {
+			try {
+				locations[0] = createLocationPage.getLocation();
+			} catch (CVSException e) {
+				exception[0] = e;
 			}
 		});
 		if (exception[0] != null) {
@@ -290,9 +276,7 @@ public class CheckoutWizard extends Wizard implements ICVSWizard, INewWizard {
 		return location;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench, org.eclipse.jface.viewers.IStructuredSelection)
-	 */
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 	}
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -20,7 +23,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.internal.ui.TeamUIPlugin;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorRegistry;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.actions.BaseSelectionListenerAction;
 
 public class OpenLocalFileAction extends BaseSelectionListenerAction {
@@ -36,8 +42,8 @@ public class OpenLocalFileAction extends BaseSelectionListenerAction {
 
 			Object[] objArray = structSel.toArray();
 
-			for (int i = 0; i < objArray.length; i++) {
-				IFileState state = (IFileState) objArray[i];
+			for (Object obj : objArray) {
+				IFileState state = (IFileState) obj;
 				if (!state.exists()) {
 					MessageDialog.openError(TeamUIPlugin.getActivePage().getActivePart().getSite().getShell(), TeamUIMessages.OpenRevisionAction_DeletedRevisionTitle, TeamUIMessages.OpenRevisionAction_DeletedRevisionMessage);
 				} else {
@@ -47,7 +53,6 @@ public class OpenLocalFileAction extends BaseSelectionListenerAction {
 						page.openEditor(new FileRevisionEditorInput(state), id);
 					}
 				}
-
 			}
 
 		} catch (Exception e) {

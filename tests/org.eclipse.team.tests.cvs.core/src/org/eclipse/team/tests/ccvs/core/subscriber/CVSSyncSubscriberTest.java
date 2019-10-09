@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -31,7 +34,7 @@ import org.eclipse.team.tests.ccvs.ui.ModelParticipantSyncInfoSource;
 public abstract class CVSSyncSubscriberTest extends EclipseTest {
 
 	private ISubscriberChangeListener listener;
-	private List accumulatedTeamDeltas = new ArrayList();
+	private List<ISubscriberChangeEvent> accumulatedTeamDeltas = new ArrayList<>();
 	private static SyncInfoSource source = new ModelParticipantSyncInfoSource();
 
 	public CVSSyncSubscriberTest() {
@@ -88,11 +91,9 @@ public abstract class CVSSyncSubscriberTest extends EclipseTest {
 
 	protected void assertSyncChangesMatch(ISubscriberChangeEvent[] changes, IResource[] resources) {
 		// First, ensure that all the resources appear in the delta
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			boolean found = false;
-			for (int j = 0; j < changes.length; j++) {
-				ISubscriberChangeEvent delta = changes[j];
+			for (ISubscriberChangeEvent delta : changes) {
 				if (delta.getResource().equals(resource)) {
 					found = true;
 					break;
@@ -114,31 +115,33 @@ public abstract class CVSSyncSubscriberTest extends EclipseTest {
 	/* 
 	 * Assert that the named resources have no local resource or sync info
 	 */
-	protected void assertDeleted(String message, IContainer root, String[] resourcePaths) throws CoreException, TeamException {
+	protected void assertDeleted(String message, IContainer root, String[] resourcePaths) {
 		IResource[] resources = getResources(root, resourcePaths);
-		for (int i=0;i<resources.length;i++) {
+		for (IResource resource : resources) {
 			try {
-				if (! resources[i].exists())
+				if (!resource.exists()) {
 					break;
+				}
 			} catch (AssertionFailedError e) {
 				break;
 			}
-			assertTrue(message + ": resource " + resources[i] + " still exists in some form", false);
+			assertTrue(message + ": resource " + resource + " still exists in some form", false);
 		}
 	}
 	
 	public static class ResourceCondition {
+		@SuppressWarnings("unused")
 		public boolean matches(IResource resource) throws CoreException, TeamException {
 			return true;
 		}
 	}
 	
 	protected IResource[] collect(IResource[] resources, final ResourceCondition condition, int depth) throws CoreException, TeamException {
-		final Set affected = new HashSet();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		final Set<IResource> affected = new HashSet<>();
+		for (IResource resource : resources) {
 			if (resource.exists() || resource.isPhantom()) {
 				resource.accept(new IResourceVisitor() {
+					@Override
 					public boolean visit(IResource r) throws CoreException {
 						try {
 							if (condition.matches(r)) {
@@ -156,13 +159,12 @@ public abstract class CVSSyncSubscriberTest extends EclipseTest {
 				}
 			}
 		}
-		return (IResource[]) affected.toArray(new IResource[affected.size()]);
+		return affected.toArray(new IResource[affected.size()]);
 	}
 	
 	protected IResource[] collectAncestors(IResource[] resources, ResourceCondition condition) throws CoreException, TeamException {
-		Set affected = new HashSet();
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		Set<IResource> affected = new HashSet<>();
+		for (IResource resource : resources) {
 			while (resource.getType() != IResource.ROOT) {
 				if (condition.matches(resource)) {
 					affected.add(resource);
@@ -172,16 +174,17 @@ public abstract class CVSSyncSubscriberTest extends EclipseTest {
 				resource = resource.getParent();
 			}
 		}
-		return (IResource[]) affected.toArray(new IResource[affected.size()]);
+		return affected.toArray(new IResource[affected.size()]);
 	}
 	
-	protected ISubscriberChangeEvent[] deregisterSubscriberListener(Subscriber subscriber) throws TeamException {
+	protected ISubscriberChangeEvent[] deregisterSubscriberListener(Subscriber subscriber) {
 		subscriber.removeListener(listener);
-		return (ISubscriberChangeEvent[]) accumulatedTeamDeltas.toArray(new SubscriberChangeEvent[accumulatedTeamDeltas.size()]);
+		return accumulatedTeamDeltas.toArray(new SubscriberChangeEvent[accumulatedTeamDeltas.size()]);
 	}
 
-	protected ISubscriberChangeListener registerSubscriberListener(Subscriber subscriber) throws TeamException {
+	protected ISubscriberChangeListener registerSubscriberListener(Subscriber subscriber) {
 		listener = new ISubscriberChangeListener() {
+			@Override
 			public void subscriberResourceChanged(ISubscriberChangeEvent[] deltas) {
 				accumulatedTeamDeltas.addAll(Arrays.asList(deltas));
 			}
@@ -191,7 +194,7 @@ public abstract class CVSSyncSubscriberTest extends EclipseTest {
 		return listener;
 	}
 
-	protected void assertProjectRemoved(Subscriber subscriber, IProject project) throws TeamException {
+	protected void assertProjectRemoved(Subscriber subscriber, IProject project) {
 		getSyncInfoSource().assertProjectRemoved(subscriber, project);
 	}
 	

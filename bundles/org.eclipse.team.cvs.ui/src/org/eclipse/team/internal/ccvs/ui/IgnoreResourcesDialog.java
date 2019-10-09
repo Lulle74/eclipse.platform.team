@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -47,14 +50,14 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 	// layout controls
 	private static final int LABEL_INDENT_WIDTH = 32;
 	
-    /**
-     * Image for title area
-     */
-    private Image dlgTitleImage = null;
-    
-    // to avoid an error/warning message at startup default values are as below
-    private boolean resourceWithSpaces = false;
-    private boolean allResourecesHaveExtensions = true;
+	/**
+	 * Image for title area
+	 */
+	private Image dlgTitleImage = null;
+	
+	// to avoid an error/warning message at startup default values are as below
+	private boolean resourceWithSpaces = false;
+	private boolean allResourecesHaveExtensions = true;
 	private boolean allResourcesWithSpacesHaveExtensions = true;
 
 	/**
@@ -103,25 +106,19 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 		throw new IllegalStateException();
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
+	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
+	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText(CVSUIMessages.IgnoreResourcesDialog_dialogTitle);
 	}
 	
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		Control control = super.createContents(parent);
 		dlgTitleImage = CVSUIPlugin.getPlugin().getImageDescriptor(
@@ -134,9 +131,7 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 		return control;
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
+	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite top = new Composite((Composite) super
 				.createDialogArea(parent), SWT.NONE);
@@ -148,18 +143,10 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 		top.setLayout(layout);
 		top.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(top, IHelpContextIds.ADD_TO_CVSIGNORE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(top, IHelpContextIds.ADD_TO_CVSIGNORE);
 		
-		Listener selectionListener = new Listener() {
-			public void handleEvent(Event event) {
-				updateEnablements();
-			}
-		};
-		Listener modifyListener = new Listener() {
-			public void handleEvent(Event event) {
-				validate();
-			}
-		};
+		Listener selectionListener = event -> updateEnablements();
+		Listener modifyListener = event -> validate();
 		
 		addNameEntryButton = createRadioButton(top, CVSUIMessages.IgnoreResourcesDialog_addNameEntryButton); 
 		addNameEntryButton.addListener(SWT.Selection, selectionListener);
@@ -215,7 +202,7 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 				addCustomEntryButton.setSelection(true);
 				selectedAction = ADD_CUSTOM_ENTRY;
 			} 
-  
+	
 		} else {
 			customEntryText = createIndentedText(top, resources[0].getName(),
 					LABEL_INDENT_WIDTH);
@@ -228,9 +215,7 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 		return top;
 	}
 
-	/* (non-Javadoc)
-	 * Method declared on Dialog.
-	 */
+	@Override
 	protected void okPressed() {
 		settings.put(ACTION_KEY, selectedAction);
 		super.okPressed();
@@ -281,8 +266,8 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 				return;
 			}
 			FileNameMatcher matcher = new FileNameMatcher(new String[] { customPattern });
-			for (int i = 0; i < resources.length; i++) {
-				String name = resources[i].getName();
+			for (IResource resource : resources) {
+				String name = resource.getName();
 				if (! matcher.match(name)) {
 					setError(NLS.bind(CVSUIMessages.IgnoreResourcesDialog_patternDoesNotMatchFile, new String[] { name })); 
 					return;
@@ -344,34 +329,38 @@ public class IgnoreResourcesDialog extends TitleAreaDialog {
 	}
 
 	private IResource getResourceWithSpace() {
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i].getName().indexOf(" ") != -1) //$NON-NLS-1$
-				return resources[i];
+		for (IResource resource : resources) {
+			if (resource.getName().contains(" ")) { //$NON-NLS-1$
+				return resource;
+			}
 		}
 		return null;
 	}
 
 	private boolean checkIfAllResourcesWithSpacesHaveExtensions() {
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i].getName().indexOf(" ") != -1 && resources[i].getFileExtension() == null) //$NON-NLS-1$
+		for (IResource resource : resources) {
+			if (resource.getName().contains(" ") && resource.getFileExtension() == null) { //$NON-NLS-1$
 				return false;
+			}
 		}
 		return true;
 	}
 
 	private boolean checkIfAllResourcesHaveExtensions() {
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i].getFileExtension() != null)
+		for (IResource resource : resources) {
+			if (resource.getFileExtension() != null) {
 				return true;
+			}
 		}
 		// couldn't find a resource with an extension
 		return false;
 	}
 	
-    public boolean close() {
-        if (dlgTitleImage != null) {
+	@Override
+	public boolean close() {
+		if (dlgTitleImage != null) {
 			dlgTitleImage.dispose();
 		}
-        return super.close();
-    }
+		return super.close();
+	}
 }

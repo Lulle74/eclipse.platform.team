@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,7 +16,10 @@ package org.eclipse.compare.internal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
@@ -42,8 +48,7 @@ public class WorkerJob extends Job {
 		if (errors.length == 1)
 			return new Status(IStatus.ERROR, CompareUIPlugin.PLUGIN_ID, 0, errors[0].getMessage(), errors[0]);
 		List<IStatus> statii = new ArrayList<>();
-		for (int i = 0; i < errors.length; i++) {
-			Throwable throwable = errors[i];
+		for (Throwable throwable : errors) {
 			statii.add(new Status(IStatus.ERROR, CompareUIPlugin.PLUGIN_ID, 0, errors[0].getMessage(), throwable));
 		}
 		return new MultiStatus(CompareUIPlugin.PLUGIN_ID, 0, statii.toArray(new IStatus[statii.size()]), CompareMessages.WorkerJob_0, null);

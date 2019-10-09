@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -15,7 +18,11 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.team.examples.pessimistic.IPessimisticFilesystemConstants;
 import org.eclipse.team.examples.pessimistic.PessimisticFilesystemProviderPlugin;
 import org.eclipse.ui.IWorkbench;
@@ -111,9 +118,7 @@ public class PessimisticPreferencesPage
 			IPessimisticFilesystemConstants.OPTION_DO_NOTHING, };		
 	
 
-	/*
-	 * @see org.eclipse.jface.preference.PreferencePage#doGetPreferenceStore()
-	 */
+	@Override
 	protected IPreferenceStore doGetPreferenceStore() {
 		return PessimisticFilesystemProviderPlugin.getInstance().getPreferenceStore();
 	}
@@ -136,9 +141,7 @@ public class PessimisticPreferencesPage
 		group.setLayoutData(data);
 	}
 
-	/*
-	 * @see org.eclipse.jface.preference.PreferencePage#createContents(Composite)
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NULL);
 		setDefaultLayout(composite, 1);
@@ -234,16 +237,12 @@ public class PessimisticPreferencesPage
 		return composite;
 	}
 
-	/*
-	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(IWorkbench)
-	 */
+	@Override
 	public void init(IWorkbench workbench) {
 		// do nothing
 	}
 
-	/*
-	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
-	 */
+	@Override
 	protected void performDefaults() {
 		IPreferenceStore store = getPreferenceStore();
 
@@ -262,15 +261,13 @@ public class PessimisticPreferencesPage
 		super.performDefaults();
 	}
 
-	/*
-	 * @see org.eclipse.jface.preference.IPreferencePage#performOk()
-	 */
+	@Override
 	public boolean performOk() {
 		IPreferenceStore store = getPreferenceStore();
 
 		int selectionIndex = filesAreEditedCombo.getSelectionIndex();
 		if (selectionIndex != -1)
-	        store.setValue(
+			store.setValue(
 				IPessimisticFilesystemConstants.PREF_CHECKED_IN_FILES_EDITED,
 				EDIT_OPTION_KEYS[selectionIndex]);
 		selectionIndex = filesAreEditedNoPromptCombo.getSelectionIndex();

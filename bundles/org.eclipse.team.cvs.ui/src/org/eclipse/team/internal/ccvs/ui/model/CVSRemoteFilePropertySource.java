@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,17 +16,11 @@ package org.eclipse.team.internal.ccvs.ui.model;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ccvs.core.ICVSRemoteFile;
 import org.eclipse.team.internal.ccvs.core.ILogEntry;
 import org.eclipse.team.internal.ccvs.ui.*;
-import org.eclipse.team.internal.ccvs.ui.CVSUIPlugin;
-import org.eclipse.team.internal.ccvs.ui.ICVSUIConstants;
-import org.eclipse.ui.views.properties.IPropertyDescriptor;
-import org.eclipse.ui.views.properties.IPropertySource;
-import org.eclipse.ui.views.properties.PropertyDescriptor;
+import org.eclipse.ui.views.properties.*;
 
 public class CVSRemoteFilePropertySource implements IPropertySource {
 	ICVSRemoteFile file;
@@ -73,6 +70,7 @@ public class CVSRemoteFilePropertySource implements IPropertySource {
 	/**
 	 * Do nothing because properties are read only.
 	 */
+	@Override
 	public Object getEditableValue() {
 		return this;
 	}
@@ -80,13 +78,12 @@ public class CVSRemoteFilePropertySource implements IPropertySource {
 	/**
 	 * Return the Property Descriptors for the receiver.
 	 */
+	@Override
 	public IPropertyDescriptor[] getPropertyDescriptors() {
 		return propertyDescriptors;
 	}
 
-	/*
-	 * @see IPropertySource#getPropertyValue(Object)
-	 */
+	@Override
 	public Object getPropertyValue(Object id) {
 		if (!initialized) {
 			initialize();
@@ -116,6 +113,7 @@ public class CVSRemoteFilePropertySource implements IPropertySource {
 	 * Answer true if the value of the specified property 
 	 * for this object has been changed from the default.
 	 */
+	@Override
 	public boolean isPropertySet(Object property) {
 		return false;
 	}
@@ -125,30 +123,30 @@ public class CVSRemoteFilePropertySource implements IPropertySource {
 	 * 
 	 * @param   property    The property to reset.
 	 */
+	@Override
 	public void resetPropertyValue(Object property) {
 	}
 	/**
 	 * Do nothing because properties are read only.
 	 */
+	@Override
 	public void setPropertyValue(Object name, Object value) {
 	}
 	
 	private void initialize() {
 		try {
-			CVSUIPlugin.runWithProgress(null, true /*cancelable*/, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						ILogEntry[] entries = file.getLogEntries(monitor);
-						String revision = file.getRevision();
-						for (int i = 0; i < entries.length; i++) {
-							if (entries[i].getRevision().equals(revision)) {
-								entry = entries[i];
-								return;
-							}
+			CVSUIPlugin.runWithProgress(null, true /* cancelable */, monitor -> {
+				try {
+					ILogEntry[] entries = file.getLogEntries(monitor);
+					String revision = file.getRevision();
+					for (ILogEntry e : entries) {
+						if (e.getRevision().equals(revision)) {
+							entry = e;
+							return;
 						}
-					} catch (TeamException e) {
-						throw new InvocationTargetException(e);
 					}
+				} catch (TeamException e) {
+					throw new InvocationTargetException(e);
 				}
 			});
 		} catch (InterruptedException e) { // ignore cancellation

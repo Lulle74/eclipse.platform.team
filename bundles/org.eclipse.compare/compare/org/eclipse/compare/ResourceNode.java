@@ -1,22 +1,35 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.compare;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.eclipse.compare.internal.Utilities;
 import org.eclipse.compare.structuremergeviewer.IStructureComparator;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceStatus;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourceAttributes;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 
@@ -108,7 +121,7 @@ public class ResourceNode extends BufferedContent
 
 	/**
 	 * Returns the hash code of the name.
-     * @return a hash code value for this object.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode() {
@@ -122,8 +135,8 @@ public class ResourceNode extends BufferedContent
 			if (fResource instanceof IContainer) {
 				try {
 					IResource members[]= ((IContainer)fResource).members();
-					for (int i= 0; i < members.length; i++) {
-						IStructureComparator child= createChild(members[i]);
+					for (IResource member : members) {
+						IStructureComparator child = createChild(member);
 						if (child != null)
 							fChildren.add(child);
 					}

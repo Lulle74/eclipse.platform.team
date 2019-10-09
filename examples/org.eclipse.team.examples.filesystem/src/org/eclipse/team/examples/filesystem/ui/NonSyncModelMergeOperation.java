@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2006, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -11,7 +14,9 @@
 package org.eclipse.team.examples.filesystem.ui;
 
 import org.eclipse.core.resources.mapping.RemoteResourceMappingContext;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -52,9 +57,7 @@ public class NonSyncModelMergeOperation extends ModelMergeOperation {
 		super(part, manager);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ModelMergeOperation#initializeContext(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void initializeContext(IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor.beginTask(null, 100);
@@ -62,10 +65,10 @@ public class NonSyncModelMergeOperation extends ModelMergeOperation {
 			context = new FileSystemMergeContext(getScopeManager());
 			// Refresh the context to get the latest remote state
 			context.refresh(getScope().getTraversals(), 
-					RemoteResourceMappingContext.FILE_CONTENTS_REQUIRED, new SubProgressMonitor(monitor, 75));
+					RemoteResourceMappingContext.FILE_CONTENTS_REQUIRED, SubMonitor.convert(monitor, 75));
 			// What for the context to asynchronously update the diff tree
 			try {
-				Job.getJobManager().join(context, new SubProgressMonitor(monitor, 25));
+				Job.getJobManager().join(context, SubMonitor.convert(monitor, 25));
 			} catch (InterruptedException e) {
 				// Ignore
 			}
@@ -74,9 +77,7 @@ public class NonSyncModelMergeOperation extends ModelMergeOperation {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.synchronize.ModelOperation#getContext()
-	 */
+	@Override
 	protected ISynchronizationContext getContext() {
 		return context;
 	}
@@ -86,19 +87,14 @@ public class NonSyncModelMergeOperation extends ModelMergeOperation {
 	 * any changes.
 	 * @see org.eclipse.team.ui.synchronize.ModelMergeOperation#handlePreviewRequest()
 	 */
+	@Override
 	protected void handlePreviewRequest() {
 		// We perform a syncExec so that the job will dispose of the scope manager
 		// after the dialog closes
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				NonSyncMergeDialog.openFor(NonSyncModelMergeOperation.this);
-			}
-		});
+		Display.getDefault().syncExec(() -> NonSyncMergeDialog.openFor(NonSyncModelMergeOperation.this));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.TeamOperation#getShell()
-	 */
+	@Override
 	public Shell getShell() {
 		// Change method to public
 		return super.getShell();

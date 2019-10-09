@@ -1,18 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 
 /**
  * Collects exceptions and can be configured to ignore duplicates exceptions. Exceptions can be logged
@@ -85,19 +94,18 @@ public class ExceptionCollector {
 	 * @param exception the exception to collect
 	 */
 	public void handleException(CoreException exception) {
-        // log the exception if we have a log
-        if(log != null) {
-            log.log(new Status(severity, pluginId, 0, message, exception));
-        }
-        // Record each status individually to flatten the resulting multi-status
-        IStatus exceptionStatus = exception.getStatus();
-        // Wrap the exception so the stack trace is not lost.
-        IStatus status = new Status(exceptionStatus.getSeverity(), exceptionStatus.getPlugin(), exceptionStatus.getCode(), exceptionStatus.getMessage(), exception);
-        recordStatus(status);
+		// log the exception if we have a log
+		if(log != null) {
+			log.log(new Status(severity, pluginId, 0, message, exception));
+		}
+		// Record each status individually to flatten the resulting multi-status
+		IStatus exceptionStatus = exception.getStatus();
+		// Wrap the exception so the stack trace is not lost.
+		IStatus status = new Status(exceptionStatus.getSeverity(), exceptionStatus.getPlugin(), exceptionStatus.getCode(), exceptionStatus.getMessage(), exception);
+		recordStatus(status);
 		IStatus[] children = status.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			IStatus status2 = children[i];
-            recordStatus(status2);
+		for (IStatus status2 : children) {
+			recordStatus(status2);
 		}
 	}
 

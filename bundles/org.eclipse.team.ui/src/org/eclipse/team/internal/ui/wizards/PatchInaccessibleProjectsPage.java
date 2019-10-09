@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2010, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *    IBM Corporation - initial API and implementation
@@ -17,7 +20,8 @@ import org.eclipse.compare.internal.core.patch.DiffProject;
 import org.eclipse.compare.internal.patch.WorkspacePatcher;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
@@ -28,7 +32,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.views.navigator.ResourceComparator;
@@ -132,9 +140,8 @@ public class PatchInaccessibleProjectsPage extends WizardPage {
 		DiffProject[] diffProjects = fPatcher.getDiffProjects();
 		List<IProject> projects = new ArrayList<>();
 		if (diffProjects != null) {
-			for (int i = 0; i < diffProjects.length; i++) {
-				IProject project = ResourcesPlugin.getWorkspace().getRoot()
-						.getProject(diffProjects[i].getName());
+			for (DiffProject diffProject : diffProjects) {
+				IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(diffProject.getName());
 				if (!project.isAccessible())
 					projects.add(project);
 			}
@@ -161,8 +168,9 @@ public class PatchInaccessibleProjectsPage extends WizardPage {
 	public IProject[] getSelectedProjects() {
 		Object elements[] = checkList.getCheckedElements();
 		List<IProject> projects = new ArrayList<>();
-		for (int i = 0; i < elements.length; i++)
-			projects.add((IProject) elements[i]);
+		for (Object element : elements) {
+			projects.add((IProject) element);
+		}
 		return projects.toArray(new IProject[] {});
 	}
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,21 +23,12 @@ public class RepositoryProviderNaish extends RepositoryProvider {
 	final public static String NATURE_ID = "org.eclipse.team.tests.core.naish-provider";
 	private IMoveDeleteHook mdh;
 	private IFileModificationValidator mv;
-	/*
-	 * @see RepositoryProvider#configureProject()
-	 */
 	public void configureProject() throws CoreException {
 	}
 
-	/*
-	 * @see RepositoryProvider#getID()
-	 */
 	public String getID() {
 		return NATURE_ID;
 	}
-	/*
-	 * @see IProjectNature#deconfigure()
-	 */
 	public void deconfigure() throws CoreException {
 	}
 
@@ -45,16 +39,10 @@ public class RepositoryProviderNaish extends RepositoryProvider {
 	public void setMoveDeleteHook(IMoveDeleteHook mdh) {
 		this.mdh = mdh;
 	}
-	/*
-	 * @see RepositoryProvider#getFileModificationValidator()
-	 */
 	public IFileModificationValidator getFileModificationValidator() {
 		return mv;
 	}
 
-	/*
-	 * @see RepositoryProvider#getMoveDeleteHook()
-	 */
 	public IMoveDeleteHook getMoveDeleteHook() {
 		return mdh;
 	}

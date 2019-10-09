@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -86,9 +89,7 @@ public class CVSStatus extends TeamStatus {
 		super(severity, CVSProviderPlugin.ID, CVSStatus.ERROR,  message, null, null);
 	}	
 	
-	/**
-	 * @see IStatus#getMessage()
-	 */
+	@Override
 	public String getMessage() {
 		String message = super.getMessage();
 		if (commandRoot != null) {
@@ -97,46 +98,45 @@ public class CVSStatus extends TeamStatus {
 		return message;
 	}
 
-    /**
-     * Return whether this status is wrapping an internal error.
-     * An internal error is any error for which the wrapped exception 
-     * is not a CVS exception. Check deeply to make sure there isn't
-     * an internal error buried deep down.
-     * @return whether this status is wrapping an internal error
-     */
-    public boolean isInternalError() {
-        Throwable ex = getException();
-        if (ex instanceof CVSException) {
-            CVSException cvsEx = (CVSException) ex;
-            IStatus status = cvsEx.getStatus();
-            return isInternalError(status);
-        }
-        return ex != null;
-    }
+	/**
+	 * Return whether this status is wrapping an internal error.
+	 * An internal error is any error for which the wrapped exception 
+	 * is not a CVS exception. Check deeply to make sure there isn't
+	 * an internal error buried deep down.
+	 * @return whether this status is wrapping an internal error
+	 */
+	public boolean isInternalError() {
+		Throwable ex = getException();
+		if (ex instanceof CVSException) {
+			CVSException cvsEx = (CVSException) ex;
+			IStatus status = cvsEx.getStatus();
+			return isInternalError(status);
+		}
+		return ex != null;
+	}
 
-    /**
-     * Return whether this status is wrapping an internal error.
-     * An internal error is any error for which the wrapped exception 
-     * is not a CVS exception. Check deeply to make sure there isn't
-     * an internal error buried deep down.
-     * @return whether this status is wrapping an internal error
-     */
-    public static boolean isInternalError(IStatus status) {
-        if (status instanceof CVSStatus) {
-            return ((CVSStatus)status).isInternalError();
-        }
-        if (status.isMultiStatus()) {
-            IStatus[] children = status.getChildren();
-            for (int i = 0; i < children.length; i++) {
-                IStatus child = children[i];
-                if (isInternalError(child)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * Return whether this status is wrapping an internal error.
+	 * An internal error is any error for which the wrapped exception 
+	 * is not a CVS exception. Check deeply to make sure there isn't
+	 * an internal error buried deep down.
+	 * @return whether this status is wrapping an internal error
+	 */
+	public static boolean isInternalError(IStatus status) {
+		if (status instanceof CVSStatus) {
+			return ((CVSStatus)status).isInternalError();
+		}
+		if (status.isMultiStatus()) {
+			IStatus[] children = status.getChildren();
+			for (IStatus child : children) {
+				if (isInternalError(child)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
 
 	public ICVSRepositoryLocation getCvsLocation() {
 		if (cvsLocation==null){

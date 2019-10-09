@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,8 +20,9 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.core.runtime.*;
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.fieldassist.*;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -110,12 +114,13 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 	 * @return the history with the new entry appended
 	 */
 	private String[] addToHistory(String[] history, String newEntry) {
-		ArrayList l = new ArrayList(Arrays.asList(history));
+		ArrayList<String> l = new ArrayList<>(Arrays.asList(history));
 		addToHistory(l, newEntry);
 		String[] r = new String[l.size()];
 		l.toArray(r);
 		return r;
 	}
+	@Override
 	protected IDialogSettings getDialogSettings() {
 		return settings;
 	}
@@ -130,7 +135,7 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 	 * @param history the current history
 	 * @param newEntry the entry to add to the history
 	 */
-	private void addToHistory(List history, String newEntry) {
+	private void addToHistory(List<String> history, String newEntry) {
 		history.remove(newEntry);
 		history.add(0,newEntry);
 
@@ -144,44 +149,43 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 	 * 
 	 * @param parent  the parent of the created widgets
 	 */
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite = createComposite(parent, 2, false);
 		// set F1 help
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARING_NEW_REPOSITORY_PAGE);
 
-		Listener listener = new Listener() {
-			public void handleEvent(Event event) {
-				if (location != null) {
-					oldLocation = location;
-					location = null;
-				}
-				if (event.widget == hostCombo) {
-					String hostText = hostCombo.getText();
-					if (hostText.length() > 0 && hostText.charAt(0) == ':') {
-						try {
-							CVSRepositoryLocation newLocation = CVSRepositoryLocation.fromString(hostText);
-							connectionMethodCombo.setText(newLocation.getMethod().getName());
-							repositoryPathCombo.setText(newLocation.getRootDirectory());
-							int port = newLocation.getPort();
-							if (port == ICVSRepositoryLocation.USE_DEFAULT_PORT) {
-								useDefaultPort.setSelection(true);
-								useCustomPort.setSelection(false);
-							} else {
-								useCustomPort.setSelection(true);
-								useDefaultPort.setSelection(false);
-								portText.setText(String.valueOf(port));
-							}
-
-							userCombo.setText(newLocation.getUsername());
-							//passwordText.setText(newLocation.xxx);
-							hostCombo.setText(newLocation.getHost());
-						} catch (CVSException e) {
-							CVSUIPlugin.log(e);
+		Listener listener = event -> {
+			if (location != null) {
+				oldLocation = location;
+				location = null;
+			}
+			if (event.widget == hostCombo) {
+				String hostText = hostCombo.getText();
+				if (hostText.length() > 0 && hostText.charAt(0) == ':') {
+					try {
+						CVSRepositoryLocation newLocation = CVSRepositoryLocation.fromString(hostText);
+						connectionMethodCombo.setText(newLocation.getMethod().getName());
+						repositoryPathCombo.setText(newLocation.getRootDirectory());
+						int port = newLocation.getPort();
+						if (port == ICVSRepositoryLocation.USE_DEFAULT_PORT) {
+							useDefaultPort.setSelection(true);
+							useCustomPort.setSelection(false);
+						} else {
+							useCustomPort.setSelection(true);
+							useDefaultPort.setSelection(false);
+							portText.setText(String.valueOf(port));
 						}
+
+						userCombo.setText(newLocation.getUsername());
+						// passwordText.setText(newLocation.xxx);
+						hostCombo.setText(newLocation.getHost());
+					} catch (CVSException e) {
+						CVSUIPlugin.log(e);
 					}
 				}
-				updateWidgetEnablements();
 			}
+			updateWidgetEnablements();
 		};
 
 		Group g = createGroup(composite, CVSUIMessages.ConfigurationWizardMainPage_Location_1);
@@ -253,11 +257,7 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 
 			validateButton = new Button(validateButtonTabGroup, SWT.CHECK);
 			validateButton.setText(CVSUIMessages.ConfigurationWizardAutoconnectPage_validate);
-			validateButton.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
-					validate = validateButton.getSelection();
-				}
-			});
+			validateButton.addListener(SWT.Selection, e -> validate = validateButton.getSelection());
 		}
 
 		allowCachingButton = new Button(composite, SWT.CHECK);
@@ -266,6 +266,7 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 		data.horizontalSpan = 2;
 		allowCachingButton.setLayoutData(data);
 		allowCachingButton.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				allowCaching = allowCachingButton.getSelection();
 			}
@@ -367,20 +368,20 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 		if (settings != null) {
 			String[] hostNames = settings.getArray(STORE_HOSTNAME_ID);
 			if (hostNames != null) {
-				for (int i = 0; i < hostNames.length; i++) {
-					hostCombo.add(hostNames[i]);
+				for (String hostName : hostNames) {
+					hostCombo.add(hostName);
 				}
 			}
 			String[] paths = settings.getArray(STORE_PATH_ID);
 			if (paths != null) {
-				for (int i = 0; i < paths.length; i++) {
-					repositoryPathCombo.add(paths[i]);
+				for (String path : paths) {
+					repositoryPathCombo.add(path);
 				}
 			}
 			String[] userNames = settings.getArray(STORE_USERNAME_ID);
 			if (userNames != null) {
-				for (int i = 0; i < userNames.length; i++) {
-					userCombo.add(userNames[i]);
+				for (String userName : userNames) {
+					userCombo.add(userName);
 				}
 			}
 			userCombo.add(ANONYMOUS_USER);
@@ -392,8 +393,8 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 
 		// Initialize other values and widget states
 		IConnectionMethod[] methods = CVSRepositoryLocation.getPluggedInConnectionMethods();
-		for (int i = 0; i < methods.length; i++) {
-			connectionMethodCombo.add(methods[i].getName());
+		for (IConnectionMethod method : methods) {
+			connectionMethodCombo.add(method.getName());
 		}
 
 		// pserver is a default connection method
@@ -557,6 +558,7 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 	public boolean getValidate() {
 		return validate;
 	}
+	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (visible) {
@@ -613,15 +615,14 @@ public class ConfigurationWizardMainPage extends CVSWizardPage {
 		}
 		IPath path = new Path(null, pathString);
 		String[] segments = path.segments();
-		for (int i = 0; i < segments.length; i++) {
-			String string = segments[i];
+		for (String string : segments) {
 			if (string.charAt(0) == ' ' || string.charAt(string.length() -1) == ' ') {
 				return new Status(IStatus.ERROR, CVSUIPlugin.ID, INVALID_FIELD_CONTENTS,
 						CVSUIMessages.ConfigurationWizardMainPage_invalidPathWithSpaces, null);
 			}
 		}
 		// look for // and inform the user that we support use of C:\cvs\root instead of /c//cvs/root
-		if (pathString.indexOf("//") != -1) { //$NON-NLS-1$
+		if (pathString.contains("//")) { //$NON-NLS-1$
 			if (pathString.indexOf("//") == 2) { //$NON-NLS-1$
 				// The user is probably trying to specify a CVSNT path
 				return new Status(IStatus.ERROR, CVSUIPlugin.ID, INVALID_FIELD_CONTENTS,

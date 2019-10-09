@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -57,19 +60,19 @@ import org.eclipse.ui.SubActionBars;
  */
 public interface IHistoryPage {
 
-    /**
-     * Property name constant (value <code>"org.eclipse.team.ui.name"</code>)
-     * for the page's name.
-     * @since 3.3
-     */
-    public static final String P_NAME = TeamUIPlugin.ID + ".name"; //$NON-NLS-1$
+	/**
+	 * Property name constant (value <code>"org.eclipse.team.ui.name"</code>)
+	 * for the page's name.
+	 * @since 3.3
+	 */
+	public static final String P_NAME = TeamUIPlugin.ID + ".name"; //$NON-NLS-1$
 
-    /**
-     * Property name constant (value <code>"org.eclipse.team.ui.description"</code>)
-     * for an page's description.
-     * @since 3.3
-     */
-    public static final String P_DESCRIPTION = TeamUIPlugin.ID + ".description"; //$NON-NLS-1$
+	/**
+	 * Property name constant (value <code>"org.eclipse.team.ui.description"</code>)
+	 * for an page's description.
+	 * @since 3.3
+	 */
+	public static final String P_DESCRIPTION = TeamUIPlugin.ID + ".description"; //$NON-NLS-1$
 
 	/**
 	 * Fetches and populates the history page for the given Object. Clients
@@ -159,12 +162,13 @@ public interface IHistoryPage {
 	 * registered.
 	 * <p>
 	 * The changes supported by the page are as follows:
+	 * </p>
 	 * <ul>
 	 * <li><code>P_NAME</code>- indicates the name
 	 * of the page has changed</li>
 	 * <li><code>P_DESCRIPTION</code>- indicates the
 	 * description of the page has changed</li>
-	 * </ul></p>
+	 * </ul>
 	 * <p>
 	 * Clients may define additional properties as required.
 	 * </p>

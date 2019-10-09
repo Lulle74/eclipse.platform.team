@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -121,8 +124,8 @@ public class CompareEditorTests extends CVSSyncSubscriberTest {
 	private IEditorPart findOpenEditor(IEditorInput input) {
 		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		IEditorReference[] editorRefs = page.getEditorReferences();						
-		for (int i = 0; i < editorRefs.length; i++) {
-			final IEditorPart part = editorRefs[i].getEditor(false /* don't restore editor */);
+		for (IEditorReference editorRef : editorRefs) {
+			final IEditorPart part = editorRef.getEditor(false /* don't restore editor */);
 			if(part != null) {
 				IEditorInput testInput = part.getEditorInput();
 				if (testInput == input)
@@ -139,6 +142,7 @@ public class CompareEditorTests extends CVSSyncSubscriberTest {
 		document.set(string);
 	}
 	
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		// Need to set both the Compare and Team test flags to true
@@ -152,6 +156,7 @@ public class CompareEditorTests extends CVSSyncSubscriberTest {
 		Utils.TESTING_FLUSH_ON_COMPARE_INPUT_CHANGE = b;
 	}
 	
+	@Override
 	protected void tearDown() throws Exception {
 		closeAllEditors();
 		super.tearDown();

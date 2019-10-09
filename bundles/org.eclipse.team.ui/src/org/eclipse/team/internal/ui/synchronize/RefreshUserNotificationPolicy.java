@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,10 +22,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.team.core.synchronize.SyncInfo;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.synchronize.actions.OpenInCompareAction;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizeParticipant;
+import org.eclipse.team.ui.synchronize.ISynchronizeView;
+import org.eclipse.team.ui.synchronize.SubscriberParticipant;
 import org.eclipse.ui.actions.ActionFactory;
 
 /**
@@ -105,8 +112,8 @@ public class RefreshUserNotificationPolicy implements IRefreshSubscriberListener
 			SyncInfo[] infos = ((RefreshChangeListener)event.getChangeDescription()).getChanges();
 			List<IResource> selectedResources = new ArrayList<>();
 			selectedResources.addAll(Arrays.asList(((RefreshChangeListener)event.getChangeDescription()).getResources()));
-			for (int i = 0; i < infos.length; i++) {
-				selectedResources.add(infos[i].getLocal());
+			for (SyncInfo info : infos) {
+				selectedResources.add(info.getLocal());
 			}
 			IResource[] resources = selectedResources.toArray(new IResource[selectedResources.size()]);
 

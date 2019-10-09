@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -13,10 +16,14 @@ package org.eclipse.team.internal.ui.synchronize;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionDelegate;
+import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IObjectActionDelegate;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPart;
 
 /**
  * An Action that wraps IActionDelegates so they can be used programmatically
@@ -59,25 +66,15 @@ public class ActionDelegateWrapper extends Action implements ISelectionChangedLi
 	 */
 	protected void initialize(final ISynchronizePageConfiguration configuration) {
 		configuration.getSite().getSelectionProvider().addSelectionChangedListener(this);
-		configuration.getPage().getViewer().getControl().addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				configuration.getSite().getSelectionProvider().removeSelectionChangedListener(ActionDelegateWrapper.this);
-			}
-		});
+		configuration.getPage().getViewer().getControl().addDisposeListener(e -> configuration.getSite()
+				.getSelectionProvider().removeSelectionChangedListener(ActionDelegateWrapper.this));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ISelectionChangedListener#selectionChanged(org.eclipse.jface.viewers.SelectionChangedEvent)
-	 */
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		getDelegate().selectionChanged(this, event.getSelection());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.IAction#run()
-	 */
 	@Override
 	public void run() {
 		getDelegate().run(this);

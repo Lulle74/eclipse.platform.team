@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -20,20 +23,34 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.wizard.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.team.core.RepositoryProvider;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.activities.ITriggerPoint;
 import org.eclipse.ui.activities.WorkbenchActivityHelper;
-import org.eclipse.ui.model.*;
+import org.eclipse.ui.model.AdaptableList;
+import org.eclipse.ui.model.WorkbenchContentProvider;
+import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 /**
  * The main page of the configure project wizard. It contains a table
@@ -104,7 +121,7 @@ public class ConfigureProjectWizardMainPage extends WizardPage {
 		setControl(composite);
 
 		// set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARE_PROJECT_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IHelpContextIds.SHARE_PROJECT_PAGE);
 
 		Label label = new Label(composite, SWT.LEFT);
 		label.setText(description);
@@ -184,13 +201,12 @@ public class ConfigureProjectWizardMainPage extends WizardPage {
 			viewer.setInput(wizards);
 		}
 		initializeWizardSelection();
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 
 	/* package */ IProject[] getUnsharedProjects() {
 		java.util.List<IProject> unshared = new ArrayList<>();
-		for (int i = 0; i < projects.length; i++) {
-			IProject project = projects[i];
+		for (IProject project : projects) {
 			if (!RepositoryProvider.isShared(project))
 				unshared.add(project);
 		}
@@ -207,7 +223,7 @@ public class ConfigureProjectWizardMainPage extends WizardPage {
 	@Override
 	public IWizardPage getNextPage() {
 		if (selectedWizard == null) return null;
-		if(! WorkbenchActivityHelper.allowUseOf(getTriggerPoint(), ((IStructuredSelection)viewer.getSelection()).getFirstElement())) return null;
+		if(! WorkbenchActivityHelper.allowUseOf(getTriggerPoint(), viewer.getStructuredSelection().getFirstElement())) return null;
 		return selectedWizard.getStartingPage();
 	}
 
@@ -246,9 +262,9 @@ public class ConfigureProjectWizardMainPage extends WizardPage {
 		// TODO: any checks here?
 		Object[] children = ((AdaptableList) viewer.getInput()).getChildren();
 
-		for (int i = 0; i < children.length; i++) {
+		for (Object child : children) {
 			try {
-				ConfigurationWizardElement element = (ConfigurationWizardElement)children[i];
+				ConfigurationWizardElement element = (ConfigurationWizardElement) child;
 				if (element.getID().equals(selectedWizardId)) {
 					viewer.setSelection(new StructuredSelection(element));
 					return;

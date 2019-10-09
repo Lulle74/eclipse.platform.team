@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,24 +37,21 @@ import org.eclipse.team.ui.history.*;
 public class CompareWithRevisionAction extends WorkspaceAction {
 
 	
-	/*
-	 * @see CVSAction#execute(IAction)
-	 */
+	@Override
 	public void execute(IAction action) throws InvocationTargetException, InterruptedException {
 					
 		// Show the compare viewer
-		run(new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) throws InterruptedException, InvocationTargetException {
-				if (isShowInDialog()) {
-					IFile file = (IFile) getSelectedResources()[0];
-					showCompareInDialog(getShell(), file);
-				} else {
-					IHistoryView view = TeamUI.showHistoryFor(TeamUIPlugin.getActivePage(), (IFile)getSelectedResources()[0], null);
-					IHistoryPage page = view.getHistoryPage();
-					if (page instanceof CVSHistoryPage){
-						CVSHistoryPage cvsHistoryPage = (CVSHistoryPage) page;
-						cvsHistoryPage.setClickAction(true);
-					}
+		run((IRunnableWithProgress) monitor -> {
+			if (isShowInDialog()) {
+				IFile file = (IFile) getSelectedResources()[0];
+				showCompareInDialog(getShell(), file);
+			} else {
+				IHistoryView view = TeamUI.showHistoryFor(TeamUIPlugin.getActivePage(), getSelectedResources()[0],
+						null);
+				IHistoryPage page = view.getHistoryPage();
+				if (page instanceof CVSHistoryPage) {
+					CVSHistoryPage cvsHistoryPage = (CVSHistoryPage) page;
+					cvsHistoryPage.setClickAction(true);
 				}
 			}
 		}, false /* cancelable */, PROGRESS_BUSYCURSOR);
@@ -64,6 +64,7 @@ public class CompareWithRevisionAction extends WorkspaceAction {
 			cc.setLeftEditable(true);
 			cc.setRightEditable(false);
 			HistoryPageCompareEditorInput input = new HistoryPageCompareEditorInput(cc, pageSource, object) {
+				@Override
 				public void saveChanges(IProgressMonitor monitor) throws CoreException {
 					super.saveChanges(monitor);
 					((CVSHistoryPage)getHistoryPage()).saveChanges(monitor);
@@ -81,38 +82,32 @@ public class CompareWithRevisionAction extends WorkspaceAction {
 		return CVSUIMessages.CompareWithRevisionAction_4; 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.CVSAction#getErrorTitle()
-	 */
+	@Override
 	protected String getErrorTitle() {
 		return CVSUIMessages.CompareWithRevisionAction_compare; 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForCVSResource(org.eclipse.team.internal.ccvs.core.ICVSResource)
-	 */
+	@Override
 	protected boolean isEnabledForCVSResource(ICVSResource cvsResource) throws CVSException {
 		return (!cvsResource.isFolder() && super.isEnabledForCVSResource(cvsResource));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForMultipleResources()
-	 */
+	@Override
 	protected boolean isEnabledForMultipleResources() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.actions.WorkspaceAction#isEnabledForAddedResources()
-	 */
+	@Override
 	protected boolean isEnabledForAddedResources() {
 		return true;
 	}
 	
+	@Override
 	protected boolean isEnabledForUnmanagedResources() {
 		return true;
 	}
 	
+	@Override
 	protected boolean isEnabledForIgnoredResources() {
 		return true;
 	}

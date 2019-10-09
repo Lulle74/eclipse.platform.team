@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -12,12 +15,26 @@ package org.eclipse.team.ui;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.compare.*;
+import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.CompareEditorInput;
+import org.eclipse.compare.CompareViewerPane;
+import org.eclipse.compare.IContentChangeListener;
+import org.eclipse.compare.IContentChangeNotifier;
+import org.eclipse.compare.ITypedElement;
+import org.eclipse.compare.Splitter;
 import org.eclipse.compare.structuremergeviewer.ICompareInput;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.ToolBarManager;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.OpenEvent;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.team.internal.ui.Utils;
@@ -47,9 +64,6 @@ public abstract class PageCompareEditorInput extends CompareEditorInput implemen
 		super(configuration);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.compare.CompareEditorInput#createStructureInputPane(org.eclipse.swt.widgets.Composite)
-	 */
 	@Override
 	protected CompareViewerPane createStructureInputPane(Composite parent) {
 		pagePane = new CompareViewerPane(parent, SWT.BORDER | SWT.FLAT) {
@@ -234,8 +248,8 @@ public abstract class PageCompareEditorInput extends CompareEditorInput implemen
 		try {
 			// TODO: we need a better progress story here (i.e. support for cancellation) bug 127075
 			manager.busyCursorWhile(monitor -> {
-			    prepareInput(input, getCompareConfiguration(), monitor);
-			    hookContentChangeListener(input);
+				prepareInput(input, getCompareConfiguration(), monitor);
+				hookContentChangeListener(input);
 			});
 		} catch (InvocationTargetException e) {
 			Utils.handle(e);

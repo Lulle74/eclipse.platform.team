@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,7 +37,9 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -54,7 +59,7 @@ import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 public class ComparePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
-	class FakeInput implements ITypedElement, IEncodedStreamContentAccessor {
+	private static class FakeInput implements ITypedElement, IEncodedStreamContentAccessor {
 		static final String UTF_16= "UTF-16"; //$NON-NLS-1$
 		String fContent;
 
@@ -81,6 +86,21 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		public String getCharset() {
 			return UTF_16;
 		}
+
+		private String loadPreviewContentFromFile(String key) {
+
+			String preview= Utilities.getString(key);
+			String separator= System.getProperty("line.separator"); //$NON-NLS-1$
+			StringBuilder buffer= new StringBuilder();
+			for (int i= 0; i < preview.length(); i++) {
+				char c= preview.charAt(i);
+				if (c == '\n')
+					buffer.append(separator);
+				else
+					buffer.append(c);
+			}
+			return buffer.toString();
+	}
 	}
 
 	private static final String PREFIX= CompareUIPlugin.PLUGIN_ID + "."; //$NON-NLS-1$
@@ -103,9 +123,8 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 	public static final String SWAPPED = PREFIX + "Swapped"; //$NON-NLS-1$
 
 
-	private TextMergeViewer fPreviewViewer;
 	private IPropertyChangeListener fPreferenceChangeListener;
-	private CompareConfiguration fCompareConfiguration;
+	private List<CompareConfiguration> fCompareConfigurations = new ArrayList<>();
 	private OverlayPreferenceStore fOverlayStore;
 	private Map<Button, String> fCheckBoxes = new HashMap<>();
 	private Text fFilters;
@@ -149,10 +168,8 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		store.setDefault(PREF_SAVE_ALL_EDITORS, false);
 		store.setDefault(ADDED_LINES_REGEX, ""); //$NON-NLS-1$
 		store.setDefault(REMOVED_LINES_REGEX, ""); //$NON-NLS-1$
-		//store.setDefault(USE_SPLINES, false);
 		store.setDefault(USE_SINGLE_LINE, true);
 		store.setDefault(HIGHLIGHT_TOKEN_CHANGES, true);
-		//store.setDefault(USE_RESOLVE_UI, false);
 		store.setDefault(CAPPING_DISABLED, false);
 		store.setDefault(PATH_FILTER, ""); //$NON-NLS-1$
 		store.setDefault(ICompareUIConstants.PREF_NAVIGATION_END_ACTION, ICompareUIConstants.PREF_VALUE_PROMPT);
@@ -162,8 +179,6 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 
 	public ComparePreferencePage() {
 
-		//setDescription(Utilities.getString("ComparePreferencePage.description"));	//$NON-NLS-1$
-
 		setPreferenceStore(CompareUIPlugin.getDefault().getPreferenceStore());
 
 		fOverlayStore= new OverlayPreferenceStore(getPreferenceStore(), fKeys);
@@ -171,8 +186,8 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 			String key= event.getProperty();
 			if (key.equals(INITIALLY_SHOW_ANCESTOR_PANE)) {
 				boolean b= fOverlayStore.getBoolean(INITIALLY_SHOW_ANCESTOR_PANE);
-				if (fCompareConfiguration != null) {
-					fCompareConfiguration.setProperty(INITIALLY_SHOW_ANCESTOR_PANE, Boolean.valueOf(b));
+				for (CompareConfiguration compareConfiguration : fCompareConfigurations) {
+					compareConfiguration.setProperty(INITIALLY_SHOW_ANCESTOR_PANE, Boolean.valueOf(b));
 				}
 			}
 		};
@@ -189,7 +204,7 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		fOverlayStore.setValue(ADDED_LINES_REGEX, addedLinesRegex.getText());
 		fOverlayStore.setValue(REMOVED_LINES_REGEX, removedLinesRegex.getText());
 
-		editors.forEach(editor -> editor.store());
+		editors.forEach(FieldEditor::store);
 		fOverlayStore.propagate();
 
 		ComparePlugin.getDefault().setCappingDisabled(
@@ -222,12 +237,12 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		super.dispose();
 	}
 
-	static public boolean getSaveAllEditors() {
+	public static boolean getSaveAllEditors() {
 		IPreferenceStore store= CompareUIPlugin.getDefault().getPreferenceStore();
 		return store.getBoolean(PREF_SAVE_ALL_EDITORS);
 	}
 
-	static public void setSaveAllEditors(boolean value) {
+	public static void setSaveAllEditors(boolean value) {
 		IPreferenceStore store= CompareUIPlugin.getDefault().getPreferenceStore();
 		store.setValue(PREF_SAVE_ALL_EDITORS, value);
 	}
@@ -247,12 +262,10 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 
 		TabItem item= new TabItem(folder, SWT.NONE);
 		item.setText(Utilities.getString("ComparePreferencePage.generalTab.label"));	//$NON-NLS-1$
-		//item.setImage(JavaPluginImages.get(JavaPluginImages.IMG_OBJS_CFILE));
 		item.setControl(createGeneralPage(folder));
 
 		item= new TabItem(folder, SWT.NONE);
 		item.setText(Utilities.getString("ComparePreferencePage.textCompareTab.label"));	//$NON-NLS-1$
-		//item.setImage(JavaPluginImages.get(JavaPluginImages.IMG_OBJS_CFILE));
 		item.setControl(createTextComparePage(folder));
 		fTextCompareTab = item;
 
@@ -366,43 +379,57 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		editor.fillIntoGrid(radioGroup, 1);
 		editors.add(editor);
 
+		PreferenceLinkArea area = new PreferenceLinkArea(composite, SWT.NONE,
+				"org.eclipse.ui.preferencePages.ColorsAndFonts", //$NON-NLS-1$
+				Utilities.getString("ComparePreferencePage.colorAndFontLink"), //$NON-NLS-1$
+				(IWorkbenchPreferenceContainer) getContainer(),
+				"selectCategory:org.eclipse.compare.contentmergeviewer.TextMergeViewer"); //$NON-NLS-1$
+
+		GridData data = new GridData(SWT.FILL, SWT.CENTER, false, false);
+		area.getControl().setLayoutData(data);
+
 		// a spacer
 		Label separator= new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
 		separator.setVisible(false);
 
+		{
 		Label previewLabel= new Label(composite, SWT.NULL);
-		previewLabel.setText(Utilities.getString("ComparePreferencePage.preview.label"));	//$NON-NLS-1$
+			previewLabel.setText(Utilities.getString("ComparePreferencePage.preview-2way.label")); //$NON-NLS-1$
 
-		Control previewer= createPreviewer(composite);
+			Control previewer = create2WayPreviewer(composite);
 		GridData gd= new GridData(GridData.FILL_BOTH);
 		gd.widthHint= convertWidthInCharsToPixels(60);
-		gd.heightHint= convertHeightInCharsToPixels(13);
+			gd.heightHint = convertHeightInCharsToPixels(12);
 		previewer.setLayoutData(gd);
+		}
 
-		PreferenceLinkArea area = new PreferenceLinkArea(composite, SWT.NONE,
-				"org.eclipse.ui.preferencePages.ColorsAndFonts", Utilities.getString("ComparePreferencePage.colorAndFontLink"), //$NON-NLS-1$ //$NON-NLS-2$
-				(IWorkbenchPreferenceContainer)getContainer(), "selectCategory:org.eclipse.compare.contentmergeviewer.TextMergeViewer"); //$NON-NLS-1$
+		{
+			Label previewLabel = new Label(composite, SWT.NULL);
+			previewLabel.setText(Utilities.getString("ComparePreferencePage.preview.label")); //$NON-NLS-1$
 
-		GridData data= new GridData(SWT.FILL, SWT.CENTER, false, false);
-		area.getControl().setLayoutData(data);
+			Control previewer = create3WayPreviewer(composite);
+			GridData gd = new GridData(GridData.FILL_BOTH);
+			gd.widthHint = convertWidthInCharsToPixels(60);
+			gd.heightHint = convertHeightInCharsToPixels(9);
+			previewer.setLayoutData(gd);
+		}
 
 		return composite;
 	}
 
-	private Control createPreviewer(Composite parent) {
+	private Control create3WayPreviewer(Composite parent) {
+		CompareConfiguration compareConfiguration = new CompareConfiguration(fOverlayStore);
+		compareConfiguration.setAncestorLabel(Utilities.getString("ComparePreferencePage.ancestor.label")); //$NON-NLS-1$
 
-		fCompareConfiguration= new CompareConfiguration(fOverlayStore);
-		fCompareConfiguration.setAncestorLabel(Utilities.getString("ComparePreferencePage.ancestor.label"));	//$NON-NLS-1$
+		compareConfiguration.setLeftLabel(Utilities.getString("ComparePreferencePage.left.label")); //$NON-NLS-1$
+		compareConfiguration.setLeftEditable(false);
 
-		fCompareConfiguration.setLeftLabel(Utilities.getString("ComparePreferencePage.left.label"));	//$NON-NLS-1$
-		fCompareConfiguration.setLeftEditable(false);
+		compareConfiguration.setRightLabel(Utilities.getString("ComparePreferencePage.right.label")); //$NON-NLS-1$
+		compareConfiguration.setRightEditable(false);
 
-		fCompareConfiguration.setRightLabel(Utilities.getString("ComparePreferencePage.right.label"));	//$NON-NLS-1$
-		fCompareConfiguration.setRightEditable(false);
+		TextMergeViewer previewViewer = new TextMergeViewer(parent, SWT.BORDER, compareConfiguration);
 
-		fPreviewViewer= new TextMergeViewer(parent, SWT.BORDER, fCompareConfiguration);
-
-		fPreviewViewer.setInput(
+		previewViewer.setInput(
 			new DiffNode(Differencer.CONFLICTING,
 				new FakeInput("ComparePreferencePage.previewAncestor"),	//$NON-NLS-1$
 				new FakeInput("ComparePreferencePage.previewLeft"),	//$NON-NLS-1$
@@ -410,12 +437,36 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 			)
 		);
 
-		Control c= fPreviewViewer.getControl();
+		Control c = previewViewer.getControl();
 		c.addDisposeListener(e -> {
-			if (fCompareConfiguration != null)
-				fCompareConfiguration.dispose();
+			if (compareConfiguration != null)
+				compareConfiguration.dispose();
 		});
 
+		fCompareConfigurations.add(compareConfiguration);
+		return  c;
+	}
+
+	private Control create2WayPreviewer(Composite parent) {
+		CompareConfiguration compareConfiguration = new CompareConfiguration(fOverlayStore);
+		compareConfiguration.setLeftLabel(Utilities.getString("ComparePreferencePage.workingCopy.label")); //$NON-NLS-1$
+		compareConfiguration.setRightLabel(Utilities.getString("ComparePreferencePage.baseline.label")); //$NON-NLS-1$
+		compareConfiguration.setRightEditable(false);
+
+		TextMergeViewer previewViewer = new TextMergeViewer(parent, SWT.BORDER, compareConfiguration);
+
+		previewViewer.setInput(new DiffNode(
+				new FakeInput("ComparePreferencePage.workingCopy"), //$NON-NLS-1$
+				new FakeInput("ComparePreferencePage.baseline") //$NON-NLS-1$
+		));
+
+		Control c = previewViewer.getControl();
+		c.addDisposeListener(e -> {
+			if (compareConfiguration != null)
+				compareConfiguration.dispose();
+		});
+
+		fCompareConfigurations.add(compareConfiguration);
 		return  c;
 	}
 
@@ -435,7 +486,7 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		if (removedLinesRegex != null)
 			removedLinesRegex.setText(fOverlayStore.getString(REMOVED_LINES_REGEX));
 
-		editors.forEach(editor -> editor.load());
+		editors.forEach(FieldEditor::load);
 	}
 
 	// overlay stuff
@@ -465,21 +516,6 @@ public class ComparePreferencePage extends PreferencePage implements IWorkbenchP
 		fCheckBoxes.put(checkBox, key);
 
 		return checkBox;
-	}
-
-	private String loadPreviewContentFromFile(String key) {
-
-		String preview= Utilities.getString(key);
-		String separator= System.getProperty("line.separator"); //$NON-NLS-1$
-		StringBuilder buffer= new StringBuilder();
-		for (int i= 0; i < preview.length(); i++) {
-			char c= preview.charAt(i);
-			if (c == '\n')
-				buffer.append(separator);
-			else
-				buffer.append(c);
-		}
-		return buffer.toString();
 	}
 
 	@Override

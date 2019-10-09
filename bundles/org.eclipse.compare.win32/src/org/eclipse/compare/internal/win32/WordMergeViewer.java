@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -156,7 +159,7 @@ public class WordMergeViewer extends AbstractMergeViewer implements IFlushable, 
 			String dPath;
 			String ePath;
 			
-			if (relPath.indexOf("/") >= 0) { //$NON-NLS-1$
+			if (relPath.contains("/")) { //$NON-NLS-1$
 				String path= relPath.substring(1);
 				dPath= 'd' + path;
 				ePath= 'e' + path;
@@ -435,8 +438,8 @@ public class WordMergeViewer extends AbstractMergeViewer implements IFlushable, 
 	private void firePropertyChange(String property, Object oldValue, Object newValue) {
 		Object[] allListeners = listeners.getListeners();
 		final PropertyChangeEvent event = new PropertyChangeEvent(this, property, oldValue, newValue);
-		for (int i = 0; i < allListeners.length; i++) {
-			final IPropertyChangeListener listener = (IPropertyChangeListener)allListeners[i];
+		for (Object allListener : allListeners) {
+			final IPropertyChangeListener listener = (IPropertyChangeListener) allListener;
 			SafeRunner.run(new SafeRunnable() {
 				public void run() throws Exception {
 					listener.propertyChange(event);

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,7 +16,9 @@ package org.eclipse.team.internal.ui.mapping;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.mapping.IModelProviderDescriptor;
 import org.eclipse.core.resources.mapping.ModelProvider;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreePathViewerSorter;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.ui.navigator.CommonViewerSorter;
 import org.eclipse.ui.views.navigator.ResourceComparator;
@@ -45,11 +50,11 @@ public class TeamViewerSorter extends TreePathViewerSorter {
 	public int compare(Viewer viewer, TreePath parentPath, Object e1, Object e2) {
 		if (parentPath == null || parentPath.getSegmentCount() == 0) {
 			// We need to handle the sorting at the top level
-	        int cat1 = category(e1);
-	        int cat2 = category(e2);
+			int cat1 = category(e1);
+			int cat2 = category(e2);
 
-	        if (cat1 != cat2)
-	            return cat1 - cat2;
+			if (cat1 != cat2)
+				return cat1 - cat2;
 
 			if (e1 instanceof ModelProvider && e2 instanceof ModelProvider) {
 				ModelProvider mp1 = (ModelProvider) e1;
@@ -73,14 +78,12 @@ public class TeamViewerSorter extends TreePathViewerSorter {
 
 	private boolean isExtends(ModelProvider mp1, IModelProviderDescriptor desc) {
 		String[] extended = mp1.getDescriptor().getExtendedModels();
-		for (int i = 0; i < extended.length; i++) {
-			String id = extended[i];
+		for (String id : extended) {
 			if (id.equals(desc.getId())) {
 				return true;
 			}
 		}
-		for (int i = 0; i < extended.length; i++) {
-			String id = extended[i];
+		for (String id : extended) {
 			IModelProviderDescriptor desc2 = ModelProvider.getModelProviderDescriptor(id);
 			if (isExtends(mp1, desc2)) {
 				return true;

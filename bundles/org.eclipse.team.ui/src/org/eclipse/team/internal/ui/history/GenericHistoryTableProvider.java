@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,15 +14,24 @@
 
 package org.eclipse.team.internal.ui.history;
 
-import com.ibm.icu.text.DateFormat;
 import java.util.Date;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableLayout;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -33,6 +45,8 @@ import org.eclipse.team.core.RepositoryProvider;
 import org.eclipse.team.core.history.IFileHistory;
 import org.eclipse.team.core.history.IFileRevision;
 import org.eclipse.team.internal.ui.TeamUIMessages;
+
+import com.ibm.icu.text.DateFormat;
 
 public class GenericHistoryTableProvider {
 	private IFileHistory currentFileHistory;
@@ -84,9 +98,6 @@ public class GenericHistoryTableProvider {
 			return dateFormat;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
-		 */
 		@Override
 		public Color getForeground(Object element) {
 			IFileRevision entry = adaptToFileRevision(element);
@@ -96,17 +107,10 @@ public class GenericHistoryTableProvider {
 
 			return null;
 		}
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IColorProvider#getBackground(java.lang.Object)
-		 */
 		@Override
 		public Color getBackground(Object element) {
 			return null;
 		}
-		/*
-		 * (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IFontProvider#getFont(java.lang.Object)
-		 */
 		@Override
 		public Font getFont(Object element) {
 			IFileRevision entry = adaptToFileRevision(element);
@@ -118,8 +122,8 @@ public class GenericHistoryTableProvider {
 				if (currentRevisionFont == null) {
 					Font defaultFont = JFaceResources.getDefaultFont();
 					FontData[] data = defaultFont.getFontData();
-					for (int i = 0; i < data.length; i++) {
-						data[i].setStyle(SWT.BOLD);
+					for (FontData d : data) {
+						d.setStyle(SWT.BOLD);
 					}
 					currentRevisionFont = new Font(viewer.getTable().getDisplay(), data);
 				}
@@ -306,7 +310,7 @@ public class GenericHistoryTableProvider {
 	 */
 	private SelectionListener getColumnListener(final TableViewer tableViewer) {
 		/**
-	 	 * This class handles selections of the column headers.
+		 * This class handles selections of the column headers.
 		 * Selection of the column header will cause resorting
 		 * of the shown tasks using that column's sorter.
 		 * Repeated selection of the header will toggle

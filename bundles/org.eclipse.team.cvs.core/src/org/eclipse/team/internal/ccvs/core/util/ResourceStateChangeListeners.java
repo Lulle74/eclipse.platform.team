@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -70,8 +73,7 @@ public class ResourceStateChangeListeners {
 		// Get a snapshot of the listeners so the list doesn't change while we're firing
 		IResourceStateChangeListener[] listeners = getListeners();
 		// Notify each listener in a safe manner (i.e. so their exceptions don't kill us)
-		for (int i = 0; i < listeners.length; i++) {
-			IResourceStateChangeListener listener = listeners[i];
+		for (IResourceStateChangeListener listener : listeners) {
 			notification.run(listener);
 		}
 	}
@@ -146,8 +148,7 @@ public class ResourceStateChangeListeners {
 		System.out.print(" from thread  " + Thread.currentThread().getName()); //$NON-NLS-1$
 		System.out.print(" for the following " + resources.length + " resources"); //$NON-NLS-1$ //$NON-NLS-2$
 		System.out.println(":"); //$NON-NLS-1$
-		for (int i = 0; i < resources.length; i++) {
-			IResource resource = resources[i];
+		for (IResource resource : resources) {
 			System.out.println(resource.getFullPath().toString());
 		}
 	}

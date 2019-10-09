@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -27,13 +30,13 @@ public class LogEntry extends PlatformObject implements ILogEntry {
 	private String state;
 	private CVSTag[] tags;
 	private CVSTag[] branches;
-    private String[] revisions;
-    
+	private String[] revisions;
+	
 	/*
 	 * Flatten the text in the multi-line comment
 	 */
 	public static String flattenText(String string) {
-		StringBuffer buffer = new StringBuffer(string.length() + 20);
+		StringBuilder buffer = new StringBuilder(string.length() + 20);
 		boolean skipAdjacentLineSeparator = true;
 		for (int i = 0; i < string.length(); i++) {
 			char c = string.charAt(i);
@@ -64,69 +67,51 @@ public class LogEntry extends PlatformObject implements ILogEntry {
 		this.revisions=revisions;
 	}
 
-	/**
-	 * @see ILogEntry#getRevision()
-	 */
+	@Override
 	public String getRevision() {
 		return file.getRevision();
 	}
 
-	/**
-	 * @see ILogEntry#getAuthor()
-	 */
+	@Override
 	public String getAuthor() {
 		return author;
 	}
 
-	/**
-	 * @see ILogEntry#getDate()
-	 */
+	@Override
 	public Date getDate() {
 		return date;
 	}
 
-	/**
-	 * @see ILogEntry#getComment()
-	 */
+	@Override
 	public String getComment() {
 		return comment;
 	}
 
-	/**
-	 * @see ILogEntry#getState()
-	 */
+	@Override
 	public String getState() {
 		return state;
 	}
 
-	/**
-	 * @see ILogEntry#getBranches()
-	 */
+	@Override
 	public CVSTag[] getBranches() {
 		CVSTag[] result = new CVSTag[branches.length];
 		System.arraycopy(branches, 0, result, 0, branches.length);
 		return result;
 	}
 
-	/**
-	 * @see ILogEntry#getTags()
-	 */
+	@Override
 	public CVSTag[] getTags() {
 		CVSTag[] result = new CVSTag[tags.length];
 		System.arraycopy(tags, 0, result, 0, tags.length);
 		return result;
 	}
 
-	/**
-	 * @see ILogEntry#getRemoteFile()
-	 */
+	@Override
 	public ICVSRemoteFile getRemoteFile() {
 		return file;
 	}
 	
-	/**
-	 * @see ILogEntry#isDeletion()
-	 */
+	@Override
 	public boolean isDeletion() {
 		return getState().equals("dead"); //$NON-NLS-1$
 	}

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -50,13 +53,14 @@ public class CVSProjectSetImportTest extends TestCase {
 		return new TestSuite(CVSProjectSetImportTest.class);
 	}
 	
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		knownRepositories = KnownRepositories.getInstance();
 		savedRepositories = knownRepositories.getRepositories();
 		// dispose all known repositories
-		for (int i = 0; i < savedRepositories.length; i++) {
-			knownRepositories.disposeRepository(savedRepositories[i]);
+		for (ICVSRepositoryLocation savedRepository : savedRepositories) {
+			knownRepositories.disposeRepository(savedRepository);
 		}
 	}
 
@@ -286,9 +290,8 @@ public class CVSProjectSetImportTest extends TestCase {
 	 */
 	private void _testPrepareSuggestedRepositoryLocations(String[] knownLocations,
 			String[] referenceStrings, String[][] expectedSuggestions) throws Exception {
-		for (int i = 0; i < knownLocations.length; i++) {
-			knownRepositories.addRepository(CVSRepositoryLocation
-					.fromString(knownLocations[i]), false);
+		for (String knownLocation : knownLocations) {
+			knownRepositories.addRepository(CVSRepositoryLocation.fromString(knownLocation), false);
 		}
 
 		Map infoMap = new HashMap(referenceStrings.length);
@@ -366,9 +369,8 @@ public class CVSProjectSetImportTest extends TestCase {
 			String[] referenceStrings, String[] expectedSelections)
 			throws Exception {
 		// set up values to test
-		for (int i = 0; i < knownLocations.length; i++) {
-			knownRepositories.addRepository(CVSRepositoryLocation
-					.fromString(knownLocations[i]), false);
+		for (String knownLocation : knownLocations) {
+			knownRepositories.addRepository(CVSRepositoryLocation.fromString(knownLocation), false);
 		}
 
 		Map infoMap = new HashMap(referenceStrings.length);
@@ -418,8 +420,7 @@ public class CVSProjectSetImportTest extends TestCase {
 		ICVSRepositoryLocation[] repositories = knownRepositories
 				.getRepositories();
 		boolean matchFound = false;
-		for (int j = 0; j < repositories.length; j++) {
-			ICVSRepositoryLocation rl = repositories[j];
+		for (ICVSRepositoryLocation rl : repositories) {
 			if (CVSRepositoryLocationMatcher.isMatching(referenceLocation, rl)) {
 				assertFalse("There should be only one perfect match.",
 						matchFound);

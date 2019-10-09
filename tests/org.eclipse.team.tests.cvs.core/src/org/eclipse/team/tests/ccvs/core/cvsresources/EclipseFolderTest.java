@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -17,12 +20,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.internal.ccvs.core.CVSException;
 import org.eclipse.team.internal.ccvs.core.ICVSFolder;
 import org.eclipse.team.internal.ccvs.core.ICVSResource;
-import org.eclipse.team.internal.ccvs.core.ICVSRunnable;
 import org.eclipse.team.internal.ccvs.core.resources.CVSWorkspaceRoot;
 import org.eclipse.team.tests.ccvs.core.CVSTestSetup;
 import org.eclipse.team.tests.ccvs.core.EclipseTest;
@@ -47,6 +48,7 @@ public class EclipseFolderTest extends EclipseTest {
 	
 	protected void assertChildrenHaveSync(IContainer root, final boolean hasSync) throws CoreException, CVSException {
 		root.accept(new IResourceVisitor() {
+			@Override
 			public boolean visit(IResource resource) throws CoreException {
 				try {
 					ICVSResource cvsResource = CVSWorkspaceRoot.getCVSResourceFor(resource);
@@ -79,17 +81,15 @@ public class EclipseFolderTest extends EclipseTest {
 		assertChildrenHaveSync(projectB, true);
 		
 		// test that unmanaging in a CVS runnable flushes too
-		cvsProjectB.run(new ICVSRunnable() {
-			public void run(IProgressMonitor monitor) throws CVSException {
-					try {
-						assertChildrenHaveSync(projectB, true);
-						cvsProjectB.unmanage(null);
-						assertChildrenHaveSync(projectB, false);
-					} catch(CoreException e) {
-						throw CVSException.wrapException(e);
-					}
+		cvsProjectB.run(monitor -> {
+			try {
+				assertChildrenHaveSync(projectB, true);
+				cvsProjectB.unmanage(null);
+				assertChildrenHaveSync(projectB, false);
+			} catch (CoreException e) {
+				throw CVSException.wrapException(e);
 			}
-		}, null);		
+		}, null);	
 		assertChildrenHaveSync(projectB, false);
 	}
 }

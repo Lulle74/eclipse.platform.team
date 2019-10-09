@@ -1,22 +1,36 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.ui.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.SafeRunner;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IContributionManager;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.util.SafeRunnable;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.team.internal.ui.synchronize.SynchronizePageConfiguration;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IKeyBindingService;
@@ -29,6 +43,7 @@ import org.eclipse.ui.actions.ActionGroup;
  * configuration has been created by the page but before the page is created.
  * <p>
  * The life cycle of an action group is:
+ * </p>
  * <ul>
  * <li>the <code>initialize(ISynchronizePageConfiguration}</code> method is
  * invoked before the methods to populate menus. This is done to give clients
@@ -53,7 +68,6 @@ import org.eclipse.ui.actions.ActionGroup;
  * a chance to adjust the input to actions that operate on all visible elements.
  * <li>The <code>dispose()</code> method is called when the page is disposed.
  * </ul>
- * </p>
  * @since 3.0
  */
 public abstract class SynchronizePageActionGroup extends ActionGroup {
@@ -323,8 +337,7 @@ public abstract class SynchronizePageActionGroup extends ActionGroup {
 	private void fillMenu(IContributionManager menu, String menuId) {
 		Map<String, List<Object>> groups = menuContributions.get(menuId);
 		if (menu != null && groups != null) {
-			for (Iterator<String> iter = groups.keySet().iterator(); iter.hasNext(); ) {
-				String groupId = iter.next();
+			for (String groupId : groups.keySet()) {
 				List actions = groups.get(groupId);
 				if (actions != null) {
 					for (Iterator iter2 = actions.iterator(); iter2.hasNext();) {
@@ -365,7 +378,7 @@ public abstract class SynchronizePageActionGroup extends ActionGroup {
 	 *
 	 * @since 3.1
 	 */
-    public ISynchronizePageConfiguration getConfiguration() {
-        return configuration;
-    }
+	public ISynchronizePageConfiguration getConfiguration() {
+		return configuration;
+	}
 }

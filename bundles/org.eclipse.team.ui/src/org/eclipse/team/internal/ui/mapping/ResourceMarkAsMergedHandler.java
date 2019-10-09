@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -21,7 +24,9 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.team.core.diff.*;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IThreeWayDiff;
 import org.eclipse.team.core.mapping.IMergeContext;
 import org.eclipse.team.internal.ui.TeamUIMessages;
 import org.eclipse.team.ui.mapping.SynchronizationOperation;
@@ -58,8 +63,7 @@ public class ResourceMarkAsMergedHandler extends ResourceMergeActionHandler {
 				private ISchedulingRule getMergeRule(IMergeContext context,
 						IDiff[] deltas) {
 					ISchedulingRule result = null;
-					for (int i = 0; i < deltas.length; i++) {
-						IDiff node = deltas[i];
+					for (IDiff node : deltas) {
 						ISchedulingRule rule = context.getMergeRule(node);
 						if (result == null) {
 							result = rule;

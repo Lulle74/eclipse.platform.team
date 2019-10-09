@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -14,17 +17,35 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.*;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.ModelProvider;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Adapters;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.*;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.team.core.TeamException;
-import org.eclipse.team.core.diff.*;
-import org.eclipse.team.core.mapping.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.core.diff.FastDiffFilter;
+import org.eclipse.team.core.diff.IDiff;
+import org.eclipse.team.core.diff.IDiffTree;
+import org.eclipse.team.core.diff.IThreeWayDiff;
+import org.eclipse.team.core.mapping.IMergeContext;
+import org.eclipse.team.core.mapping.IMergeStatus;
+import org.eclipse.team.core.mapping.IResourceMappingMerger;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScopeManager;
+import org.eclipse.team.internal.ui.Policy;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.internal.ui.dialogs.NoChangesDialog;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -55,8 +76,7 @@ public abstract class ModelMergeOperation extends ModelOperation {
 			ModelProvider[] providers = context.getScope().getModelProviders();
 			monitor.beginTask(null, 100 * providers.length);
 			List<IStatus> notOK = new ArrayList<>();
-			for (int i = 0; i < providers.length; i++) {
-				ModelProvider provider = providers[i];
+			for (ModelProvider provider : providers) {
 				IStatus status = validateMerge(provider, context, Policy.subMonitorFor(monitor, 100));
 				if (!status.isOK())
 					notOK.add(status);
@@ -192,16 +212,16 @@ public abstract class ModelMergeOperation extends ModelOperation {
 	 * @param status the status returned from the mergers that reported the validation failures
 	 */
 	protected void handleValidationFailure(final IStatus status) {
-    	final boolean[] result = new boolean[] { false };
-    	Runnable runnable = () -> {
+		final boolean[] result = new boolean[] { false };
+		Runnable runnable = () -> {
 			ErrorDialog dialog = new ErrorDialog(getShell(), TeamUIMessages.ModelMergeOperation_0, TeamUIMessages.ModelMergeOperation_1, status, IStatus.ERROR | IStatus.WARNING | IStatus.INFO) {
 				@Override
 				protected void createButtonsForButtonBar(Composite parent) {
-			        createButton(parent, IDialogConstants.YES_ID, IDialogConstants.YES_LABEL,
-			                false);
+					createButton(parent, IDialogConstants.YES_ID, IDialogConstants.YES_LABEL,
+							false);
 					createButton(parent, IDialogConstants.NO_ID, IDialogConstants.NO_LABEL,
 							true);
-			        createDetailsButton(parent);
+					createDetailsButton(parent);
 				}
 
 				@Override
@@ -267,8 +287,7 @@ public abstract class ModelMergeOperation extends ModelOperation {
 				try {
 					int ticks = 100;
 					monitor1.beginTask(null, ticks + ((providers.length - 1) * 10));
-					for (int i = 0; i < providers.length; i++) {
-						ModelProvider provider = providers[i];
+					for (ModelProvider provider : providers) {
 						IStatus status = performMerge(provider, Policy.subMonitorFor(monitor1, ticks));
 						ticks = 10;
 						if (!status.isOK()) {

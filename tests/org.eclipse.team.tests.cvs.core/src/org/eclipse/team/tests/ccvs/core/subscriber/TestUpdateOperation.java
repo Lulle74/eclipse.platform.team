@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -34,36 +37,33 @@ class TestUpdateOperation extends WorkspaceUpdateOperation {
 		super(null, elements, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ui.actions.TeamOperation#canRunAsJob()
-	 */
+	@Override
 	protected boolean canRunAsJob() {
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.SafeUpdateOperation#warnAboutFailedResources(org.eclipse.team.core.synchronize.SyncInfoSet)
-	 */
+	@Override
 	protected void warnAboutFailedResources(SyncInfoSet syncSet) {
 		return;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberOperation#promptForOverwrite(org.eclipse.team.core.synchronize.SyncInfoSet)
-	 */
+	@Override
 	protected boolean promptForOverwrite(SyncInfoSet syncSet) {
 		EclipseTest.fail("Should never prompt on update, simply update nodes that are valid.");
 		return false;
 	}
 	
+	@Override
 	protected void safeUpdate(IProject project, IResource[] resources, LocalOption[] localOptions, IProgressMonitor monitor) throws TeamException {
 		try {
 			UpdateOnlyMergableOperation operation = new UpdateOnlyMergableOperation(getPart(), project, resources, localOptions) {
+				@Override
 				public ISynchronizationScope buildScope(IProgressMonitor monitor) throws InterruptedException, CVSException {
-			    	if (getScopeManager() == null) {
-			    		// manager = createScopeManager(consultModelsWhenBuildingScope && consultModelsForMappings());
-			    		ReflectionUtils.setField(this, "manager", createScopeManager(consultModelsWhenBuildingScope && consultModelsForMappings()));
-			    		BuildScopeOperation op = new BuildScopeOperation(getPart(), getScopeManager()) {
+					if (getScopeManager() == null) {
+						// manager = createScopeManager(consultModelsWhenBuildingScope && consultModelsForMappings());
+						ReflectionUtils.setField(this, "manager", createScopeManager(consultModelsWhenBuildingScope && consultModelsForMappings()));
+						BuildScopeOperation op = new BuildScopeOperation(getPart(), getScopeManager()) {
+							@Override
 							protected boolean promptForInputChange(String requestPreviewMessage, IProgressMonitor monitor) {
 								return false; // do not prompt
 							}
@@ -73,8 +73,8 @@ class TestUpdateOperation extends WorkspaceUpdateOperation {
 						} catch (InvocationTargetException e) {
 							throw CVSException.wrapException(e);
 						}
-			    	}
-			    	return getScope();
+					}
+					return getScope();
 				}
 			};
 			operation.run(monitor);

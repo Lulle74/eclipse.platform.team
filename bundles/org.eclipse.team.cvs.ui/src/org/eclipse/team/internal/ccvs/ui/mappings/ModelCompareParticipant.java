@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -25,6 +28,7 @@ public class ModelCompareParticipant extends CVSModelSynchronizeParticipant impl
 	public static final String VIEWER_ID = "org.eclipse.team.cvs.ui.compareSynchronization"; //$NON-NLS-1$
 	
 	public class CompareChangeSetCapability extends ModelParticipantChangeSetCapability {
+		@Override
 		public CheckedInChangeSetCollector createCheckedInChangeSetCollector(ISynchronizePageConfiguration configuration) {
 			return new CheckedInChangeSetCollector(configuration, getSubscriber());
 		}
@@ -42,9 +46,7 @@ public class ModelCompareParticipant extends CVSModelSynchronizeParticipant impl
 		setSecondaryId(Long.toString(System.currentTimeMillis()));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.ui.operations.ModelSynchronizeParticipant#initializeConfiguration(org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration)
-	 */
+	@Override
 	protected void initializeConfiguration(ISynchronizePageConfiguration configuration) {
 		configuration.setProperty(ISynchronizePageConfiguration.P_VIEWER_ID, VIEWER_ID);
 		super.initializeConfiguration(configuration);
@@ -54,10 +56,11 @@ public class ModelCompareParticipant extends CVSModelSynchronizeParticipant impl
 		return ((SubscriberMergeContext)getContext()).getSubscriber();
 	}
 	
+	@Override
 	public ChangeSetCapability getChangeSetCapability() {
-        if (capability == null) {
-            capability = new CompareChangeSetCapability();
-        }
-        return capability;
+		if (capability == null) {
+			capability = new CompareChangeSetCapability();
+		}
+		return capability;
 	}
 }

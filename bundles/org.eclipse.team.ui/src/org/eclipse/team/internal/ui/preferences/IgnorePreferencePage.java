@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,8 +14,9 @@
 package org.eclipse.team.internal.ui.preferences;
 
 
-import org.eclipse.jface.dialogs.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.window.Window;
@@ -20,12 +24,21 @@ import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.team.core.IIgnoreInfo;
 import org.eclipse.team.core.Team;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
 import org.eclipse.team.ui.TeamUI;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 public class IgnorePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 	private Table ignoreTable;
 	private Button addButton;
@@ -87,8 +100,8 @@ public class IgnorePreferencePage extends PreferencePage implements IWorkbenchPr
 		setButtonLayoutData(addButton);
 		setButtonLayoutData(removeButton);
 
-        // set F1 help
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.IGNORE_PREFERENCE_PAGE);
+		// set F1 help
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.IGNORE_PREFERENCE_PAGE);
 
 		return parent;
 	}
@@ -124,8 +137,7 @@ public class IgnorePreferencePage extends PreferencePage implements IWorkbenchPr
 	 * @param ignore
 	 */
 	private void fillTable(IIgnoreInfo[] ignore) {
-		for (int i = 0; i < ignore.length; i++) {
-			IIgnoreInfo info = ignore[i];
+		for (IIgnoreInfo info : ignore) {
 			TableItem item = new TableItem(ignoreTable, SWT.NONE);
 			item.setText(TextProcessor.process(info.getPattern(), ".*")); //$NON-NLS-1$
 			item.setChecked(info.getEnabled());
@@ -149,8 +161,8 @@ public class IgnorePreferencePage extends PreferencePage implements IWorkbenchPr
 		if (pattern.equals("")) return; //$NON-NLS-1$
 		// Check if the item already exists
 		TableItem[] items = ignoreTable.getItems();
-		for (int i = 0; i < items.length; i++) {
-			if (items[i].getText().equals(pattern)) {
+		for (TableItem item : items) {
+			if (item.getText().equals(pattern)) {
 				MessageDialog.openWarning(getShell(), TeamUIMessages.IgnorePreferencePage_patternExistsShort, TeamUIMessages.IgnorePreferencePage_patternExistsLong);
 				return;
 			}

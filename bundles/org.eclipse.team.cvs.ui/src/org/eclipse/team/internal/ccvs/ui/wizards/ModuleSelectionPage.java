@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -18,7 +21,6 @@ import java.util.Iterator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.wizard.IWizard;
@@ -66,17 +68,14 @@ public class ModuleSelectionPage extends CVSWizardPage {
 		this.helpContextId = helpContextId;
 	}
 	
+	@Override
 	public void createControl(Composite parent) {
 		Composite composite = createComposite(parent, 2, false);
 
 		if (helpContextId != null)
-            PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, helpContextId);
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, helpContextId);
 		
-		Listener listener = new Listener() {
-			public void handleEvent(Event event) {
-				updateEnablements(false);
-			}
-		};
+		Listener listener = event -> updateEnablements(false);
 		
 		if (project != null) {
 			useProjectNameButton = createRadioButton(composite, CVSUIMessages.ModuleSelectionPage_moduleIsProject, 2); 
@@ -98,11 +97,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 			data.horizontalSpan = 2;
 			data.horizontalIndent = 10;
 			useModuleAndProjectNameButton.setLayoutData(data);
-			useModuleAndProjectNameButton.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					updateText();
-				}
-			});
+			useModuleAndProjectNameButton.addListener(SWT.Selection, event -> updateText());
 		}
 		
 		moduleList = createModuleTree(composite, 2);
@@ -119,7 +114,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 			useModuleAndProjectNameButton.setSelection(false);
 		updateEnablements(false);
 		setControl(composite);
-        Dialog.applyDialogFont(parent);
+		Dialog.applyDialogFont(parent);
 	}
 	
 	private void updateText() {
@@ -142,6 +137,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 				&& useModuleAndProjectNameButton.getSelection();
 	}
 	
+	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if (visible) {
@@ -202,13 +198,11 @@ public class ModuleSelectionPage extends CVSWizardPage {
 					if (fetchModules) {
 						// Validate the location first since the module fecthing is
 						// done in a deferred fashion
-						getContainer().run(true, true, new IRunnableWithProgress() {
-							public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-								try {
-									validateLocation(monitor);
-								} catch (CVSException e) {
-									throw new InvocationTargetException(e);
-								}
+						getContainer().run(true, true, monitor -> {
+							try {
+								validateLocation(monitor);
+							} catch (CVSException e) {
+								throw new InvocationTargetException(e);
 							}
 						});
 						setModuleListInput();
@@ -239,7 +233,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 			ISelection selection = moduleList.getSelection();
 			if (!selection.isEmpty() && selection instanceof IStructuredSelection) {
 				IStructuredSelection ss = (IStructuredSelection)selection;
-				ArrayList result = new ArrayList();
+				ArrayList<ICVSRemoteFolder> result = new ArrayList<>();
 				for (Iterator iter = ss.iterator(); iter.hasNext();) {
 					Object element = iter.next();
 					if (element instanceof ICVSRemoteFolder) {
@@ -248,12 +242,12 @@ public class ModuleSelectionPage extends CVSWizardPage {
 							ICVSRemoteFolder remoteFolder = internalCreateModuleHandle(relativePath + SEPARATOR + project.getName())[0];
 							result.add(remoteFolder);
 						} else {
-							result.add(element);
+							result.add((ICVSRemoteFolder) element);
 						}
 					}
 					
 				}
-				return (ICVSRemoteFolder[]) result.toArray(new ICVSRemoteFolder[result.size()]);
+				return result.toArray(new ICVSRemoteFolder[result.size()]);
 			}
 		} else {
 			if (moduleName != null) {
@@ -270,14 +264,14 @@ public class ModuleSelectionPage extends CVSWizardPage {
 		if (location == null) return new ICVSRemoteFolder[0];
 		String[] names = name.split(","); //$NON-NLS-1$
 		int length = names.length;
-		java.util.List folders = new ArrayList();
+		java.util.List<ICVSRemoteFolder> folders = new ArrayList<>();
 		for (int i = 0; i < length; i++) {
 			// call trim() in case the user has added spaces after the commas
 			String trimmedName = names[i].trim();
 			if (trimmedName.length() > 0)
 				folders.add(location.getRemoteFolder(trimmedName, CVSTag.DEFAULT));
 		}
-		return (ICVSRemoteFolder[]) folders.toArray(new ICVSRemoteFolder[folders.size()]);
+		return folders.toArray(new ICVSRemoteFolder[folders.size()]);
 	}
 	
 	/**
@@ -297,11 +291,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 	
 	public ICVSRemoteFolder[] getSelectedModules() {
 		final ICVSRemoteFolder[][] folder = new ICVSRemoteFolder[][] { null };
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				folder[0] = internalGetSelectedModules();
-			}
-		});
+		Display.getDefault().syncExec(() -> folder[0] = internalGetSelectedModules());
 		return folder[0];
 	}
 	
@@ -319,6 +309,7 @@ public class ModuleSelectionPage extends CVSWizardPage {
 			 * Fix to allow filtering to be used without triggering fetching 
 			 * of the contents of all children (see bug 62268)
 			 */
+			@Override
 			public boolean isExpandable(Object element) {
 				ITreeContentProvider cp = (ITreeContentProvider) getContentProvider();
 				if(cp == null)
@@ -330,16 +321,14 @@ public class ModuleSelectionPage extends CVSWizardPage {
 		result.setContentProvider(new RemoteContentProvider());
 		result.setLabelProvider(new WorkbenchLabelProvider());
 		result.addFilter(new ViewerFilter() {
+			@Override
 			public boolean select(Viewer viewer, Object parentElement, Object element) {
 				return !(element instanceof ICVSRemoteFile);
 			}
 		});
-		result.addSelectionChangedListener(new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				updateText();
-			}
-		});
+		result.addSelectionChangedListener(event -> updateText());
 		result.getTree().addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				if (getSelectedModule() != null) {
 					gotoNextPage();

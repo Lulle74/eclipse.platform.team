@@ -1,20 +1,36 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.core.synchronize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.jobs.ILock;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.team.core.ITeamStatus;
@@ -62,8 +78,8 @@ public class SyncInfoSet {
 	public SyncInfoSet(SyncInfo[] infos) {
 		this();
 		// use the internal add since we can't have listeners at this point anyway
-		for (int i = 0; i < infos.length; i++) {
-			internalAdd(infos[i]);
+		for (SyncInfo info : infos) {
+			internalAdd(info);
 		}
 	}
 
@@ -86,8 +102,7 @@ public class SyncInfoSet {
 	public IResource[] getResources() {
 		SyncInfo[] infos = getSyncInfos();
 		List<IResource> resources = new ArrayList<>();
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			resources.add(info.getLocal());
 		}
 		return resources.toArray(new IResource[resources.size()]);
@@ -117,13 +132,16 @@ public class SyncInfoSet {
 
 	/**
 	 * Return the number of out-of-sync resources in the given set whose sync kind
-	 * matches the given kind and mask (e.g. <code>(SyncInfo#getKind() & mask) == kind</code>).
+	 * matches the given kind and mask (e.g.
+	 * <code>(SyncInfo#getKind() &amp; mask) == kind</code>).
 	 * <p>
 	 * For example, this will return the number of outgoing changes in the set:
-	 * <pre>
-	 *  long outgoing =  countFor(SyncInfo.OUTGOING, SyncInfo.DIRECTION_MASK);
-	 * </pre>
 	 * </p>
+	 *
+	 * <pre>
+	 * long outgoing = countFor(SyncInfo.OUTGOING, SyncInfo.DIRECTION_MASK);
+	 * </pre>
+	 *
 	 * @param kind the sync kind
 	 * @param mask the sync kind mask
 	 * @return the number of matching resources in the set.
@@ -327,8 +345,8 @@ public class SyncInfoSet {
 		try {
 			beginInput();
 			SyncInfo[] infos = set.getSyncInfos();
-			for (int i = 0; i < infos.length; i++) {
-				add(infos[i]);
+			for (SyncInfo info : infos) {
+				add(info);
 			}
 		} finally {
 			endInput(null);
@@ -358,8 +376,8 @@ public class SyncInfoSet {
 	public void removeAll(IResource[] resources) {
 		try {
 			beginInput();
-			for (int i = 0; i < resources.length; i++) {
-				remove(resources[i]);
+			for (IResource resource : resources) {
+				remove(resource);
 			}
 		} finally {
 			endInput(null);
@@ -395,8 +413,7 @@ public class SyncInfoSet {
 	 */
 	public boolean hasNodes(FastSyncInfoFilter filter) {
 		SyncInfo[] infos = getSyncInfos();
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			if (info != null && filter.select(info)) {
 				return true;
 			}
@@ -414,8 +431,7 @@ public class SyncInfoSet {
 		try {
 			beginInput();
 			SyncInfo[] infos = getSyncInfos();
-			for (int i = 0; i < infos.length; i++) {
-				SyncInfo info = infos[i];
+			for (SyncInfo info : infos) {
 				if (info == null || !filter.select(info)) {
 					remove(info.getLocal());
 				}
@@ -435,8 +451,7 @@ public class SyncInfoSet {
 		try {
 			beginInput();
 			SyncInfo[] infos = getSyncInfos();
-			for (int i = 0; i < infos.length; i++) {
-				SyncInfo info = infos[i];
+			for (SyncInfo info : infos) {
 				if (info != null && filter.select(info)) {
 					remove(info.getLocal());
 				}
@@ -455,8 +470,7 @@ public class SyncInfoSet {
 	public SyncInfo[] getNodes(FastSyncInfoFilter filter) {
 		List<SyncInfo> result = new ArrayList<>();
 		SyncInfo[] infos = getSyncInfos();
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			if (info != null && filter.select(info)) {
 				result.add(info);
 			}
@@ -486,22 +500,26 @@ public class SyncInfoSet {
 
 	/**
 	 * This method is used to obtain a lock on the set which ensures thread safety
-	 * and batches change notification. If the set is locked by another thread,
-	 * the calling thread will block until the lock
-	 * becomes available. This method uses an <code>org.eclipse.core.runtime.jobs.ILock</code>.
+	 * and batches change notification. If the set is locked by another thread, the
+	 * calling thread will block until the lock becomes available. This method uses
+	 * an <code>org.eclipse.core.runtime.jobs.ILock</code>.
 	 * <p>
-	 * It is important that the lock is released after it is obtained. Calls to <code>endInput</code>
-	 * should be done in a finally block as illustrated in the following code snippet.
+	 * It is important that the lock is released after it is obtained. Calls to
+	 * <code>endInput</code> should be done in a finally block as illustrated in the
+	 * following code snippet.
+	 * </p>
+	 *
 	 * <pre>
-	 *   try {
-	 *       set.beginInput();
-	 *       // do stuff
-	 *   } finally {
-	 *      set.endInput(progress);
-	 *   }
+	 * try {
+	 * 	set.beginInput();
+	 * 	// do stuff
+	 * } finally {
+	 * 	set.endInput(progress);
+	 * }
 	 * </pre>
-	 * </p><p>
-	 * Calls to <code>beginInput</code> and <code>endInput</code> can be nested and must be matched.
+	 * <p>
+	 * Calls to <code>beginInput</code> and <code>endInput</code> can be nested and
+	 * must be matched.
 	 * </p>
 	 */
 	public void beginInput() {
@@ -557,8 +575,7 @@ public class SyncInfoSet {
 		// Fire the events using an ISafeRunnable
 		final ITeamStatus[] newErrors = event.getErrors();
 		monitor.beginTask(null, 100 + (newErrors.length > 0 ? 50 : 0) * allListeners.length);
-		for (int i = 0; i < allListeners.length; i++) {
-			final ISyncInfoSetChangeListener listener = allListeners[i];
+		for (ISyncInfoSetChangeListener listener : allListeners) {
 			SafeRunner.run(new ISafeRunnable() {
 				@Override
 				public void handleException(Throwable exception) {
@@ -644,14 +661,14 @@ public class SyncInfoSet {
 		return errors.values().toArray(new ITeamStatus[errors.size()]);
 	}
 
-    /**
-     * Return an iterator over all <code>SyncInfo</code>
-     * contained in this set.
-     * @return an iterator over all <code>SyncInfo</code>
-     * contained in this set.
-     * @since 3.1
-     */
-    public Iterator iterator() {
-        return resources.values().iterator();
-    }
+	/**
+	 * Return an iterator over all <code>SyncInfo</code>
+	 * contained in this set.
+	 * @return an iterator over all <code>SyncInfo</code>
+	 * contained in this set.
+	 * @since 3.1
+	 */
+	public Iterator iterator() {
+		return resources.values().iterator();
+	}
 }

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -13,17 +16,35 @@ package org.eclipse.team.internal.ui.mapping;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.core.resources.mapping.*;
-import org.eclipse.jface.action.*;
+import org.eclipse.core.resources.mapping.ModelProvider;
+import org.eclipse.core.resources.mapping.ResourceMapping;
+import org.eclipse.core.resources.mapping.ResourceTraversal;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuCreator;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.team.core.mapping.*;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.team.core.mapping.ISynchronizationContext;
+import org.eclipse.team.core.mapping.ISynchronizationScope;
+import org.eclipse.team.core.mapping.ISynchronizationScopeChangeListener;
+import org.eclipse.team.internal.ui.ITeamUIImages;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.TeamUIPlugin;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.ui.TeamImages;
 import org.eclipse.team.ui.TeamUI;
 import org.eclipse.team.ui.mapping.ITeamContentProviderDescriptor;
 import org.eclipse.team.ui.mapping.ITeamContentProviderManager;
-import org.eclipse.team.ui.synchronize.*;
+import org.eclipse.team.ui.synchronize.ISynchronizePageConfiguration;
+import org.eclipse.team.ui.synchronize.ModelMergeOperation;
+import org.eclipse.team.ui.synchronize.ModelOperation;
+import org.eclipse.team.ui.synchronize.ModelSynchronizeParticipant;
 
 public class ModelSelectionDropDownAction extends Action implements ISynchronizationScopeChangeListener {
 
@@ -127,8 +148,7 @@ public class ModelSelectionDropDownAction extends Action implements ISynchroniza
 		Set<ModelProvider> result = new HashSet<>();
 		ModelProvider[] providers = ((ModelSynchronizeParticipant)configuration.getParticipant()).getEnabledModelProviders();
 		providers = ModelMergeOperation.sortByExtension(providers);
-		for (int i = 0; i < providers.length; i++) {
-			ModelProvider provider = providers[i];
+		for (ModelProvider provider : providers) {
 			ITeamContentProviderDescriptor desc = TeamUI.getTeamContentProviderManager().getDescriptor(provider.getId());
 			if (desc != null && desc.isEnabled()) {
 				result.add(provider);
@@ -139,8 +159,7 @@ public class ModelSelectionDropDownAction extends Action implements ISynchroniza
 
 	private void addModelsToMenu(ModelProvider[] modelProviders) {
 		String id = getActiveProviderId();
-		for (int i = 0; i < modelProviders.length; i++) {
-			ModelProvider provider = modelProviders[i];
+		for (ModelProvider provider : modelProviders) {
 			Action action = new ShowModelProviderAction(configuration, provider);
 			action.setChecked(provider.getDescriptor().getId().equals(id));
 			menuManager.add(action);
@@ -185,8 +204,7 @@ public class ModelSelectionDropDownAction extends Action implements ISynchroniza
 			showAllAction.setChecked(getActiveProviderId().equals(ModelSynchronizeParticipant.ALL_MODEL_PROVIDERS_VISIBLE));
 			showAllFlatAction.setChecked(isFlatEnabled());
 			IContributionItem[] items = menuManager.getItems();
-			for (int i = 0; i < items.length; i++) {
-				IContributionItem item = items[i];
+			for (IContributionItem item : items) {
 				if (item instanceof ActionContributionItem) {
 					ActionContributionItem aci = (ActionContributionItem) item;
 					IAction a = aci.getAction();

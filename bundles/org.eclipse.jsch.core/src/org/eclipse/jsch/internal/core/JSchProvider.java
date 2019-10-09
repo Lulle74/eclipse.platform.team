@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2007, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -32,9 +35,7 @@ class JSchProvider implements IJSchService {
   
   private static JSchProvider instance;
 
-  /* (non-Javadoc)
-   * @see org.eclipse.jsch.core.IJSchService#createSession(java.lang.String, int, java.lang.String)
-   */
+  @Override
   public Session createSession(String host, int port, String username) throws JSchException {
 
     if(JSchCorePlugin.getPlugin().isNeedToLoadKnownHosts()){
@@ -48,9 +49,7 @@ class JSchProvider implements IJSchService {
     return Utils.createSession(JSchCorePlugin.getPlugin().getJSch(), username, host, port);
   }
   
-  /* (non-Javadoc)
-   * @see org.eclipse.jsch.core.IJSchService#createSession(IJSchLocation location, UserInfo uinfo)
-   */
+  @Override
   public Session createSession(IJSchLocation location, UserInfo uinfo) throws JSchException {
 
     Session session=createSession(location.getHost(), location.getPort(), location.getUsername());
@@ -71,9 +70,7 @@ class JSchProvider implements IJSchService {
     return createSession(location, null);
   }
   
-  /**
-   * @see org.eclipse.jsch.core.IJSchService#connect(com.jcraft.jsch.Session, int, org.eclipse.core.runtime.IProgressMonitor)
-   */
+  @Override
   public void connect(Session session, int timeout,
       IProgressMonitor monitor) throws JSchException{
     session.setSocketFactory(new ResponsiveSocketFactory(monitor, timeout));
@@ -119,9 +116,7 @@ class JSchProvider implements IJSchService {
       ((UserInfoImpl)ui).connectionMade();
   }
   
-  /**
-   * @see org.eclipse.jsch.core.IJSchService#getProxyForHost(java.lang.String, java.lang.String)
-   */
+  @Override
   public Proxy getProxyForHost(String host, String proxyType) {
     return Utils.getProxyForHost(host, proxyType);
   }
@@ -132,9 +127,7 @@ class JSchProvider implements IJSchService {
     return instance;
   }
 
-  /* (non-Javadoc)
-   * @see org.eclipse.jsch.core.IJSchService#connect(com.jcraft.jsch.Proxy, java.lang.String, int, int, org.eclipse.core.runtime.IProgressMonitor)
-   */
+  @Override
   public void connect(Proxy proxy, String host, int port, int timeout,
       IProgressMonitor monitor) throws JSchException {
     try{
@@ -184,6 +177,7 @@ class JSchProvider implements IJSchService {
     }
   }
   
+  @Override
   public JSch getJSch(){
     return JSchCorePlugin.getPlugin().getJSch();
   }
@@ -198,9 +192,7 @@ class JSchProvider implements IJSchService {
     return ((UserInfoImpl)session.getUserInfo()).hasPromptExceededTimeout();
   }
 
-  /**
-   * @see org.eclipse.jsch.core.IJSchService#getLocation(String user, String host, int port)
-   */
+  @Override
   public IJSchLocation getLocation(String user, String host, int port){
     IJSchLocation location=null;
     location=new JSchLocation(user, host, port);

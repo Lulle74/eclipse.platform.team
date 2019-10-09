@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  * IBM Corporation - initial API and implementation
@@ -14,7 +17,9 @@ import java.util.regex.Pattern;
 
 import org.eclipse.compare.internal.DocLineComparator;
 import org.eclipse.compare.rangedifferencer.RangeDifference;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Compute differences between local and remote contents and checks if all match
@@ -36,8 +41,7 @@ public class RegexDiffComparator extends RangeDifferenceComparator {
 	protected boolean compareRangeDifferences(RangeDifference[] ranges,
 			IDocument lDoc, IDocument rDoc) {
 		try {
-			for (int i = 0; i < ranges.length; i++) {
-				RangeDifference diff = ranges[i];
+			for (RangeDifference diff : ranges) {
 				if (diff.kind() == RangeDifference.NOCHANGE)
 					continue;
 

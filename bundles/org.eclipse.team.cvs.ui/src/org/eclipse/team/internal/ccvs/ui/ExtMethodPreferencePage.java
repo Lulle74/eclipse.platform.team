@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2009 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -37,13 +40,12 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 	private Combo methodType;
 	private Control internal, external;
 
-	/*
-	 * @see PreferencePage#createContents(Composite)
-	 */
+	@Override
 	protected Control createContents(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NULL);
 		
 		SelectionAdapter selectionListener = new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				updateEnablements();
 			}
@@ -103,7 +105,7 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 		ssh2Link.getControl().setLayoutData(data);
 
 		initializeDefaults();
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.EXT_PREFERENCE_PAGE);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IHelpContextIds.EXT_PREFERENCE_PAGE);
 		Dialog.applyDialogFont(parent);
 		return composite;
 	}
@@ -167,15 +169,13 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 		int widthHint = convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
 		data.widthHint = Math.max(widthHint, b.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
 		b.setLayoutData(data);
-		b.addListener(SWT.MouseDown, new Listener() {
-			public void handleEvent (Event event) {
-				FileDialog d = new FileDialog(getShell());
-				d.setText(CVSUIMessages.ExtMethodPreferencePage_Details); 
-				String file = d.open();
-				if(file!=null) {
-					setCvsRshText(file);
-				}
-			}			
+		b.addListener(SWT.MouseDown, event -> {
+			FileDialog d = new FileDialog(getShell());
+			d.setText(CVSUIMessages.ExtMethodPreferencePage_Details);
+			String file = d.open();
+			if (file != null) {
+				setCvsRshText(file);
+			}
 		});
 		
 		new Label(composite, SWT.LEFT).setText(CVSUIMessages.ExtMethodPreferencePage_CVS_RSH_Parameters); 
@@ -192,9 +192,9 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 		data.horizontalAlignment = GridData.FILL;
 		cvsServer.setLayoutData(data);
 		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsRsh, IHelpContextIds.EXT_PREFERENCE_RSH);
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsRshParameters, IHelpContextIds.EXT_PREFERENCE_PARAM);
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsServer, IHelpContextIds.EXT_PREFERENCE_SERVER);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsRsh, IHelpContextIds.EXT_PREFERENCE_RSH);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsRshParameters, IHelpContextIds.EXT_PREFERENCE_PARAM);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(cvsServer, IHelpContextIds.EXT_PREFERENCE_SERVER);
 		return composite;
 	}
 	
@@ -210,19 +210,15 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 	/*
 	 * Set CVS_RSH program
 	 */
-	 protected void setCvsRshText(String s) {
-	 	cvsRsh.setText(s);
-	 }
+	protected void setCvsRshText(String s) {
+		cvsRsh.setText(s);
+	}
 	
-	/*
-	 * @see IWorkbenchPreferencePage#init(IWorkbench)
-	 */
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 	
-	/*
-	 * @see IPreferencePage#performOk()
-	 */
+	@Override
 	public boolean performOk() {
 		IPreferenceStore store = getPreferenceStore();
 		String method;
@@ -242,27 +238,25 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 		CVSUIPlugin.getPlugin().savePluginPreferences();
 		return super.performOk();
 	}
-    
-	/* 
-     * @see PreferencePage#performDefaults()
-     */
-    protected void performDefaults() {
-        IPreferenceStore store = getPreferenceStore();
+	
+	@Override
+	protected void performDefaults() {
+		IPreferenceStore store = getPreferenceStore();
 		String rsh = store.getDefaultString(ICVSUIConstants.PREF_CVS_RSH);
 		String parameter = store.getDefaultString(ICVSUIConstants.PREF_CVS_RSH_PARAMETERS);
 		String server = store.getDefaultString(ICVSUIConstants.PREF_CVS_SERVER);
 		String method = store.getDefaultString(ICVSUIConstants.PREF_EXT_CONNECTION_METHOD_PROXY);
 		initializeDefaults(rsh, parameter, server, method);
-        super.performDefaults();
-    }
-    
-    private void initializeDefaults(String rsh, String parameters, String server, String method) {
+		super.performDefaults();
+	}
+	
+	private void initializeDefaults(String rsh, String parameters, String server, String method) {
 		cvsRsh.setText(rsh);
 		cvsRshParameters.setText(parameters);
 		cvsServer.setText(server);
 		IConnectionMethod[] methods = CVSRepositoryLocation.getPluggedInConnectionMethods();
-		for (int i = 0; i < methods.length; i++) {
-			String name = methods[i].getName();
+		for (IConnectionMethod m : methods) {
+			String name = m.getName();
 			if (!name.equals("ext")) { //$NON-NLS-1$
 				methodType.add(name);
 			}
@@ -275,11 +269,9 @@ public class ExtMethodPreferencePage extends PreferencePage implements IWorkbenc
 		useExternal.setSelection(method.equals("ext")); //$NON-NLS-1$
 		useInternal.setSelection(!method.equals("ext")); //$NON-NLS-1$
 		updateEnablements();
-    }
-    
-	/*
-	 * @see PreferencePage#doGetPreferenceStore()
-	 */
+	}
+	
+	@Override
 	protected IPreferenceStore doGetPreferenceStore() {
 		return CVSUIPlugin.getPlugin().getPreferenceStore();
 	}

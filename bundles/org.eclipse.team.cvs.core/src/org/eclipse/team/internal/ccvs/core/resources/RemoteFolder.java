@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -77,16 +80,12 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		this.repository = repository;	
 	}
 	
-	/**
-	 * @see ICVSResource#accept(ICVSResourceVisitor)
-	 */
+	@Override
 	public void accept(ICVSResourceVisitor visitor) throws CVSException {
 		visitor.visitFolder(this);
 	}
 
-	/**
-	 * @see ICVSResource#accept(ICVSResourceVisitor, boolean)
-	 */
+	@Override
 	public void accept(ICVSResourceVisitor visitor, boolean recurse) throws CVSException {
 		visitor.visitFolder(this);
 		ICVSResource[] resources;
@@ -95,14 +94,12 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		} else {
 			resources = members(ICVSFolder.FILE_MEMBERS);
 		}
-		for (int i = 0; i < resources.length; i++) {
-			resources[i].accept(visitor, recurse);
+		for (ICVSResource resource : resources) {
+			resource.accept(visitor, recurse);
 		}
 	}
 	
-	/*
-	 * @see ICVSRemoteResource#exists(IProgressMonitor)
-	 */
+	@Override
 	public boolean exists(IProgressMonitor monitor) throws TeamException {
 		try {
 			members(monitor);
@@ -153,7 +150,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 			};
 			
 			// Build the local options
-			final List localOptions = new ArrayList();
+			final List<LocalOption> localOptions = new ArrayList<>();
 			localOptions.add(Update.RETRIEVE_ABSENT_DIRECTORIES);
 			if (tag != null && tag.getType() != CVSTag.HEAD)
 				localOptions.add(Update.makeTagOption(tag));
@@ -167,7 +164,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 				IStatus status = Command.UPDATE.execute(
 					session,
 					new GlobalOption[] { Command.DO_NOT_CHANGE },
-					(LocalOption[]) localOptions.toArray(new LocalOption[localOptions.size()]),
+					localOptions.toArray(new LocalOption[localOptions.size()]),
 					new ICVSResource[] { child }, new UpdateListener(listener),
 					Policy.subMonitorFor(progress, 70));
 				if (status.getCode() == CVSStatus.SERVER_ERROR) {
@@ -220,11 +217,9 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return children;
 	}
 
-	/**
-	 * @see ICVSFolder#members(int)
-	 */
+	@Override
 	public ICVSResource[] members(int flags) throws CVSException {		
-		final List result = new ArrayList();
+		final List<ICVSResource> result = new ArrayList<>();
 		ICVSRemoteResource[] resources = getChildren();
 		if (children == null) {
 			return new ICVSResource[0];
@@ -238,8 +233,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		boolean includeManaged = (((flags & MANAGED_MEMBERS) != 0) || ((flags & (MANAGED_MEMBERS | UNMANAGED_MEMBERS | IGNORED_MEMBERS)) == 0));
 		boolean includeUnmanaged = (((flags & UNMANAGED_MEMBERS) != 0) || ((flags & (MANAGED_MEMBERS | UNMANAGED_MEMBERS | IGNORED_MEMBERS)) == 0));
 		boolean includeIgnored = ((flags & IGNORED_MEMBERS) != 0);
-		for (int i = 0; i < resources.length; i++) {
-			ICVSResource cvsResource = resources[i];
+		for (ICVSRemoteResource cvsResource : resources) {
 			if ((includeFiles && ( ! cvsResource.isFolder())) 
 					|| (includeFolders && (cvsResource.isFolder()))) {
 				boolean isManaged = cvsResource.isManaged();
@@ -251,12 +245,10 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 						
 			}		
 		}
-		return (ICVSResource[]) result.toArray(new ICVSResource[result.size()]);
+		return result.toArray(new ICVSResource[result.size()]);
 	}
 	
-	/**
-	 * @see ICVSFolder#getFolder(String)
-	 */
+	@Override
 	public ICVSFolder getFolder(String name) throws CVSException {
 		if (name.equals(Session.CURRENT_LOCAL_FOLDER) || name.equals(Session.CURRENT_LOCAL_FOLDER + Session.SERVER_SEPARATOR))
 			return this;
@@ -267,9 +259,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		throw new CVSException(status); 
 	}
 
-	/**
-	 * @see ICVSFolder#getFile(String)
-	 */
+	@Override
 	public ICVSFile getFile(String name) throws CVSException {
 		ICVSResource child = getChild(name);
 		if (!child.isFolder())
@@ -287,9 +277,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return getFolderSyncInfo().getRepository();
 	}
 	
-	/**
-	 * @see ICVSResource#getRelativePath(ICVSFolder)
-	 */
+	@Override
 	public String getRelativePath(ICVSFolder ancestor) throws CVSException {
 		// Check to see if the receiver is the ancestor
 		if (ancestor == this) return Session.CURRENT_LOCAL_FOLDER;
@@ -305,16 +293,12 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return repository;
 	}
 	
-	/**
-	 * @see ICVSRemoteFolder#isExpandable()
-	 */
+	@Override
 	public boolean isExpandable() {
 		return true;
 	}
 	
-	/**
-	 * @see ICVSResource#isFolder()
-	 */
+	@Override
 	public boolean isFolder() {
 		return true;
 	}
@@ -340,7 +324,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 	public ICVSResource getChild(String path) throws CVSException {
 		if (path.equals(Session.CURRENT_LOCAL_FOLDER) || path.length() == 0)
 			return this;
-		if (path.indexOf(Session.SERVER_SEPARATOR) != -1) {
+		if (path.contains(Session.SERVER_SEPARATOR)) {
 			IPath p = new Path(null, path);
 			try {
 				return ((RemoteFolder)getChild(p.segment(0))).getChild(p.removeFirstSegments(1).toString());
@@ -355,18 +339,17 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 				IStatus status = new CVSStatus(IStatus.ERROR, CHILD_DOES_NOT_EXIST, NLS.bind(CVSMessages.RemoteFolder_invalidChild, new String[] { path, getName() }),repository);
 				throw new CVSException(status);
 			}
-			for (int i=0;i<children.length;i++) {
-				if (children[i].getName().equals(path))
-					return children[i];
+			for (ICVSRemoteResource c : children) {
+				if (c.getName().equals(path)) {
+					return c;
+				}
 			}
 		}
 		IStatus status = new CVSStatus(IStatus.ERROR, CHILD_DOES_NOT_EXIST, NLS.bind(CVSMessages.RemoteFolder_invalidChild, new String[] { path, getName() }),repository);
 		throw new CVSException(status);
 	}
 
-	/**
-	 * @see ICVSFolder#mkdir()
-	 */
+	@Override
 	public void mkdir() throws CVSException {
 		IStatus status = new CVSStatus(IStatus.ERROR, CVSMessages.RemoteResource_invalidOperation);
 		throw new CVSException(status);
@@ -378,16 +361,12 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 	public void flush(boolean deep) {
 	}
 
-	/**
-	 * @see ICVSFolder#getFolderInfo()
-	 */
+	@Override
 	public FolderSyncInfo getFolderSyncInfo() {
 		return folderInfo;
 	}
 
-	/**
-	 * @see ICVSResource#getRemoteLocation(ICVSFolder)
-	 */
+	@Override
 	public String getRemoteLocation(ICVSFolder stopSearching) throws CVSException {
 		if (folderInfo == null) {
 			return Util.appendPath(parent.getRemoteLocation(stopSearching), getName());
@@ -395,31 +374,23 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return folderInfo.getRemoteLocation();
 	}
 	
-	/**
-	 * @see ICVSFolder#isCVSFolder()
-	 */
+	@Override
 	public boolean isCVSFolder() {
 		return folderInfo != null;
 	}
 
-	/**
-	 * @see ICVSFolder#acceptChildren(ICVSResourceVisitor)
-	 */
+	@Override
 	public void acceptChildren(ICVSResourceVisitor visitor) throws CVSException {
 		IStatus status = new CVSStatus(IStatus.ERROR, CVSMessages.RemoteResource_invalidOperation);
 		throw new CVSException(status);		
 	}
 	
-	/*
-	 * @see IRemoteResource#isContainer()
-	 */
+	@Override
 	public boolean isContainer() {
 		return true;
 	}
 	
-	/*
-	 * @see IRemoteResource#members(IProgressMonitor)
-	 */
+	@Override
 	public ICVSRemoteResource[] members(IProgressMonitor progress) throws TeamException {
 		return getMembers(progress);
 	}
@@ -441,35 +412,28 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 	 * @see ICVSRemoteFolder#setTag(String)
 	 */
 	public void setTag(CVSTag tag) {
-        MutableFolderSyncInfo newInfo = folderInfo.cloneMutable();
-        newInfo.setTag(tag);
-        setFolderSyncInfo(newInfo);
+		MutableFolderSyncInfo newInfo = folderInfo.cloneMutable();
+		newInfo.setTag(tag);
+		setFolderSyncInfo(newInfo);
 	}
 
-	/*
-	 * @see ICVSRemoteFolder#getTag()
-	 */
+	@Override
 	public CVSTag getTag() {
 		if (folderInfo == null) return null;
 		return folderInfo.getTag();
 	}
-	/*
-	 * @see ICVSFolder#setFolderInfo(FolderSyncInfo)
-	 */
+	
+	@Override
 	public void setFolderSyncInfo(FolderSyncInfo folderInfo) {
 		this.folderInfo = folderInfo.asImmutable();
 	}
 	
-	/*
-	 * @see ICVSFolder#run(ICVSRunnable, IProgressMonitor)
-	 */
+	@Override
 	public void run(ICVSRunnable job, IProgressMonitor monitor) throws CVSException {
 		job.run(monitor);
 	}
 	
-	/*
-	 * @see ICVSFolder#tag(CVSTag, LocalOption[], IProgressMonitor)
-	 */
+	@Override
 	public IStatus tag(final CVSTag tag, final LocalOption[] localOptions, IProgressMonitor monitor) throws CVSException {
 		monitor = Policy.monitorFor(monitor);
 		monitor.beginTask(null, 100);
@@ -487,11 +451,9 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		} finally {
 			session.close();
 		}
-	 }
-	 
-	/**
-	 * @see ICVSFolder#fetchChildren(IProgressMonitor)
-	 */
+	}
+	
+	@Override
 	public ICVSResource[] fetchChildren(IProgressMonitor monitor) throws CVSException {
 		try {
 			return getMembers(monitor);
@@ -512,9 +474,7 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return tag1.equals(tag2);
 	}
 	
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
+	@Override
 	public int hashCode() {
 		CVSTag tag = getTag();
 		if (tag == null) tag = CVSTag.DEFAULT;
@@ -534,37 +494,27 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		return getRelativePathFromRootRelativePath((ICVSFolder)root.getChild(path.segment(0)), path.removeFirstSegments(1));
 	}
 
-	/**
-	 * @see ICVSRemoteFolder#forTag(CVSTag)
-	 */
+	@Override
 	public ICVSRemoteResource forTag(ICVSRemoteFolder parent, CVSTag tagName) {
 		return new RemoteFolder((RemoteFolder)parent, getName(), repository, folderInfo.getRepository(), tagName, folderInfo.getIsStatic());
 	}
 	
-	/**
-	 * @see ICVSRemoteFolder#forTag(CVSTag)
-	 */
+	@Override
 	public ICVSRemoteResource forTag(CVSTag tagName) {
-		return (ICVSRemoteFolder)forTag(null, tagName);
+		return forTag(null, tagName);
 	}
 
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSRemoteFolder#isDefinedModule()
-	 */
+	@Override
 	public boolean isDefinedModule() {
 		return false;
 	}
 	
-	/**
-	 * @see org.eclipse.team.internal.ccvs.core.resources.RemoteResource#getSyncInfo()
-	 */
+	@Override
 	public ResourceSyncInfo getSyncInfo() {
 		return new ResourceSyncInfo(getName());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.resources.RemoteResource#getSyncBytes()
-	 */
+	@Override
 	public byte[] getSyncBytes() {
 		try {
 			return folderInfo.getBytes();
@@ -574,23 +524,17 @@ public class RemoteFolder extends RemoteResource implements ICVSRemoteFolder, IC
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.sync.IRemoteResource#getContentIdentifier()
-	 */
+	@Override
 	public String getContentIdentifier() {
 		return getTag().getName();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.core.ICVSResource#isManaged()
-	 */
+	@Override
 	public boolean isManaged() {
 		return super.isManaged() && isCVSFolder();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.core.synchronize.ResourceVariant#fetchContents(org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void fetchContents(IProgressMonitor monitor) throws TeamException {
 		// This should not get called for folders
 	}

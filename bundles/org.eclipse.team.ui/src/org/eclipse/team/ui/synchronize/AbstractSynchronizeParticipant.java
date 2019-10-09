@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2017 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,14 +14,21 @@
 package org.eclipse.team.ui.synchronize;
 
 import org.eclipse.compare.CompareConfiguration;
-import org.eclipse.core.runtime.*;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.viewers.IBasicPropertyConstants;
 import org.eclipse.team.core.TeamException;
 import org.eclipse.team.core.synchronize.SyncInfo;
-import org.eclipse.team.internal.ui.*;
+import org.eclipse.team.internal.ui.IHelpContextIds;
+import org.eclipse.team.internal.ui.PropertyChangeHandler;
+import org.eclipse.team.internal.ui.TeamUIMessages;
+import org.eclipse.team.internal.ui.Utils;
 import org.eclipse.team.internal.ui.preferences.SyncViewerPreferencePage;
 import org.eclipse.team.internal.ui.registry.SynchronizeParticipantDescriptor;
 import org.eclipse.team.internal.ui.synchronize.SyncInfoModelElement;
@@ -264,7 +274,6 @@ public abstract class AbstractSynchronizeParticipant extends PlatformObject impl
 	 *		}
 	 * </pre>
 	 * where <code>PARTICIPANT_ID</code> is the id of the participant as defined in the plugin manifest.
-	 * </p>
 	 * @see org.eclipse.team.ui.synchronize.ISynchronizeParticipant#init(String, org.eclipse.ui.IMemento)
 	 */
 	@Override
@@ -282,13 +291,13 @@ public abstract class AbstractSynchronizeParticipant extends PlatformObject impl
 	public final ISynchronizePageConfiguration createPageConfiguration() {
 		SynchronizePageConfiguration configuration = new SynchronizePageConfiguration(this);
 		if (isViewerContributionsSupported()) {
-		    configuration.setProperty(ISynchronizePageConfiguration.P_OBJECT_CONTRIBUTION_ID, getId());
+			configuration.setProperty(ISynchronizePageConfiguration.P_OBJECT_CONTRIBUTION_ID, getId());
 		}
 		initializeConfiguration(configuration);
 		return configuration;
 	}
 
-    /**
+	/**
 	 * This method is invoked after a page configuration is created but before it is returned by the
 	 * <code>createPageConfiguration</code> method. Subclasses can implement this method to
 	 * tailor the configuration in ways appropriate to the participant.
@@ -314,13 +323,13 @@ public abstract class AbstractSynchronizeParticipant extends PlatformObject impl
 	 */
 	@Override
 	public void prepareCompareInput(ISynchronizeModelElement element, CompareConfiguration config, IProgressMonitor monitor) throws TeamException {
-	    SyncInfo sync = getSyncInfo(element);
-	    if (sync != null)
-	        Utils.updateLabels(sync, config, monitor);
-	    if (element instanceof SyncInfoModelElement) {
+		SyncInfo sync = getSyncInfo(element);
+		if (sync != null)
+			Utils.updateLabels(sync, config, monitor);
+		if (element instanceof SyncInfoModelElement) {
 			SyncInfoModelElement node = (SyncInfoModelElement)element;
-            (node).cacheContents(monitor);
-	    }
+			(node).cacheContents(monitor);
+		}
 	}
 
 	/*
@@ -330,16 +339,16 @@ public abstract class AbstractSynchronizeParticipant extends PlatformObject impl
 	 * @return the sync info for the element or <code>null</code>
 	 */
 	private SyncInfo getSyncInfo(ISynchronizeModelElement element) {
-	    if (element instanceof IAdaptable) {
-		    return ((IAdaptable)element).getAdapter(SyncInfo.class);
-	    }
-	    return null;
+		if (element instanceof IAdaptable) {
+			return ((IAdaptable)element).getAdapter(SyncInfo.class);
+		}
+		return null;
 	}
 
-    @Override
+	@Override
 	public PreferencePage[] getPreferencePages() {
-        return new PreferencePage[] { new SyncViewerPreferencePage() };
-    }
+		return new PreferencePage[] { new SyncViewerPreferencePage() };
+	}
 
 	/**
 	 * Return whether this participant supports the contribution of actions to
@@ -368,11 +377,11 @@ public abstract class AbstractSynchronizeParticipant extends PlatformObject impl
 	 * </pre>
 	 *
 	 *
-     * @return whether this participant supports the contribution of actions to
+	 * @return whether this participant supports the contribution of actions to
 	 * the context menu using the <code>org.eclipse.ui.popupMenus</code> extension point
-     * @since 3.1
-     */
-    protected boolean isViewerContributionsSupported() {
-        return false;
-    }
+	 * @since 3.1
+	 */
+	protected boolean isViewerContributionsSupported() {
+		return false;
+	}
 }

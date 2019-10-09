@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * Copyright (c) 2000, 2018 IBM Corporation and others.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -96,7 +99,7 @@ public class CVSFileHistory extends FileHistory {
 			monitor.beginTask(NLS.bind(CVSMessages.CVSFileHistory_0, cvsFile.getRepositoryRelativePath()), 300);
 			try {
 				ILogEntry[] entries = cvsFile
-						.getLogEntries(new SubProgressMonitor(monitor, 200));
+						.getLogEntries(SubMonitor.convert(monitor, 200));
 				
 				if (entries.length == 0){
 					//Get the parent folder
@@ -119,9 +122,9 @@ public class CVSFileHistory extends FileHistory {
 				
 				if (flag == IFileHistoryProvider.SINGLE_REVISION) {
 					String revisionNumber = cvsFile.getSyncInfo().getRevision();
-					for (int i = 0; i < entries.length; i++) {
-						if (entries[i].getRevision().equals(revisionNumber)) {
-							remoteRevisions = new IFileRevision[] {new CVSFileRevision(entries[i])};
+					for (ILogEntry entry : entries) {
+						if (entry.getRevision().equals(revisionNumber)) {
+							remoteRevisions = new IFileRevision[]{new CVSFileRevision(entry)};
 							revisions = new IFileRevision[1];
 							//copy over remote revisions
 							System.arraycopy(remoteRevisions, 0, revisions, 0, remoteRevisions.length);
@@ -131,20 +134,19 @@ public class CVSFileHistory extends FileHistory {
 
 				} else if (flag == IFileHistoryProvider.SINGLE_LINE_OF_DESCENT) {
 					CVSTag tempTag = cvsFile.getSyncInfo().getTag();
-					ArrayList entriesOfInterest = new ArrayList();
-					for (int i = 0; i < entries.length; i++) {
-						CVSTag[] tags = entries[i].getTags();
-						for (int j = 0; j < tags.length; j++) {
-							if (tags[j].getType() == tempTag.getType()) {
-								if (tempTag.getType() == CVSTag.BRANCH && tempTag.getName().equals(tags[j].getName())) {
-									entriesOfInterest.add(entries[i]);
+					ArrayList<ILogEntry> entriesOfInterest = new ArrayList<>();
+					for (ILogEntry entry : entries) {
+						CVSTag[] tags = entry.getTags();
+						for (CVSTag tag : tags) {
+							if (tag.getType() == tempTag.getType()) {
+								if (tempTag.getType() == CVSTag.BRANCH && tempTag.getName().equals(tag.getName())) {
+									entriesOfInterest.add(entry);
 									break;
 								} else {
-									entriesOfInterest.add(entries[i]);
+									entriesOfInterest.add(entry);
 									break;
 								}
 							}
-
 						}
 					}
 
@@ -169,8 +171,8 @@ public class CVSFileHistory extends FileHistory {
 						//get the local revisions
 						IFileState[] localHistoryState;
 						try {
-							localHistoryState = ((IFile) localResource).getHistory(new SubProgressMonitor(monitor, 100));
-							localRevisions = convertToFileRevision(localHistoryState, new SubProgressMonitor(monitor, 100));
+							localHistoryState = ((IFile) localResource).getHistory(SubMonitor.convert(monitor, 100));
+							localRevisions = convertToFileRevision(localHistoryState, SubMonitor.convert(monitor, 100));
 							includesExists = (localRevisions.length > 0);
 						} catch (CoreException e) {
 							TeamException.asTeamException(e);
@@ -221,9 +223,10 @@ public class CVSFileHistory extends FileHistory {
 
 	public IFileRevision getFileRevision(String id) {
 		IFileRevision[] revisions = getFileRevisions();
-		for (int i = 0; i < revisions.length; i++) {
-			if (revisions[i].getContentIdentifier().equals(id))
-				return revisions[i];
+		for (IFileRevision revision : revisions) {
+			if (revision.getContentIdentifier().equals(id)) {
+				return revision;
+			}
 		}
 		return null;
 	}
@@ -235,15 +238,16 @@ public class CVSFileHistory extends FileHistory {
 		//the predecessor is the file with a timestamp that is the largest timestamp
 		//from the set of all timestamps smaller than the root file's timestamp
 		IFileRevision fileRevision = null;
-		for (int i = 0; i < revisions.length; i++) {
-			if (((CVSFileRevision) revisions[i]).isPredecessorOf(revision)) {
+		for (IFileRevision r : revisions) {
+			if (((CVSFileRevision) r).isPredecessorOf(revision)) {
 				//no revision has been set as of yet
-				if (fileRevision == null)
-					fileRevision = revisions[i];
+				if (fileRevision == null) {
+					fileRevision = r;
+				}
 				//this revision is a predecessor - now check to see if it comes
 				//after the current predecessor, if it does make it the current predecessor
-				if (revisions[i].getTimestamp() > fileRevision.getTimestamp()) {
-					fileRevision = revisions[i];
+				if (r.getTimestamp() > fileRevision.getTimestamp()) {
+					fileRevision = r;
 				}
 			}
 		}
@@ -257,14 +261,14 @@ public class CVSFileHistory extends FileHistory {
 
 		//the predecessor is the file with a timestamp that is the largest timestamp
 		//from the set of all timestamps smaller than the root file's timestamp
-		ArrayList directDescendents = new ArrayList();
+		ArrayList<IFileRevision> directDescendents = new ArrayList<>();
 
-		for (int i = 0; i < revisions.length; i++) {
-			if (((CVSFileRevision) revisions[i]).isDescendentOf(revision)) {
-				directDescendents.add(revisions[i]);
+		for (IFileRevision r : revisions) {
+			if (((CVSFileRevision) r).isDescendentOf(revision)) {
+				directDescendents.add(r);
 			}
 		}
-		return (IFileRevision[]) directDescendents.toArray(new IFileRevision[directDescendents.size()]);
+		return directDescendents.toArray(new IFileRevision[directDescendents.size()]);
 	}
 
 	private IFileRevision[] convertToFileRevision(IFileState[] localRevisions, IProgressMonitor monitor) {
@@ -323,8 +327,8 @@ public class CVSFileHistory extends FileHistory {
 		includesExists = false;
 		if (localResource != null && localResource instanceof IFile) {
 			//get the local revisions
-			IFileState[] localHistoryState = ((IFile) localResource).getHistory(new SubProgressMonitor(monitor, 100));
-			localRevisions = convertToFileRevision(localHistoryState, new SubProgressMonitor(monitor, 100));
+			IFileState[] localHistoryState = ((IFile) localResource).getHistory(SubMonitor.convert(monitor, 100));
+			localRevisions = convertToFileRevision(localHistoryState, SubMonitor.convert(monitor, 100));
 			includesExists = (localRevisions.length > 0);
 		}
 

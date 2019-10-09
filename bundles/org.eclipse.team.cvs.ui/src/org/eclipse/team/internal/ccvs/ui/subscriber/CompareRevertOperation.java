@@ -1,19 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.team.internal.ccvs.ui.subscriber;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.compare.structuremergeviewer.IDiffElement;
 import org.eclipse.core.resources.IProject;
@@ -33,18 +33,14 @@ public class CompareRevertOperation extends CVSSubscriberOperation {
 		super(configuration, elements);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberAction#getJobName()
-	 */
+	@Override
 	protected String getJobName() {
 		SyncInfoSet syncSet = getSyncInfoSet();
 		return NLS.bind(CVSUIMessages.CompareRevertAction_0, new String[] { Integer.valueOf(syncSet.size()).toString() }); 
 
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.team.internal.ccvs.ui.subscriber.CVSSubscriberAction#run(org.eclipse.team.core.subscribers.MutableSyncInfoSet, org.eclipse.core.runtime.IProgressMonitor)
-	 */
+	@Override
 	protected void runWithProjectRule(IProject project, SyncInfoSet syncSet, IProgressMonitor monitor) throws TeamException {
 		SyncInfo[] changed = syncSet.getSyncInfos();
 		if (changed.length == 0) return;
@@ -57,9 +53,7 @@ public class CompareRevertOperation extends CVSSubscriberOperation {
 		// (incoming addition or previously pruned)
 		Set parentCreationElements = new HashSet();
 	
-		for (int i = 0; i < changed.length; i++) {
-			SyncInfo changedNode = changed[i];
-			
+		for (SyncInfo changedNode : changed) {
 			// Make sure that parent folders exist
 			SyncInfo parent = getParent(changedNode);
 			if (parent != null && isOutOfSync(parent)) {
@@ -102,8 +96,7 @@ public class CompareRevertOperation extends CVSSubscriberOperation {
 	
 	private void runUpdate(SyncInfo[] infos, IProgressMonitor monitor) throws TeamException {
 		monitor.beginTask(null, 100 * infos.length);
-		for (int i = 0; i < infos.length; i++) {
-			SyncInfo info = infos[i];
+		for (SyncInfo info : infos) {
 			makeRemoteLocal(info, Policy.subMonitorFor(monitor, 100));
 		}
 		monitor.done();
